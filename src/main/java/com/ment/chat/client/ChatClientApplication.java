@@ -1,13 +1,21 @@
 package com.ment.chat.client;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+
+import java.util.Arrays;
 
 @SpringBootApplication
+@ConfigurationPropertiesScan
+@Slf4j
 public class ChatClientApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ChatClientApplication.class, args);
+        var ctx = SpringApplication.run(ChatClientApplication.class, args);
+        Arrays.stream(ctx.getBeanDefinitionNames())
+                .forEach(beanName -> log.info("Bean: " + beanName));
     }
 
 }

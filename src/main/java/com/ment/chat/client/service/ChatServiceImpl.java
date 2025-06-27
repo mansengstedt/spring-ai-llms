@@ -1,7 +1,9 @@
 package com.ment.chat.client.service;
 
+import com.ment.chat.client.config.AppPropererties;
 import com.ment.chat.client.model.in.ConversationRequest;
 import com.ment.chat.client.model.out.ConversationResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.ai.chat.client.ChatClient;
@@ -21,30 +23,21 @@ import java.time.OffsetDateTime;
 @Aspect
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
 
     private MessageType messageType = MessageType.USER;
 
     @Qualifier("internalChatClient")
-    ChatClient internalChatClient;
+    private final ChatClient internalChatClient;
 
     @Qualifier("externalChatClient")
-    ChatClient externalChatClient;
+    private final ChatClient externalChatClient;
 
     @Qualifier("dockerChatClient")
-    ChatClient dockerChatClient;
+    private final ChatClient dockerChatClient;
 
-    private final ChatClient defaultChatClient;
-
-    public ChatServiceImpl(ChatClient.Builder chatClientBuilder,
-                           ChatClient internalChatClient,
-                           ChatClient externalChatClient,
-                           ChatClient dockerChatClient) {
-        this.defaultChatClient = chatClientBuilder.build();
-        this.internalChatClient = internalChatClient;
-        this.externalChatClient = externalChatClient;
-        this.dockerChatClient = dockerChatClient;
-    }
+    private final AppPropererties appProperties;
 
     @Override
     public ConversationResponse getExternalChatResponse(ConversationRequest conversationRequest) {
@@ -71,7 +64,7 @@ public class ChatServiceImpl implements ChatService {
                     .content();
             String model = getModelFromChatClient(defaultChatClient);
             */
-            Message message = createMessageAndToggleMessageType(conversationRequest.getPrompt());
+            Message message = createMessageAndToggleMessageType(conversationRequest.createPrompt());
             ChatClient.ChatClientRequestSpec reqSpec = chatClient
                     .prompt(Prompt.builder()
                             .messages(message)
@@ -84,9 +77,10 @@ public class ChatServiceImpl implements ChatService {
                     .call()
                     .chatResponse();
 
+            assert chatResponse != null;
             String model = chatResponse.getMetadata().getModel();
             String tokenUsage = chatResponse.getMetadata().getUsage().toString();
-            String llmAnswer = chatResponse.getResults().get(0).getOutput().getText();
+            String llmAnswer = chatResponse.getResults().getFirst().getOutput().getText();
             long stop = System.currentTimeMillis();
 
             ConversationResponse response =
@@ -108,10 +102,14 @@ public class ChatServiceImpl implements ChatService {
 
     private Message createMessageAndToggleMessageType(String prompt) {
         if (messageType == MessageType.USER) {
-            messageType = MessageType.ASSISTANT;
+            if (Boolean.TRUE == appProperties.toggle().messageType()) {
+                messageType = MessageType.ASSISTANT;
+            }
             return new UserMessage(prompt);
         } else if (messageType == MessageType.ASSISTANT) {
-            messageType = MessageType.USER;
+            if (Boolean.TRUE == appProperties.toggle().messageType()) {
+                messageType = MessageType.USER;
+            }
             return new AssistantMessage(prompt);
         } else {
             throw new IllegalStateException("Unknown message type: " + messageType);

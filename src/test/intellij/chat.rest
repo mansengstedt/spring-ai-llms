@@ -9,7 +9,7 @@ GET {{host}}/chat/haiku
 %}
 
 ### GET haiku with params
-GET {{host}}/chat/haiku?style=crazy,topic=Trump
+GET {{host}}/chat/haiku?style=crazy&topic=Trump
 
 > {%
     client.test("Status", function () {
@@ -43,12 +43,12 @@ Content-Type: application/json
     });
 %}
 
-### GET response from external LLM like chatGpt
+### GET response from external LLM like OpenAi/chatGpt
 POST {{host}}/chat/external
 Content-Type: application/json
 
 {
-  "prompt": "Are Trump and Musk friends",
+  "prompt": "Are Trump and Musk still friends",
   "style": "answer with max 10 word and end answer with Presently!"
 }
 

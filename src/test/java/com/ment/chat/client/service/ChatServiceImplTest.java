@@ -2,6 +2,7 @@ package com.ment.chat.client.service;
 
 import com.ment.chat.client.model.in.ConversationRequest;
 import com.ment.chat.client.model.out.ConversationResponse;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -22,26 +23,23 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@RequiredArgsConstructor
 class ChatServiceImplTest {
 
     @Mock
-    private ChatClient internalClient;
+    private final ChatClient internalClient;
 
     @Mock
-    private ChatClient externalClient;
+    private final ChatClient externalClient;
 
     @Mock
-    private ChatClient dockerClient;
+    private final ChatClient dockerClient;
 
     private ChatServiceImpl chatService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        chatService = new ChatServiceImpl(null, null, null, null);
-        chatService.internalChatClient = internalClient;
-        chatService.externalChatClient = externalClient;
-        chatService.dockerChatClient = dockerClient;
     }
 
     @Test

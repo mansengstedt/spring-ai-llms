@@ -10,9 +10,11 @@ import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import static com.ment.chat.client.config.Llm.LLM_DOCKER_AI_GEMMA_3;
+import java.util.Arrays;
+
+import static com.ment.chat.client.config.Llm.LLM_DOCKER_AI_DEEPSEEK_R1;
 import static com.ment.chat.client.config.Llm.LLM_OLLAMA_QWEN_3;
-import static com.ment.chat.client.config.Llm.LLM_OPEN_AI_GPT_O4_MINI;
+import static com.ment.chat.client.config.Llm.LLM_OPEN_AI_GPT_4O;
 
 @Configuration
 public class ChatServiceConfig {
@@ -21,25 +23,37 @@ public class ChatServiceConfig {
             .apiKey("NOT_NEEDED")
             .build();
 
-    @Bean("internalChatClient")
-    public ChatClient internalChatClient(OpenAiChatModel baseChatModel) {
-        return mutateClient(baseChatModel, LLM_OLLAMA_QWEN_3);
+    @Bean
+    public ChatClient internalChatClient(OpenAiChatModel baseChatModel, AppPropererties appPropererties) {
+        return mutateClient(baseChatModel,
+                nameToLlm(appPropererties.models().internal().llmModelName(), LLM_OLLAMA_QWEN_3),
+                appPropererties.models().internal().apiConnection());
     }
 
-    @Bean("externalChatClient")
-    public ChatClient externalChatClient(OpenAiChatModel baseChatModel) {
-        return mutateClient(baseChatModel, LLM_OPEN_AI_GPT_O4_MINI);
+    @Bean
+    public ChatClient externalChatClient(OpenAiChatModel baseChatModel, AppPropererties appPropererties) {
+        return mutateClient(baseChatModel,
+                nameToLlm(appPropererties.models().external().llmModelName(), LLM_OPEN_AI_GPT_4O),
+                appPropererties.models().external().apiConnection());
     }
 
-    @Bean("dockerChatClient")
-    public ChatClient dockerChatClient(OpenAiChatModel baseChatModel) {
-        return mutateClient(baseChatModel, LLM_DOCKER_AI_GEMMA_3);
+    @Bean
+    public ChatClient dockerChatClient(OpenAiChatModel baseChatModel, AppPropererties appPropererties) {
+        return mutateClient(baseChatModel,
+                nameToLlm(appPropererties.models().docker().llmModelName(), LLM_DOCKER_AI_DEEPSEEK_R1),
+                appPropererties.models().docker().apiConnection());
     }
 
+    private Llm nameToLlm(String name, Llm defaultModel) {
+        return Arrays.stream(Llm.values())
+                .filter(llm -> llm.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(defaultModel);
+    }
 
-    private ChatClient mutateClient(OpenAiChatModel chatModel, Llm llm) {
+    private ChatClient mutateClient(OpenAiChatModel chatModel, Llm llm, AppPropererties.Models.ApiConnection apiConnection) {
         ChatMemory chatMemory = MessageWindowChatMemory.builder().build();
-        OpenAiApi api = configApi(llm.getApiConnection());
+        OpenAiApi api = configApi(apiConnection);
         OpenAiChatModel model = configChatModel(chatModel, api, llm);
         return ChatClient.builder(model)
                 .defaultSystem(llm.getSystem())
@@ -47,10 +61,10 @@ public class ChatServiceConfig {
                 .build();
     }
 
-    private OpenAiApi configApi(ApiConnection apiCONNECTION) {
+    private OpenAiApi configApi(AppPropererties.Models.ApiConnection apiConnection) {
         return baseOpenAiApi.mutate()
-                .baseUrl(apiCONNECTION.getUrl())
-                .apiKey(apiCONNECTION.getKey())
+                .baseUrl(apiConnection.url())
+                .apiKey(apiConnection.key())
                 .build();
     }
 
