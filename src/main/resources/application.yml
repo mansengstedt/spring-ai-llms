@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: spring-ai-llms
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+      WRITE_DURATIONS_AS_TIMESTAMPS: false
+    default-property-inclusion: NON_EMPTY
+    deserialization:
+      # From tech arch common recommendation
+      FAIL_ON_UNKNOWN_PROPERTIES: true
+      FAIL_ON_NULL_FOR_PRIMITIVES: true
+      FAIL_ON_NUMBERS_FOR_ENUMS: true
+      FAIL_ON_READING_DUP_TREE_KEY: true
+      FAIL_ON_TRAILING_TOKENS: true
+      ACCEPT_FLOAT_AS_INT: false
+    property-naming-strategy: SNAKE_CASE
+    parser:
+      strict-duplicate-detection: true
+  ai:
+    openai.api-key: ${OPEN_AI_KEY:NOT_NEEDED}
+    chat:
+      base-url: ${OPEN_AI_BASE_URL:http://localhost:12434/engines}
+      options:
+        model: ${OPEN_AI_MODEL:ai/llama3.2}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info,prometheus,health
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          # This service can not work without a DB
+          include: readinessState
