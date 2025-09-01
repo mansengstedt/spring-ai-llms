@@ -47,6 +47,10 @@ Client certificate is not used for external LLMs, but it can be configured in th
 ## Testing
 To test, you can use the IntelliJ HTTP client with the provided `.rest` files in the `src/test/intellij` directory.
 
+#Todo
+* add db to store requests/responses
+* add tests
+
 ## Prerequisites
 - Java 21 or higher
 - Ollama installed and running, do: `ollama serve`, with some models
