@@ -29,8 +29,8 @@ OpenApi account with quota must be opened and a key is generated for external cl
 If quota is exceeded, the service will return a 429 error code.
 
 The OpenAI API key can be generated on the following page: https://platform.openai.com/api-keys
-The generated key should be set in ApiConnection class.
-This should be changed to configure it in application.yml file in the future.
+The generated key is read outside the app in env variable `EXTERNAL_AI_CONNECTION_KEY`.
+Ollama and Docker keys are not needed.
 
 To see OpenApi account usage, goto https://platform.openai.com/usage
 
@@ -47,7 +47,7 @@ Client certificate is not used for external LLMs, but it can be configured in th
 ## Testing
 To test, you can use the IntelliJ HTTP client with the provided `.rest` files in the `src/test/intellij` directory.
 
-#Todo
+## Todo
 * add db to store requests/responses
 * add tests
 
