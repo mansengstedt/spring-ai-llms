@@ -50,6 +50,7 @@ To test, you can use the IntelliJ HTTP client with the provided `.rest` files in
 ## Todo
 * add db to store requests/responses
 * add tests
+* combine models in one end point
 
 ## Prerequisites
 - Java 21 or higher
