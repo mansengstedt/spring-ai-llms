@@ -1,5 +1,6 @@
 package com.ment.chat.client.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -17,6 +18,7 @@ import static com.ment.chat.client.config.Llm.LLM_OLLAMA_QWEN_3;
 import static com.ment.chat.client.config.Llm.LLM_OPEN_AI_GPT_4O;
 
 @Configuration
+@Slf4j
 public class ChatServiceConfig {
 
     private final OpenAiApi baseOpenAiApi = OpenAiApi.builder()
@@ -62,6 +64,7 @@ public class ChatServiceConfig {
     }
 
     private OpenAiApi configApi(AppPropererties.Models.ApiConnection apiConnection) {
+        log.info("Configuring OpenAiApi with apiConnection: {}", apiConnection);
         return baseOpenAiApi.mutate()
                 .baseUrl(apiConnection.url())
                 .apiKey(apiConnection.key())

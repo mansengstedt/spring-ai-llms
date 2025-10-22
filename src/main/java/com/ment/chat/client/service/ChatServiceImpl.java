@@ -64,7 +64,9 @@ public class ChatServiceImpl implements ChatService {
                     .content();
             String model = getModelFromChatClient(defaultChatClient);
             */
-            Message message = createMessageAndToggleMessageType(conversationRequest.createPrompt());
+            String prompt = conversationRequest.createPrompt();
+            log.info("Sending prompt to LLM: {}", prompt);
+            Message message = createMessageAndToggleMessageType(prompt);
             ChatClient.ChatClientRequestSpec reqSpec = chatClient
                     .prompt(Prompt.builder()
                             .messages(message)
