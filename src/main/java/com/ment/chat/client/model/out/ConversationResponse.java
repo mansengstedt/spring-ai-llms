@@ -23,7 +23,7 @@ public class ConversationResponse {
     @Schema(description = "Used llm", example = "llama3", requiredMode = Schema.RequiredMode.REQUIRED)
     String llm;
 
-    @Schema(description = "Usage of tokens", example = "promptTokens=45, ...", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Schema(description = "Usage of tokens", example = "promptTokens=52, completionTokens=227, totalTokens=279", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     String tokenUsage;
 
     @Schema(description = "execution time", requiredMode = Schema.RequiredMode.REQUIRED)

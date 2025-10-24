@@ -96,7 +96,7 @@ POST {{host}}/chat/external
 Content-Type: application/json
 
 {
-  "prompt": "Hope you understand the three different cases: 1 John and I have the same two parents. 2. John and I share one parent. 3. John and I have no parents in common.",
+  "prompt": "Hope you understand the three different cases: 1. John and I have the same two parents. 2. John and I share one parent. 3. John and I have no parents in common.",
   "style": "end answer with: I got it!"
 }
 

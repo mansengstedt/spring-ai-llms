@@ -4,6 +4,17 @@ server:
 spring:
   application:
     name: spring-ai-llms
+  datasource:
+    driver-class-name: oracle.jdbc.OracleDriver
+    url: ${ORACLE_SBAB_JDBCURL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
+  liquibase:
+    change-log: classpath:db/spring-ai-llms.changelog-master.yaml
+    # Default context is needed for the execution of change sets without context
+    contexts: default
+  jpa:
+    open-in-view: false
   jackson:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
@@ -70,3 +81,29 @@ management:
         readiness:
           # This service can not work without a DB
           include: readinessState
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: local-db-oracle
+  datasource:
+    url: jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=FREEPDB1)))
+    username: CONVERSATION_LOCAL
+    password: CONVERSATION_LOCAL
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: local-h2
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;Mode=Oracle
+    username: CONVERSATION_LOCAL
+    password: CONVERSATION_LOCAL
+  h2:
+    console:
+      enabled: true

@@ -1,6 +1,10 @@
 package com.ment.chat.client.service;
 
 import com.ment.chat.client.config.AppPropererties;
+import com.ment.chat.client.domain.Request;
+import com.ment.chat.client.domain.Response;
+import com.ment.chat.client.domain.repository.RequestRepository;
+import com.ment.chat.client.domain.repository.ResponseRepository;
 import com.ment.chat.client.model.in.ConversationRequest;
 import com.ment.chat.client.model.out.ConversationResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +23,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Aspect
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
+
+    private final RequestRepository requestRepository;
+
+    private final ResponseRepository responseRepository;
 
     private MessageType messageType = MessageType.USER;
 
@@ -66,6 +75,8 @@ public class ChatServiceImpl implements ChatService {
             */
             String prompt = conversationRequest.createPrompt();
             log.info("Sending prompt to chosen LLM: {}", prompt);
+            Request request = createRequest(prompt);
+            requestRepository.save(request);
             Message message = createMessageAndToggleMessageType(prompt);
             ChatClient.ChatClientRequestSpec reqSpec = chatClient
                     .prompt(Prompt.builder()
@@ -95,12 +106,15 @@ public class ChatServiceImpl implements ChatService {
                             .build();
 
             log.info("LLM answer: {}", llmAnswer);
+            Response llmResponse = createResponse(request.getRequestId(), response);
+            responseRepository.save(llmResponse);
             return response;
         } catch (Exception e) {
             log.error("Error in flow from {}", chatClient, e);
             throw e;
         }
     }
+
 
     private Message createMessageAndToggleMessageType(String prompt) {
         if (messageType == MessageType.USER) {
@@ -117,5 +131,21 @@ public class ChatServiceImpl implements ChatService {
             throw new IllegalStateException("Unknown message type: " + messageType);
         }
     }
+
+
+    private Request createRequest(String prompt) {
+        return new Request(UUID.randomUUID().toString(), prompt);
+    }
+
+    private Response createResponse(String requestId, ConversationResponse response) {
+        return new Response(UUID.randomUUID().toString(),
+                requestId,
+                response.getAnswer(),
+                response.getLlm(),
+                response.getTokenUsage(),
+                response.getExecutionTimeMs(),
+                response.getAnsweredAt());
+    }
+
 
 }
