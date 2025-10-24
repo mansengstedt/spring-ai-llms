@@ -12,7 +12,7 @@ import java.util.Arrays;
 @Slf4j
 public class ChatClientApplication {
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         var ctx = SpringApplication.run(ChatClientApplication.class, args);
         Arrays.stream(ctx.getBeanDefinitionNames())
                 .forEach(beanName -> log.info("Bean: " + beanName));
