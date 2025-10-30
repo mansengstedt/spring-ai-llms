@@ -18,7 +18,7 @@ public class Response {
 
     @Column(name = "RESPONSE_ID", nullable = false, updatable = false, length = 36)
     @Id
-    private String participantId;
+    private String responseId;
 
     @Column(name = "REQUEST_ID", nullable = false, updatable = false, length = 36)
     private String requestId;

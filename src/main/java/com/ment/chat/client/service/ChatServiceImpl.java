@@ -19,6 +19,7 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -34,6 +35,8 @@ public class ChatServiceImpl implements ChatService {
     private final RequestRepository requestRepository;
 
     private final ResponseRepository responseRepository;
+
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     private MessageType messageType = MessageType.USER;
 
@@ -77,6 +80,7 @@ public class ChatServiceImpl implements ChatService {
             log.info("Sending prompt to chosen LLM: {}", prompt);
             Request request = createRequest(prompt);
             requestRepository.save(request);
+            applicationEventPublisher.publishEvent(request);
             Message message = createMessageAndToggleMessageType(prompt);
             ChatClient.ChatClientRequestSpec reqSpec = chatClient
                     .prompt(Prompt.builder()
@@ -108,6 +112,7 @@ public class ChatServiceImpl implements ChatService {
             log.info("LLM answer: {}", llmAnswer);
             Response llmResponse = createResponse(request.getRequestId(), response);
             responseRepository.save(llmResponse);
+            applicationEventPublisher.publishEvent(llmResponse);
             return response;
         } catch (Exception e) {
             log.error("Error in flow from {}", chatClient, e);

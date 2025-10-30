@@ -12,10 +12,14 @@ import java.util.Arrays;
 @Slf4j
 public class ChatClientApplication {
 
+    private final boolean showBeans = false;
+
     static void main(String[] args) {
         var ctx = SpringApplication.run(ChatClientApplication.class, args);
-        Arrays.stream(ctx.getBeanDefinitionNames())
-                .forEach(beanName -> log.info("Bean: " + beanName));
-    }
+        if (ctx.getBean(ChatClientApplication.class).showBeans) {
+            Arrays.stream(ctx.getBeanDefinitionNames())
+                    .forEach(beanName -> log.info("Bean: " + beanName));
+        }
 
+    }
 }
