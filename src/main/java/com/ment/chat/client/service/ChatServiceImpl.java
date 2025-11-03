@@ -78,12 +78,10 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public FindConversationResponse getRequestWithResponses(String requestId) {
         return requestRepository.findById(requestId)
-                .map(request -> {
-                    return FindConversationResponse.builder()
-                            .prompt(request.getPrompt())
-                            .responses(transform(responseRepository.findByRequestId(requestId)))
-                            .build();
-                })
+                .map(request -> FindConversationResponse.builder()
+                        .prompt(request.getPrompt())
+                        .responses(transform(responseRepository.findByRequestId(requestId)))
+                        .build())
                 .orElseThrow(RequestNotFoundException::new);
     }
 
