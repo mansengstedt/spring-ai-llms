@@ -3,6 +3,7 @@ package com.ment.chat.client.controller;
 import com.ment.chat.client.aop.LogExecutionTime;
 import com.ment.chat.client.model.in.ConversationRequest;
 import com.ment.chat.client.model.out.ConversationResponse;
+import com.ment.chat.client.model.out.FindConversationResponse;
 import com.ment.chat.client.service.ChatService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -44,5 +45,21 @@ public class ChatController {
     @LogExecutionTime
     public ResponseEntity<ConversationResponse> chatWithDocker(@RequestBody @Valid ConversationRequest conversationRequest) {
         return ResponseEntity.ok(chatService.getDockerChatResponse(conversationRequest));
+    }
+
+    @PostMapping("/combine")
+    @LogExecutionTime
+    public ResponseEntity<ConversationResponse> chatWithAll(@RequestBody @Valid ConversationRequest conversationRequest) {
+        return ResponseEntity.ok(chatService.getChatResponses(conversationRequest));
+    }
+
+    @GetMapping("/request/{request-id}")
+    public ResponseEntity<FindConversationResponse> getRequestWithResponses(@PathVariable("request-id") String requestId) {
+        return ResponseEntity.ok(chatService.getRequestWithResponses(requestId));
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<String> status() {
+        return ResponseEntity.ok("Chat Service is running.");
     }
 }

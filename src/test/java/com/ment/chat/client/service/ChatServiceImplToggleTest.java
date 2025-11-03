@@ -1,6 +1,6 @@
 package com.ment.chat.client.service;
 
-import com.ment.chat.client.config.AppPropererties;
+import com.ment.chat.client.config.AppProperties;
 import com.ment.chat.client.model.in.ConversationRequest;
 import com.ment.chat.client.model.out.ConversationResponse;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +36,7 @@ class ChatServiceImplToggleTest {
     @Mock
     private ChatClient defaultClient;
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    private final AppPropererties appProperties;
+    private final AppProperties appProperties;
 
     private final ChatServiceImpl service;
 

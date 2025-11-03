@@ -6,7 +6,7 @@ import org.springframework.validation.annotation.Validated;
 
 @ConfigurationProperties(prefix = "app")
 @Validated
-public record AppPropererties(@NotNull Toggle toggle, @NotNull Models models) {
+public record AppProperties(@NotNull Toggle toggle, @NotNull Models models) {
 
     public record Toggle(@NotNull Boolean messageType,
                          @NotNull Boolean enableChat,

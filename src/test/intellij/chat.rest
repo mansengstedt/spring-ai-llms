@@ -43,6 +43,15 @@ Content-Type: application/json
     });
 %}
 
+### GET response from all LLMs like ollama, docker, OpenAi/chatGpt
+POST {{host}}/chat/combine
+Content-Type: application/json
+
+{
+  "prompt": "Are Trump and Musk in the Epstein files",
+  "style": "answer with max 10 word and end answer with Presently!"
+}
+
 ### GET response from external LLM like OpenAi/chatGpt
 POST {{host}}/chat/external
 Content-Type: application/json
@@ -120,6 +129,12 @@ Content-Type: application/json
         client.assert(response.status === 200, "Unexpected response status");
     });
 %}
+
+### GET one response from request
+GET {{host}}/chat/request/b2f45383-699b-416a-bc3c-17651640d82b
+
+### GET several responses from request
+GET {{host}}/chat/request/9a354362-1e9b-4878-8cb7-cc10b2365de4
 
 
 ### Info

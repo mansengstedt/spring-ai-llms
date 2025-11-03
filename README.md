@@ -42,15 +42,21 @@ Client certificate is not used for external LLMs, but it can be configured in th
 * /chat/internal chat with internal LLMs using Ollama
 * /chat/docker chat with docker LLMs using Docker
 * /chat/external chat with external LLMs using OpenAI
+* /chat/combine chat with all LLMs and combine answers
 
 
 ## Testing
 To test, you can use the IntelliJ HTTP client with the provided `.rest` files in the `src/test/intellij` directory.
 
 ## Todo
-* add db to store requests/responses
+* get request and responses from given requestId (fixed)
+* rename objects and methods
+* swagger
+* openAPI spec
+* remove ssl logging (fixed)
+* improve error messages
+* remove 2 transitive vulnerabilities:
 * add tests
-* combine models in one end point
 
 ## Prerequisites
 - Java 21 or higher

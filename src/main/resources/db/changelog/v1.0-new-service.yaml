@@ -15,9 +15,20 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: prompt
-                  type: VARCHAR(2048)
+                  type: CLOB
                   constraints:
                     nullable: false
+              - column:
+                  name: chat_id
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: true
+        - createIndex:
+            tableName: request
+            indexName: idx_request_chatId
+            columns:
+              - column:
+                  name: chat_id
         - createTable:
             tableName: response
             columns:
@@ -38,7 +49,7 @@ databaseChangeLog:
                     unique: true
               - column:
                   name: answer
-                  type: VARCHAR(2048)
+                  type: CLOB
                   constraints:
                     nullable: false
               - column:
@@ -61,3 +72,9 @@ databaseChangeLog:
                   type: TIMESTAMP
                   constraints:
                     nullable: false
+        - createIndex:
+            tableName: response
+            indexName: idx_response_answered_at
+            columns:
+              - column:
+                  name: answered_at
