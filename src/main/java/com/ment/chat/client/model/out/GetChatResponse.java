@@ -9,17 +9,14 @@ import lombok.extern.jackson.Jacksonized;
 
 import java.util.List;
 
-@Schema(title = "The found responses of request")
+@Schema(title = "The stored responses of a request")
 @Value
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Jacksonized
-public class FindConversationResponse {
+public class GetChatResponse {
 
-    @Schema(description = "Prompt", requiredMode = Schema.RequiredMode.REQUIRED)
-    String prompt;
-
-    @Schema(description = "Responses of request", requiredMode = Schema.RequiredMode.REQUIRED)
-    List<ConversationResponse> responses;
+    @Schema(description = "List of conversations", requiredMode = Schema.RequiredMode.REQUIRED)
+    List<GetConversationResponse> conversations;
 
 }

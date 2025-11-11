@@ -3,12 +3,15 @@ package com.ment.chat.client.service;
 import com.ment.chat.client.config.AppProperties;
 import com.ment.chat.client.domain.Request;
 import com.ment.chat.client.domain.Response;
+import com.ment.chat.client.domain.exception.ChatNotFoundException;
 import com.ment.chat.client.domain.exception.RequestNotFoundException;
 import com.ment.chat.client.domain.repository.RequestRepository;
 import com.ment.chat.client.domain.repository.ResponseRepository;
-import com.ment.chat.client.model.in.ConversationRequest;
-import com.ment.chat.client.model.out.ConversationResponse;
-import com.ment.chat.client.model.out.FindConversationResponse;
+import com.ment.chat.client.model.in.CreateConversationRequest;
+import com.ment.chat.client.model.out.ConversationRequest;
+import com.ment.chat.client.model.out.CreateConversationResponse;
+import com.ment.chat.client.model.out.GetChatResponse;
+import com.ment.chat.client.model.out.GetConversationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.Aspect;
@@ -56,38 +59,65 @@ public class ChatServiceImpl implements ChatService {
     private final AppProperties appProperties;
 
     @Override
-    public ConversationResponse getExternalChatResponse(ConversationRequest conversationRequest) {
+    public CreateConversationResponse getExternalChatResponse(CreateConversationRequest conversationRequest) {
         return getChatResponse(createUniqueId(), conversationRequest, externalChatClient);
     }
 
     @Override
-    public ConversationResponse getDockerChatResponse(ConversationRequest conversationRequest) {
+    public CreateConversationResponse getDockerChatResponse(CreateConversationRequest conversationRequest) {
         return getChatResponse(createUniqueId(), conversationRequest, dockerChatClient);
     }
 
     @Override
-    public ConversationResponse getInternalChatResponse(ConversationRequest conversationRequest) {
+    public CreateConversationResponse getInternalChatResponse(CreateConversationRequest conversationRequest) {
         return getChatResponse(createUniqueId(), conversationRequest, internalChatClient);
     }
 
     @Override
-    public ConversationResponse getChatResponses(ConversationRequest conversationRequest) {
+    public CreateConversationResponse getCombinedChatResponse(CreateConversationRequest conversationRequest) {
         return getChatResponses(createUniqueId(), conversationRequest, internalChatClient, externalChatClient, dockerChatClient);
     }
 
     @Override
-    public FindConversationResponse getRequestWithResponses(String requestId) {
+    public GetConversationResponse getConversation(String requestId) {
         return requestRepository.findById(requestId)
-                .map(request -> FindConversationResponse.builder()
-                        .prompt(request.getPrompt())
-                        .responses(transform(responseRepository.findByRequestId(requestId)))
+                .map(request -> GetConversationResponse.builder()
+                        .request(ConversationRequest.builder()
+                                .id(request.getRequestId())
+                                .prompt(request.getPrompt())
+                                .chatId(request.getChatId())
+                                .build())
+                        .responses(transform(request.getResponses()))
                         .build())
-                .orElseThrow(RequestNotFoundException::new);
+                .orElseThrow(() -> new RequestNotFoundException(requestId));
     }
 
-    private List<ConversationResponse> transform(List<Response> responses) {
+    @Override
+    public GetChatResponse getChat(String chatId) {
+        List<Request> requests = requestRepository.findByChatId(chatId);
+        if (requests.isEmpty()) {
+            throw new ChatNotFoundException(chatId);
+        }
+
+        return GetChatResponse.builder()
+                .conversations(requests
+                        .stream()
+                        .map(request -> GetConversationResponse.builder()
+                                .request(ConversationRequest.builder()
+                                        .id(request.getRequestId())
+                                        .prompt(request.getPrompt())
+                                        .chatId(request.getChatId())
+                                        .build())
+                                .responses(transform(request.getResponses()))
+                                .build())
+                        .toList())
+                .build();
+    }
+
+    private List<CreateConversationResponse> transform(List<Response> responses) {
         return responses.stream()
-                .map(resp -> ConversationResponse.builder()
+                .map(resp -> CreateConversationResponse.builder()
+                        .id(resp.getResponseId())
                         .answer(resp.getAnswer())
                         .llm(resp.getLlm())
                         .tokenUsage(resp.getTokenUsage())
@@ -97,7 +127,7 @@ public class ChatServiceImpl implements ChatService {
                 .toList();
     }
 
-    private ConversationResponse getChatResponse(String id, ConversationRequest conversationRequest, ChatClient chatClient) {
+    private CreateConversationResponse getChatResponse(String id, CreateConversationRequest conversationRequest, ChatClient chatClient) {
         try {
             /* simpler call, not using chat memory
             String llmAnswer = defaultChatClient
@@ -126,7 +156,7 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    private ConversationResponse getChatResponses(String id, ConversationRequest conversationRequest, ChatClient chatClient1, ChatClient chatClient2, ChatClient chatClient3) {
+    private CreateConversationResponse getChatResponses(String id, CreateConversationRequest conversationRequest, ChatClient chatClient1, ChatClient chatClient2, ChatClient chatClient3) {
         try {
             Message message = createSavePublishRequest(id, conversationRequest);
 
@@ -167,7 +197,7 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    private ChatClient.ChatClientRequestSpec createRequestSpec(ConversationRequest conversationRequest, ChatClient chatClient, Message message) {
+    private ChatClient.ChatClientRequestSpec createRequestSpec(CreateConversationRequest conversationRequest, ChatClient chatClient, Message message) {
         ChatClient.ChatClientRequestSpec reqSpec = chatClient
                 .prompt(Prompt.builder()
                         .messages(message)
@@ -179,7 +209,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
 
-    private Mono<ConversationResponse> combineResponses(long start, String requestId, Mono<ChatResponse> response1, Mono<ChatResponse> response2, Mono<ChatResponse> response3) {
+    private Mono<CreateConversationResponse> combineResponses(long start, String requestId, Mono<ChatResponse> response1, Mono<ChatResponse> response2, Mono<ChatResponse> response3) {
         return Mono.zip(response1, response2, response3)
                 .map(tuple -> {
                     OffsetDateTime now = OffsetDateTime.now();
@@ -195,7 +225,7 @@ public class ChatServiceImpl implements ChatService {
                 });
     }
 
-    private Message createSavePublishRequest(String requestId, ConversationRequest conversationRequest) {
+    private Message createSavePublishRequest(String requestId, CreateConversationRequest conversationRequest) {
         String prompt = conversationRequest.createPrompt();
         log.info("Sending prompt to LLMs: {}", prompt);
         Request request = createRequest(requestId, prompt, conversationRequest.getChatId());
@@ -204,20 +234,20 @@ public class ChatServiceImpl implements ChatService {
         return createMessageAndToggleMessageType(prompt);
     }
 
-    private ConversationResponse createSavePublishResponse(long execTime, String requestId, OffsetDateTime dateTime, ChatResponse response) {
-        ConversationResponse conversationResponse = ConversationResponse.builder()
+    private CreateConversationResponse createSavePublishResponse(long execTime, String requestId, OffsetDateTime dateTime, ChatResponse response) {
+        CreateConversationResponse createConversationResponse = CreateConversationResponse.builder()
                 .answer(response.getResults().getFirst().getOutput().getText())
                 .llm(response.getMetadata().getModel())
                 .tokenUsage(response.getMetadata().getUsage().toString())
                 .executionTimeMs(execTime)
                 .answeredAt(dateTime)
                 .build();
-        savePublishResponse(requestId, conversationResponse);
-        return conversationResponse;
+        savePublishResponse(requestId, createConversationResponse);
+        return createConversationResponse;
     }
 
-    private ConversationResponse createConversationResponses(long execTime, OffsetDateTime dateTime, String combinedAnswer) {
-        return ConversationResponse.builder()
+    private CreateConversationResponse createConversationResponses(long execTime, OffsetDateTime dateTime, String combinedAnswer) {
+        return CreateConversationResponse.builder()
                 .answer(combinedAnswer)
                 .llm("Combined Models")
                 .tokenUsage("N/A")
@@ -226,8 +256,8 @@ public class ChatServiceImpl implements ChatService {
                 .build();
     }
 
-    private void savePublishResponse(String requestId, ConversationResponse conversationResponse) {
-        Response llmResponse = createResponse(requestId, conversationResponse);
+    private void savePublishResponse(String requestId, CreateConversationResponse createConversationResponse) {
+        Response llmResponse = createResponse(requestId, createConversationResponse);
         responseRepository.save(llmResponse);
         applicationEventPublisher.publishEvent(llmResponse);
     }
@@ -253,7 +283,7 @@ public class ChatServiceImpl implements ChatService {
         return new Request(id, prompt, chatId, null);
     }
 
-    private Response createResponse(String requestId, ConversationResponse response) {
+    private Response createResponse(String requestId, CreateConversationResponse response) {
         return new Response(UUID.randomUUID().toString(),
                 requestId,
                 response.getAnswer(),

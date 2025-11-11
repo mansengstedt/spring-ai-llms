@@ -10,12 +10,15 @@ import lombok.extern.jackson.Jacksonized;
 
 import java.time.OffsetDateTime;
 
-@Schema(title = "Prompt Response")
+@Schema(title = "Requests Response")
 @Value
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Jacksonized
-public class ConversationResponse {
+public class CreateConversationResponse {
+
+    @Schema(description = "Id", requiredMode = Schema.RequiredMode.REQUIRED)
+    String id;
 
     @Schema(description = "Answer", requiredMode = Schema.RequiredMode.REQUIRED)
     String answer;

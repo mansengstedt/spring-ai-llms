@@ -131,10 +131,13 @@ Content-Type: application/json
 %}
 
 ### GET one response from request
-GET {{host}}/chat/request/b2f45383-699b-416a-bc3c-17651640d82b
+GET {{host}}/chat/request/b2f45383-699b-416a-bc3c-17651640d82bx
 
 ### GET several responses from request
 GET {{host}}/chat/request/9a354362-1e9b-4878-8cb7-cc10b2365de4
+
+### GET several responses from several request with same chatId
+GET {{host}}/chat/chat/x
 
 
 ### Info

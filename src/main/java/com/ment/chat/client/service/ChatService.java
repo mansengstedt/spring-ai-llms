@@ -1,18 +1,21 @@
 package com.ment.chat.client.service;
 
-import com.ment.chat.client.model.in.ConversationRequest;
-import com.ment.chat.client.model.out.ConversationResponse;
-import com.ment.chat.client.model.out.FindConversationResponse;
+import com.ment.chat.client.model.in.CreateConversationRequest;
+import com.ment.chat.client.model.out.CreateConversationResponse;
+import com.ment.chat.client.model.out.GetChatResponse;
+import com.ment.chat.client.model.out.GetConversationResponse;
 
 public interface ChatService {
 
-    ConversationResponse getExternalChatResponse(ConversationRequest conversationRequest);
+    CreateConversationResponse getExternalChatResponse(CreateConversationRequest conversationRequest);
 
-    ConversationResponse getDockerChatResponse(ConversationRequest conversationRequest);
+    CreateConversationResponse getDockerChatResponse(CreateConversationRequest conversationRequest);
 
-    ConversationResponse getInternalChatResponse(ConversationRequest conversationRequest);
+    CreateConversationResponse getInternalChatResponse(CreateConversationRequest conversationRequest);
 
-    ConversationResponse getChatResponses(ConversationRequest conversationRequest);
+    CreateConversationResponse getCombinedChatResponse(CreateConversationRequest conversationRequest);
 
-    FindConversationResponse getRequestWithResponses(String requestId);
+    GetConversationResponse getConversation(String requestId);
+
+    GetChatResponse getChat(String chatId);
 }

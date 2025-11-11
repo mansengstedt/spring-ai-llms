@@ -1,8 +1,8 @@
 package com.ment.chat.client.service;
 
 import com.ment.chat.client.config.AppProperties;
-import com.ment.chat.client.model.in.ConversationRequest;
-import com.ment.chat.client.model.out.ConversationResponse;
+import com.ment.chat.client.model.in.CreateConversationRequest;
+import com.ment.chat.client.model.out.CreateConversationResponse;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,13 +55,13 @@ class ChatServiceImplToggleTest {
         ChatResponse resp = chatResponse("ext-model", "answer-1");
         when(externalClient.prompt(any(Prompt.class)).call().chatResponse()).thenReturn(resp);
 
-        ConversationRequest req = ConversationRequest.builder()
+        CreateConversationRequest req = CreateConversationRequest.builder()
                 .prompt("Hi")
                 .chatId("c1")
                 .build();
 
-        ConversationResponse r1 = service.getExternalChatResponse(req);
-        ConversationResponse r2 = service.getExternalChatResponse(req);
+        CreateConversationResponse r1 = service.getExternalChatResponse(req);
+        CreateConversationResponse r2 = service.getExternalChatResponse(req);
 
         assertEquals("answer-1", r1.getAnswer());
         assertEquals("ext-model", r1.getLlm());
@@ -84,8 +84,8 @@ class ChatServiceImplToggleTest {
         ChatResponse resp = chatResponse("int-model", "internal");
         when(internalClient.prompt(any(Prompt.class)).call().chatResponse()).thenReturn(resp);
 
-        ConversationRequest req = ConversationRequest.builder().prompt("Ping").build();
-        ConversationResponse r = service.getInternalChatResponse(req);
+        CreateConversationRequest req = CreateConversationRequest.builder().prompt("Ping").build();
+        CreateConversationResponse r = service.getInternalChatResponse(req);
 
         assertEquals("internal", r.getAnswer());
         verify(internalClient).prompt(promptCaptor.capture());

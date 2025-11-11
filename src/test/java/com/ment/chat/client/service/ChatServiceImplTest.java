@@ -1,7 +1,7 @@
 package com.ment.chat.client.service;
 
-import com.ment.chat.client.model.in.ConversationRequest;
-import com.ment.chat.client.model.out.ConversationResponse;
+import com.ment.chat.client.model.in.CreateConversationRequest;
+import com.ment.chat.client.model.out.CreateConversationResponse;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,7 @@ class ChatServiceImplTest {
 
     @Test
     void testGetExternalChatResponse() {
-        ConversationRequest request = ConversationRequest.builder()
+        CreateConversationRequest request = CreateConversationRequest.builder()
                 .prompt("Test prompt")
                 .style("Test style")
                 .chatId("test-id")
@@ -53,7 +53,7 @@ class ChatServiceImplTest {
         ChatResponse chatResponse = mockChatResponse("Test model", new DefaultUsage(10, 20), "Test answer");
         when(externalClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        ConversationResponse response = chatService.getExternalChatResponse(request);
+        CreateConversationResponse response = chatService.getExternalChatResponse(request);
 
         assertEquals("Test answer", response.getAnswer());
         assertEquals("Test model", response.getLlm());
@@ -63,14 +63,14 @@ class ChatServiceImplTest {
 
     @Test
     void testGetInternalChatResponse() {
-        ConversationRequest request = ConversationRequest.builder()
+        CreateConversationRequest request = CreateConversationRequest.builder()
                 .prompt("Internal prompt")
                 .build();
 
         ChatResponse chatResponse = mockChatResponse("Internal model", new DefaultUsage(10, 20), "Internal answer");
         when(internalClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        ConversationResponse response = chatService.getInternalChatResponse(request);
+        CreateConversationResponse response = chatService.getInternalChatResponse(request);
 
         assertEquals("Internal answer", response.getAnswer());
         assertEquals("Internal model", response.getLlm());
@@ -80,14 +80,14 @@ class ChatServiceImplTest {
 
     @Test
     void testGetDockerChatResponse() {
-        ConversationRequest request = ConversationRequest.builder()
+        CreateConversationRequest request = CreateConversationRequest.builder()
                 .prompt("Docker prompt")
                 .build();
 
         ChatResponse chatResponse = mockChatResponse("Docker model", new DefaultUsage(10, 20), "Docker answer");
         when(dockerClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        ConversationResponse response = chatService.getDockerChatResponse(request);
+        CreateConversationResponse response = chatService.getDockerChatResponse(request);
 
         assertEquals("Docker answer", response.getAnswer());
         assertEquals("Docker model", response.getLlm());

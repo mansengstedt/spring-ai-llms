@@ -1,14 +1,18 @@
 package com.ment.chat.client.controller;
 
 import com.ment.chat.client.aop.LogExecutionTime;
-import com.ment.chat.client.model.in.ConversationRequest;
-import com.ment.chat.client.model.out.ConversationResponse;
-import com.ment.chat.client.model.out.FindConversationResponse;
+import com.ment.chat.client.model.in.CreateConversationRequest;
+import com.ment.chat.client.model.out.CreateConversationResponse;
+import com.ment.chat.client.model.out.GetChatResponse;
+import com.ment.chat.client.model.out.GetConversationResponse;
 import com.ment.chat.client.service.ChatService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Validated
 @RestController
 @RequestMapping("chat")
 public class ChatController {
@@ -20,10 +24,10 @@ public class ChatController {
     }
 
     @GetMapping("/haiku")
-    public ResponseEntity<ConversationResponse> haiku(@RequestParam(defaultValue = "funny") String style,
-                                                      @RequestParam(defaultValue = "christmas") String topic) {
+    public ResponseEntity<CreateConversationResponse> haiku(@RequestParam(defaultValue = "funny") String style,
+                                                            @RequestParam(defaultValue = "christmas") String topic) {
         return ResponseEntity.ok(chatService.getDockerChatResponse(
-                ConversationRequest.builder()
+                CreateConversationRequest.builder()
                         .prompt(String.format("Write a %s Haiku about %s!", style, topic))
                         .build()
         ));
@@ -31,31 +35,36 @@ public class ChatController {
 
     @PostMapping("/internal")
     @LogExecutionTime
-    public ResponseEntity<ConversationResponse> chatInternal(@RequestBody @Valid ConversationRequest conversationRequest) {
+    public ResponseEntity<CreateConversationResponse> chatInternal(@RequestBody @Valid CreateConversationRequest conversationRequest) {
         return ResponseEntity.ok(chatService.getInternalChatResponse(conversationRequest));
     }
 
     @PostMapping("/external")
     @LogExecutionTime
-    public ResponseEntity<ConversationResponse> chatExternal(@RequestBody @Valid ConversationRequest conversationRequest) {
+    public ResponseEntity<CreateConversationResponse> chatExternal(@RequestBody @Valid CreateConversationRequest conversationRequest) {
         return ResponseEntity.ok(chatService.getExternalChatResponse(conversationRequest));
     }
 
     @PostMapping("/docker")
     @LogExecutionTime
-    public ResponseEntity<ConversationResponse> chatWithDocker(@RequestBody @Valid ConversationRequest conversationRequest) {
+    public ResponseEntity<CreateConversationResponse> chatWithDocker(@RequestBody @Valid CreateConversationRequest conversationRequest) {
         return ResponseEntity.ok(chatService.getDockerChatResponse(conversationRequest));
     }
 
     @PostMapping("/combine")
     @LogExecutionTime
-    public ResponseEntity<ConversationResponse> chatWithAll(@RequestBody @Valid ConversationRequest conversationRequest) {
-        return ResponseEntity.ok(chatService.getChatResponses(conversationRequest));
+    public ResponseEntity<CreateConversationResponse> chatWithAll(@RequestBody @Valid CreateConversationRequest conversationRequest) {
+        return ResponseEntity.ok(chatService.getCombinedChatResponse(conversationRequest));
     }
 
     @GetMapping("/request/{request-id}")
-    public ResponseEntity<FindConversationResponse> getRequestWithResponses(@PathVariable("request-id") String requestId) {
-        return ResponseEntity.ok(chatService.getRequestWithResponses(requestId));
+    public ResponseEntity<GetConversationResponse> getRequestWithResponses(@PathVariable("request-id") @NotNull String requestId) {
+        return ResponseEntity.ok(chatService.getConversation(requestId));
+    }
+
+    @GetMapping("/chat/{chat-id}")
+    public ResponseEntity<GetChatResponse> getChat(@PathVariable("chat-id") @NotNull String chatId) {
+        return ResponseEntity.ok(chatService.getChat(chatId));
     }
 
     @GetMapping("/status")

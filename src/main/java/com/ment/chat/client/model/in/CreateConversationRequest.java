@@ -10,12 +10,12 @@ import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
-@Schema(title = "Prompt Request")
+@Schema(title = "Create Conversation Request")
 @Value
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Jacksonized
-public class ConversationRequest {
+public class CreateConversationRequest {
 
     @NotBlank
     @Size(min = 2, max = 40000, message = "Size must be between 2 and 40000 characters")
