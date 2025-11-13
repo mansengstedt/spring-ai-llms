@@ -1,7 +1,7 @@
 # Chatbot client 
 
-This service as a client, uses three different tools for chatting with different LLMs,
-Ollama, Docker and OpenAI.
+This service as a client, uses many different tools for chatting with different LLMs like
+Ollama, Docker, Anthropic and OpenAI.
 
 ### Ollama
 Install Ollama and download some models.
@@ -9,6 +9,8 @@ Install Ollama and download some models.
 Available models are: qwen3, llama3, ...
 
 To install and download Ollama locally with some models, see https://ollama.com/docs/installation
+
+Ollama API key is not needed.
 
 ### Docker
 Install Docker LLMs with downloaded models.
@@ -19,6 +21,8 @@ To install and download Docker with some models, see https://docs.docker.com/ai/
 
 Specifically, add TCP support with port 12434.
 
+Docker API key is not needed.
+
 ### OpenAI
 LLMs using OpenAI API.
 
@@ -26,15 +30,30 @@ Available models are: gpt-4o, gpt-4o-mini, gpt-4.1-nano, o4-mini, gpt-5, gpt-5-n
 see https://platform.openai.com/docs/models
 
 OpenApi account with quota must be opened and a key is generated for external clients to use, see https://platform.openai.com/signup,
-If quota is exceeded, the service will return a 429 error code.
+If quota is exceeded/unavailable, the service will return a 429 error code.
 
 The OpenAI API key can be generated on the following page: https://platform.openai.com/api-keys
 The generated key is read outside the app in env variable `OPEN_AI_CONNECTION_KEY`.
-Ollama and Docker keys are not needed.
 
 To see OpenApi account usage, goto https://platform.openai.com/usage
 
 Client certificate is not used for external LLMs, but it can be configured in the application.yml file.
+
+### Anthropic
+LLMs using Anthropic API.
+
+Available models are: claude-sonnet-4-20250514, claude-sonnet-4-5-20250929, ...
+see https://www.anthropic.com/claude/sonnet
+
+Anthropic account with quota must be opened and a key is generated for external clients to use, 
+see https://console.anthropic.com/docs/en/home or https://console.anthropic.com/settings/organization.
+If quota is exceeded/unavailable, the service will return a 429 error code.
+
+The Anthropic API key can be generated on the following page: https://console.anthropic.com/settings/keys
+The generated key is read outside the app in env variable `ANTHROPIC_CONNECTION_KEY`.
+
+To see OpenApi account usage, goto https://console.anthropic.com/settings/billing or https://console.anthropic.com/usage
+
 
 ## Service End points
 
@@ -42,6 +61,7 @@ Client certificate is not used for external LLMs, but it can be configured in th
 * POST /chat/internal chat with internal LLMs using Ollama
 * POST /chat/docker chat with docker LLMs using Docker
 * POST /chat/openai chat with external LLMs using OpenAI
+* POST /chat/anthropic chat with external LLMs using Anthropic
 * POST /chat/combine chat with all LLMs and combine answers
 * GET /chat/request/{requestId} get request and responses from given requestId
 * GET /chat/chat/{chatId} get chat by chatId
@@ -57,7 +77,7 @@ To test, you can use the IntelliJ HTTP client with the provided `.rest` files in
 * swagger
 * openAPI spec
 * remove ssl logging (fixed)
-* improve error messages
+* improve error messages (partly fixed)
 * remove 2 transitive vulnerabilities:
 * add tests
 
@@ -66,3 +86,4 @@ To test, you can use the IntelliJ HTTP client with the provided `.rest` files in
 - Ollama installed and running, do: `ollama serve`, with some models
 - Docker installed and running with some models
 - OpenApi account, quota and key for external LLMs to use
+- Anthropic account, quota and key for external LLMs to use

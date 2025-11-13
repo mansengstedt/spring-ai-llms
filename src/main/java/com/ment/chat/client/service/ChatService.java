@@ -7,6 +7,8 @@ public interface ChatService {
 
     CreateConversationResponse getOpenAiChatResponse(CreateConversationRequest conversationRequest);
 
+    CreateConversationResponse getAnthropicChatResponse(CreateConversationRequest conversationRequest);
+
     CreateConversationResponse getDockerChatResponse(CreateConversationRequest conversationRequest);
 
     CreateConversationResponse getInternalChatResponse(CreateConversationRequest conversationRequest);

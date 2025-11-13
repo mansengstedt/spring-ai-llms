@@ -13,9 +13,10 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Arrays;
 
-import static com.ment.chat.client.config.Llm.LLM_DOCKER_AI_DEEPSEEK_R1;
+import static com.ment.chat.client.config.Llm.LLM_ANTHROPIC_CLAUDE_4_5;
+import static com.ment.chat.client.config.Llm.LLM_DOCKER_DEEPSEEK_R1;
 import static com.ment.chat.client.config.Llm.LLM_OLLAMA_QWEN_3;
-import static com.ment.chat.client.config.Llm.LLM_OPEN_AI_GPT_4O;
+import static com.ment.chat.client.config.Llm.LLM_OPEN_AI_GPT_5;
 
 @Configuration
 @Slf4j
@@ -35,14 +36,21 @@ public class ChatServiceConfig {
     @Bean
     public ChatClient openAiChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
         return mutateClient(baseChatModel,
-                nameToLlm(appProperties.models().openAi().llmModelName(), LLM_OPEN_AI_GPT_4O),
+                nameToLlm(appProperties.models().openAi().llmModelName(), LLM_OPEN_AI_GPT_5),
                 appProperties.models().openAi().apiConnection());
+    }
+
+    @Bean
+    public ChatClient anthropicChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
+        return mutateClient(baseChatModel,
+                nameToLlm(appProperties.models().anthropic().llmModelName(), LLM_ANTHROPIC_CLAUDE_4_5),
+                appProperties.models().anthropic().apiConnection());
     }
 
     @Bean
     public ChatClient dockerChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
         return mutateClient(baseChatModel,
-                nameToLlm(appProperties.models().docker().llmModelName(), LLM_DOCKER_AI_DEEPSEEK_R1),
+                nameToLlm(appProperties.models().docker().llmModelName(), LLM_DOCKER_DEEPSEEK_R1),
                 appProperties.models().docker().apiConnection());
     }
 

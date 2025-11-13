@@ -13,10 +13,12 @@ public record AppProperties(@NotNull Toggle toggle, @NotNull Models models) {
                           @NotNull Boolean enableChatHistory) {
     }
 
-    public record Models(@NotNull Internal internal, @NotNull OpenAi openAi, @NotNull Docker docker) {
+    public record Models(@NotNull Internal internal, @NotNull OpenAi openAi, @NotNull Anthropic anthropic, @NotNull Docker docker) {
         public record Internal(@NotNull String llmModelName, @NotNull ApiConnection apiConnection) {
         }
         public record OpenAi(@NotNull String llmModelName, @NotNull ApiConnection apiConnection) {
+        }
+        public record Anthropic(@NotNull String llmModelName, @NotNull ApiConnection apiConnection) {
         }
         public record Docker(@NotNull String llmModelName, @NotNull ApiConnection apiConnection) {
         }

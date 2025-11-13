@@ -43,12 +43,21 @@ Content-Type: application/json
     });
 %}
 
-### GET response from external LLM like OpenAi/chatGpt
+### GET response from external LLM Anthropic
+POST {{host}}/chat/anthropic
+Content-Type: application/json
+
+{
+  "prompt": "Are Trump and Musk still BFF friends",
+  "style": "answer with max 10 word and end answer with Presently!"
+}
+
+### GET response from external LLM OpenAi/chatGpt
 POST {{host}}/chat/openai
 Content-Type: application/json
 
 {
-  "prompt": "Are Trump and Musk still friends",
+  "prompt": "Are Trump and Musk still best friends",
   "style": "answer with max 10 word and end answer with Presently!"
 }
 
@@ -132,7 +141,7 @@ Content-Type: application/json
 
 
 ### GET one or several responses from request
-GET {{host}}/chat/request/1c019f7e-6e9d-4ef7-9cc9-888db028af55
+GET {{host}}/chat/request/945532c3-b241-4d8f-b773-8233370759f0
 
 ### GET several responses from several request with same chatId
 GET {{host}}/chat/chat/ping-chat-service-status
