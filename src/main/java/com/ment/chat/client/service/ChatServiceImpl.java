@@ -33,6 +33,7 @@ import reactor.core.publisher.Mono;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Aspect
@@ -254,10 +255,10 @@ public class ChatServiceImpl implements ChatService {
                     OffsetDateTime now = OffsetDateTime.now();
 
                     List<CreateConversationResponse> savePublishResponses = List.of(
-                            createSavePublishResponse(System.currentTimeMillis() - start, requestId, now, (ChatResponse) tuple.get(0)),
-                            createSavePublishResponse(System.currentTimeMillis() - start, requestId, now, (ChatResponse) tuple.get(1)),
-                            createSavePublishResponse(System.currentTimeMillis() - start, requestId, now, (ChatResponse) tuple.get(2)),
-                            createSavePublishResponse(System.currentTimeMillis() - start, requestId, now, (ChatResponse) tuple.get(3)));
+                            createSavePublishResponse(System.currentTimeMillis() - start, requestId, now, (ChatResponse) Objects.requireNonNull(tuple.get(0))),
+                            createSavePublishResponse(System.currentTimeMillis() - start, requestId, now, (ChatResponse) Objects.requireNonNull(tuple.get(1))),
+                            createSavePublishResponse(System.currentTimeMillis() - start, requestId, now, (ChatResponse) Objects.requireNonNull(tuple.get(2))),
+                            createSavePublishResponse(System.currentTimeMillis() - start, requestId, now, (ChatResponse) Objects.requireNonNull(tuple.get(3))));
 
                     return CreateCombinedConversationResponse.builder()
                             .conversationResponses(savePublishResponses)
