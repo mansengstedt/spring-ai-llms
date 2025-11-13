@@ -38,11 +38,14 @@ Client certificate is not used for external LLMs, but it can be configured in th
 
 ## Service End points
 
-* /haiku create a haiku with given parameters from Docker LLMs
-* /chat/internal chat with internal LLMs using Ollama
-* /chat/docker chat with docker LLMs using Docker
-* /chat/external chat with external LLMs using OpenAI
-* /chat/combine chat with all LLMs and combine answers
+* GET /haiku create a haiku with given parameters from Docker LLMs
+* POST /chat/internal chat with internal LLMs using Ollama
+* POST /chat/docker chat with docker LLMs using Docker
+* POST /chat/external chat with external LLMs using OpenAI
+* POST /chat/combine chat with all LLMs and combine answers
+* GET /chat/request/{requestId} get request and responses from given requestId
+* GET /chat/chat/{chatId} get chat by chatId
+* GET /chat/status get chat service status for all LLMs
 
 
 ## Testing

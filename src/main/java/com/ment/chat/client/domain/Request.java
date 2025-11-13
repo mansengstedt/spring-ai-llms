@@ -3,6 +3,7 @@ package com.ment.chat.client.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Entity
@@ -24,6 +25,9 @@ public class Request {
 
     @Column(name = "CHAT_ID", updatable = false, length = 128)
     private String chatId;
+
+    @Column(name = "QUERIED_AT", nullable = false, updatable = false)
+    private OffsetDateTime queriedAt;
 
     @OneToMany(mappedBy = "request", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, fetch = FetchType.EAGER)
     @OrderBy("llm asc")

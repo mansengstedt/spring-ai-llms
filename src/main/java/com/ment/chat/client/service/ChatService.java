@@ -1,9 +1,7 @@
 package com.ment.chat.client.service;
 
 import com.ment.chat.client.model.in.CreateConversationRequest;
-import com.ment.chat.client.model.out.CreateConversationResponse;
-import com.ment.chat.client.model.out.GetChatResponse;
-import com.ment.chat.client.model.out.GetConversationResponse;
+import com.ment.chat.client.model.out.*;
 
 public interface ChatService {
 
@@ -13,9 +11,11 @@ public interface ChatService {
 
     CreateConversationResponse getInternalChatResponse(CreateConversationRequest conversationRequest);
 
-    CreateConversationResponse getCombinedChatResponse(CreateConversationRequest conversationRequest);
+    CreateCombinedConversationResponse getCombinedChatResponse(CreateConversationRequest conversationRequest);
 
     GetConversationResponse getConversation(String requestId);
 
     GetChatResponse getChat(String chatId);
+
+    GetChatServiceStatusResponse getChatServiceStatus();
 }

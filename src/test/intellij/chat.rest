@@ -43,15 +43,6 @@ Content-Type: application/json
     });
 %}
 
-### GET response from all LLMs like ollama, docker, OpenAi/chatGpt
-POST {{host}}/chat/combine
-Content-Type: application/json
-
-{
-  "prompt": "Are Trump and Musk in the Epstein files",
-  "style": "answer with max 10 word and end answer with Presently!"
-}
-
 ### GET response from external LLM like OpenAi/chatGpt
 POST {{host}}/chat/external
 Content-Type: application/json
@@ -130,14 +121,24 @@ Content-Type: application/json
     });
 %}
 
-### GET one response from request
-GET {{host}}/chat/request/b2f45383-699b-416a-bc3c-17651640d82bx
+### GET response from all LLMs like ollama, docker, OpenAi/chatGpt
+POST {{host}}/chat/combine
+Content-Type: application/json
 
-### GET several responses from request
-GET {{host}}/chat/request/9a354362-1e9b-4878-8cb7-cc10b2365de4
+{
+  "prompt": "Are Trump and Musk in the Epstein files",
+  "style": "answer with max 10 word and end answer with Presently!"
+}
+
+
+### GET one or several responses from request
+GET {{host}}/chat/request/1c019f7e-6e9d-4ef7-9cc9-888db028af55
 
 ### GET several responses from several request with same chatId
-GET {{host}}/chat/chat/x
+GET {{host}}/chat/chat/ping-chat-service-status
+
+### GET status of all LLMs
+GET {{host}}/chat/status
 
 
 ### Info

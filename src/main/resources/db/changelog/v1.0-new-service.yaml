@@ -23,12 +23,25 @@ databaseChangeLog:
                   type: VARCHAR(128)
                   constraints:
                     nullable: true
+              - column:
+                  name: queried_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+
         - createIndex:
             tableName: request
             indexName: idx_request_chatId
             columns:
               - column:
                   name: chat_id
+        - createIndex:
+            tableName: request
+            indexName: idx_request_queried_at
+            columns:
+              - column:
+                  name: queried_at
+
         - createTable:
             tableName: response
             columns:

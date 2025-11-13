@@ -32,7 +32,7 @@ public class CreateConversationResponse {
     @Schema(description = "execution time", requiredMode = Schema.RequiredMode.REQUIRED)
     Long executionTimeMs;
 
-    @Schema(description = "Answer date of the request", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Answer time of the request", requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSxxx")
     OffsetDateTime answeredAt;
 

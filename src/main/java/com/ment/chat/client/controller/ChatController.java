@@ -2,9 +2,7 @@ package com.ment.chat.client.controller;
 
 import com.ment.chat.client.aop.LogExecutionTime;
 import com.ment.chat.client.model.in.CreateConversationRequest;
-import com.ment.chat.client.model.out.CreateConversationResponse;
-import com.ment.chat.client.model.out.GetChatResponse;
-import com.ment.chat.client.model.out.GetConversationResponse;
+import com.ment.chat.client.model.out.*;
 import com.ment.chat.client.service.ChatService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -53,7 +51,7 @@ public class ChatController {
 
     @PostMapping("/combine")
     @LogExecutionTime
-    public ResponseEntity<CreateConversationResponse> chatWithAll(@RequestBody @Valid CreateConversationRequest conversationRequest) {
+    public ResponseEntity<CreateCombinedConversationResponse> chatWithAll(@RequestBody @Valid CreateConversationRequest conversationRequest) {
         return ResponseEntity.ok(chatService.getCombinedChatResponse(conversationRequest));
     }
 
@@ -68,7 +66,7 @@ public class ChatController {
     }
 
     @GetMapping("/status")
-    public ResponseEntity<String> status() {
-        return ResponseEntity.ok("Chat Service is running.");
+    public ResponseEntity<GetChatServiceStatusResponse> status() {
+        return ResponseEntity.ok(chatService.getChatServiceStatus());
     }
 }

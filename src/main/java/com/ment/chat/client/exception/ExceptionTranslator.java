@@ -70,7 +70,7 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
         problemDetail.setTitle(API_ERROR);
-        problemDetail.setType(URI.create("llm call"));
+        problemDetail.setType(URI.create("llm-call"));
         return problemDetail;
     }
 
