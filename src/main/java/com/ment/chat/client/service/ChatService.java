@@ -5,7 +5,7 @@ import com.ment.chat.client.model.out.*;
 
 public interface ChatService {
 
-    CreateConversationResponse getExternalChatResponse(CreateConversationRequest conversationRequest);
+    CreateConversationResponse getOpenAiChatResponse(CreateConversationRequest conversationRequest);
 
     CreateConversationResponse getDockerChatResponse(CreateConversationRequest conversationRequest);
 

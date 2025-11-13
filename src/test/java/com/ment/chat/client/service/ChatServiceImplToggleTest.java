@@ -60,8 +60,8 @@ class ChatServiceImplToggleTest {
                 .chatId("c1")
                 .build();
 
-        CreateConversationResponse r1 = service.getExternalChatResponse(req);
-        CreateConversationResponse r2 = service.getExternalChatResponse(req);
+        CreateConversationResponse r1 = service.getOpenAiChatResponse(req);
+        CreateConversationResponse r2 = service.getOpenAiChatResponse(req);
 
         assertEquals("answer-1", r1.getAnswer());
         assertEquals("ext-model", r1.getLlm());

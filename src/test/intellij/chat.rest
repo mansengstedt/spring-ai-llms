@@ -44,7 +44,7 @@ Content-Type: application/json
 %}
 
 ### GET response from external LLM like OpenAi/chatGpt
-POST {{host}}/chat/external
+POST {{host}}/chat/openai
 Content-Type: application/json
 
 {
@@ -53,7 +53,7 @@ Content-Type: application/json
 }
 
 ### GET response using memory
-POST {{host}}/chat/external
+POST {{host}}/chat/openai
 Content-Type: application/json
 
 {
@@ -63,7 +63,7 @@ Content-Type: application/json
 }
 
 ### GET response relating to previous question
-POST {{host}}/chat/external
+POST {{host}}/chat/openai
 Content-Type: application/json
 
 {
@@ -73,7 +73,7 @@ Content-Type: application/json
 }
 
 ### GET response relating to previous question with correction
-POST {{host}}/chat/external
+POST {{host}}/chat/openai
 Content-Type: application/json
 
 {
@@ -83,7 +83,7 @@ Content-Type: application/json
 }
 
 ### GET response with complex relations
-POST {{host}}/chat/external
+POST {{host}}/chat/openai
 Content-Type: application/json
 
 {
@@ -92,7 +92,7 @@ Content-Type: application/json
 }
 
 ### GET response with correction
-POST {{host}}/chat/external
+POST {{host}}/chat/openai
 Content-Type: application/json
 
 {

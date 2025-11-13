@@ -33,10 +33,10 @@ public class ChatServiceConfig {
     }
 
     @Bean
-    public ChatClient externalChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
+    public ChatClient openAiChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
         return mutateClient(baseChatModel,
-                nameToLlm(appProperties.models().external().llmModelName(), LLM_OPEN_AI_GPT_4O),
-                appProperties.models().external().apiConnection());
+                nameToLlm(appProperties.models().openAi().llmModelName(), LLM_OPEN_AI_GPT_4O),
+                appProperties.models().openAi().apiConnection());
     }
 
     @Bean

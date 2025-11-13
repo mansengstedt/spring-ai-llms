@@ -48,11 +48,11 @@ app:
       api-connection:
         url: ${INTERNAL_AI_CONNECTION_URL:http://localhost:11434}
         key: ${INTERNAL_AI_CONNECTION_KEY:NOT_NEEDED}
-    external:
-      llm-model-name: ${EXTERNAL_LLM_MODEL_NAME:gpt-5}
+    open-ai:
+      llm-model-name: ${OPEN_AI_LLM_MODEL_NAME:gpt-5}
       api-connection:
-        url: ${EXTERNAL_AI_CONNECTION_URL:https://api.openai.com}
-        key: ${EXTERNAL_AI_CONNECTION_KEY}
+        url: ${OPEN_AI_CONNECTION_URL:https://api.openai.com}
+        key: ${OPEN_AI_CONNECTION_KEY}
     docker:
       llm-model-name: ${DOCKER_LLM_MODEL_NAME:unknown}
       api-connection:

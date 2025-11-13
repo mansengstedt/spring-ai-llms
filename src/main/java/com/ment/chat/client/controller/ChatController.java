@@ -37,10 +37,10 @@ public class ChatController {
         return ResponseEntity.ok(chatService.getInternalChatResponse(conversationRequest));
     }
 
-    @PostMapping("/external")
+    @PostMapping("/openai")
     @LogExecutionTime
     public ResponseEntity<CreateConversationResponse> chatExternal(@RequestBody @Valid CreateConversationRequest conversationRequest) {
-        return ResponseEntity.ok(chatService.getExternalChatResponse(conversationRequest));
+        return ResponseEntity.ok(chatService.getOpenAiChatResponse(conversationRequest));
     }
 
     @PostMapping("/docker")

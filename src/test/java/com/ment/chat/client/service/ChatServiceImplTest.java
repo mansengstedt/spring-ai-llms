@@ -43,7 +43,7 @@ class ChatServiceImplTest {
     }
 
     @Test
-    void testGetExternalChatResponse() {
+    void testGetOpenAiChatResponse() {
         CreateConversationRequest request = CreateConversationRequest.builder()
                 .prompt("Test prompt")
                 .style("Test style")
@@ -53,7 +53,7 @@ class ChatServiceImplTest {
         ChatResponse chatResponse = mockChatResponse("Test model", new DefaultUsage(10, 20), "Test answer");
         when(externalClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        CreateConversationResponse response = chatService.getExternalChatResponse(request);
+        CreateConversationResponse response = chatService.getOpenAiChatResponse(request);
 
         assertEquals("Test answer", response.getAnswer());
         assertEquals("Test model", response.getLlm());

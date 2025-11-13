@@ -20,7 +20,7 @@ To install and download Docker with some models, see https://docs.docker.com/ai/
 Specifically, add TCP support with port 12434.
 
 ### OpenAI
-External LLMs using OpenAI API.
+LLMs using OpenAI API.
 
 Available models are: gpt-4o, gpt-4o-mini, gpt-4.1-nano, o4-mini, gpt-5, gpt-5-nano, ...
 see https://platform.openai.com/docs/models
@@ -29,7 +29,7 @@ OpenApi account with quota must be opened and a key is generated for external cl
 If quota is exceeded, the service will return a 429 error code.
 
 The OpenAI API key can be generated on the following page: https://platform.openai.com/api-keys
-The generated key is read outside the app in env variable `EXTERNAL_AI_CONNECTION_KEY`.
+The generated key is read outside the app in env variable `OPEN_AI_CONNECTION_KEY`.
 Ollama and Docker keys are not needed.
 
 To see OpenApi account usage, goto https://platform.openai.com/usage
@@ -41,7 +41,7 @@ Client certificate is not used for external LLMs, but it can be configured in th
 * GET /haiku create a haiku with given parameters from Docker LLMs
 * POST /chat/internal chat with internal LLMs using Ollama
 * POST /chat/docker chat with docker LLMs using Docker
-* POST /chat/external chat with external LLMs using OpenAI
+* POST /chat/openai chat with external LLMs using OpenAI
 * POST /chat/combine chat with all LLMs and combine answers
 * GET /chat/request/{requestId} get request and responses from given requestId
 * GET /chat/chat/{chatId} get chat by chatId

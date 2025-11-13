@@ -52,8 +52,8 @@ public class ChatServiceImpl implements ChatService {
     @Qualifier("internalChatClient")
     private final ChatClient internalChatClient;
 
-    @Qualifier("externalChatClient")
-    private final ChatClient externalChatClient;
+    @Qualifier("openAiChatClient")
+    private final ChatClient openAiChatClient;
 
     @Qualifier("dockerChatClient")
     private final ChatClient dockerChatClient;
@@ -61,8 +61,8 @@ public class ChatServiceImpl implements ChatService {
     private final AppProperties appProperties;
 
     @Override
-    public CreateConversationResponse getExternalChatResponse(CreateConversationRequest conversationRequest) {
-        return getChatResponse(createUniqueId(), conversationRequest, externalChatClient);
+    public CreateConversationResponse getOpenAiChatResponse(CreateConversationRequest conversationRequest) {
+        return getChatResponse(createUniqueId(), conversationRequest, openAiChatClient);
     }
 
     @Override
@@ -77,7 +77,7 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public CreateCombinedConversationResponse getCombinedChatResponse(CreateConversationRequest conversationRequest) {
-        return getChatResponses(createUniqueId(), conversationRequest, internalChatClient, externalChatClient, dockerChatClient);
+        return getChatResponses(createUniqueId(), conversationRequest, internalChatClient, openAiChatClient, dockerChatClient);
     }
 
     @Override
