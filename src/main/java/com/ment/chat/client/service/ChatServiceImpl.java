@@ -1,6 +1,7 @@
 package com.ment.chat.client.service;
 
 import com.ment.chat.client.config.AppProperties;
+import com.ment.chat.client.config.LlmProvider;
 import com.ment.chat.client.domain.Request;
 import com.ment.chat.client.domain.Response;
 import com.ment.chat.client.domain.exception.ChatNotFoundException;
@@ -13,6 +14,7 @@ import com.ment.chat.client.model.out.CreateConversationResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
 import com.ment.chat.client.model.out.GetChatServiceStatusResponse;
 import com.ment.chat.client.model.out.GetConversationResponse;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.Aspect;
@@ -31,8 +33,11 @@ import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -64,6 +69,17 @@ public class ChatServiceImpl implements ChatService {
 
     private final AppProperties appProperties;
 
+    private Map<LlmProvider, ChatClient> chatClientMap;
+
+    @PostConstruct
+    private void chatClientMap() {
+        chatClientMap = new HashMap<>();
+        chatClientMap.put(LlmProvider.OLLAMA, internalChatClient);
+        chatClientMap.put(LlmProvider.DOCKER, dockerChatClient);
+        chatClientMap.put(LlmProvider.OPENAI, openAiChatClient);
+        chatClientMap.put(LlmProvider.ANTHROPIC, anthropicChatClient);
+    }
+
     @Override
     public CreateConversationResponse getOpenAiChatResponse(CreateConversationRequest conversationRequest) {
         return getChatResponse(createUniqueId(), conversationRequest, openAiChatClient);
@@ -86,7 +102,7 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public CreateCombinedConversationResponse getCombinedChatResponse(CreateConversationRequest conversationRequest) {
-        return getChatResponses(createUniqueId(), conversationRequest, internalChatClient, dockerChatClient, openAiChatClient, anthropicChatClient);
+        return getChatResponses(createUniqueId(), conversationRequest, chatClientMap);
     }
 
     @Override
@@ -148,7 +164,7 @@ public class ChatServiceImpl implements ChatService {
         List<GetChatServiceStatusResponse.ChatServiceStatus> statusList = combinedChatResponse.getConversationResponses().stream()
                 .map(response -> GetChatServiceStatusResponse.ChatServiceStatus.builder()
                         .status(response.getLlm() == null ? GetChatServiceStatusResponse.LlmStatus.UNAVAILABLE : GetChatServiceStatusResponse.LlmStatus.AVAILABLE)
-                        .llm(response.getLlm() == null ? "Unknown" : response.getLlm()) //TODO: how to dind llm when no anser by using chatclient data
+                        .llm(response.getLlm() == null ? "Unknown" : response.getLlm()) //TODO: how to handle llm when no answer by using chat client data
                         .build())
                 .toList();
         return GetChatServiceStatusResponse.builder()
@@ -203,21 +219,17 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    private CreateCombinedConversationResponse getChatResponses(String id, CreateConversationRequest conversationRequest, ChatClient chatClient1, ChatClient chatClient2, ChatClient chatClient3, ChatClient chatClient4) {
+    private CreateCombinedConversationResponse getChatResponses(String id, CreateConversationRequest conversationRequest, Map<LlmProvider, ChatClient> chatClients) {
         try {
             Message message = createSavePublishRequest(id, conversationRequest);
 
             long start = System.currentTimeMillis();
 
-            Mono<ChatResponse> call1 = callChatClient(conversationRequest, chatClient1, message);
+            List<Mono<ChatResponse>> responses = chatClients.values().stream()
+                    .map(chatClient -> callChatClient(conversationRequest, chatClient, message))
+                    .toList();
 
-            Mono<ChatResponse> call2 = callChatClient(conversationRequest, chatClient2, message);
-
-            Mono<ChatResponse> call3 = callChatClient(conversationRequest, chatClient3, message);
-
-            Mono<ChatResponse> call4 = callChatClient(conversationRequest, chatClient4, message);
-
-            return combineResponses(start, id, call1, call2, call3, call4)
+            return combineResponses(start, id, responses)
                     .block();
         } catch (Exception e) {
             log.error("Error in combined flow ", e);
@@ -232,8 +244,8 @@ public class ChatServiceImpl implements ChatService {
                                 .chatResponse())
                 .onErrorResume(e -> {
                     log.error("Error in chat call", e);
+                    // In case of error, return an empty ChatResponse to continue processing other LLMs
                     return Mono.fromSupplier(() -> new ChatResponse(List.of()));
-                    //return Mono.empty();
                 });
     }
 
@@ -248,22 +260,18 @@ public class ChatServiceImpl implements ChatService {
         return reqSpec;
     }
 
-
-    private Mono<CreateCombinedConversationResponse> combineResponses(long start, String requestId, Mono<ChatResponse> response1, Mono<ChatResponse> response2, Mono<ChatResponse> response3, Mono<ChatResponse> response4) {
-        return Mono.zip(response1, response2, response3, response4)
-                .map(tuple -> {
+    private Mono<CreateCombinedConversationResponse> combineResponses(long start, String requestId, List<Mono<ChatResponse>> responses) {
+        return Mono.zip(responses, tuples -> Arrays.stream(tuples)
+                .map(object -> {
                     OffsetDateTime now = OffsetDateTime.now();
-
-                    List<CreateConversationResponse> savePublishResponses = List.of(
-                            createSavePublishResponse(System.currentTimeMillis() - start, requestId, now, (ChatResponse) Objects.requireNonNull(tuple.get(0))),
-                            createSavePublishResponse(System.currentTimeMillis() - start, requestId, now, (ChatResponse) Objects.requireNonNull(tuple.get(1))),
-                            createSavePublishResponse(System.currentTimeMillis() - start, requestId, now, (ChatResponse) Objects.requireNonNull(tuple.get(2))),
-                            createSavePublishResponse(System.currentTimeMillis() - start, requestId, now, (ChatResponse) Objects.requireNonNull(tuple.get(3))));
-
-                    return CreateCombinedConversationResponse.builder()
+                    return createSavePublishResponse(System.currentTimeMillis() - start, requestId, now, (ChatResponse) Objects.requireNonNull(object));
+                })
+                .toList())
+                .map(savePublishResponses ->
+                    CreateCombinedConversationResponse.builder()
                             .conversationResponses(savePublishResponses)
-                            .build();
-                });
+                            .build()
+                );
     }
 
     private Message createSavePublishRequest(String requestId, CreateConversationRequest conversationRequest) {
