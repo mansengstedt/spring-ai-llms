@@ -1,17 +1,12 @@
 package com.ment.chat.client.service;
 
+import com.ment.chat.client.config.LlmProvider;
 import com.ment.chat.client.model.in.CreateConversationRequest;
 import com.ment.chat.client.model.out.*;
 
 public interface ChatService {
 
-    CreateConversationResponse getOpenAiChatResponse(CreateConversationRequest conversationRequest);
-
-    CreateConversationResponse getAnthropicChatResponse(CreateConversationRequest conversationRequest);
-
-    CreateConversationResponse getDockerChatResponse(CreateConversationRequest conversationRequest);
-
-    CreateConversationResponse getOllamaChatResponse(CreateConversationRequest conversationRequest);
+    CreateConversationResponse getChatResponse(CreateConversationRequest conversationRequest, LlmProvider llmProvider);
 
     CreateCombinedConversationResponse getCombinedChatResponse(CreateConversationRequest conversationRequest);
 

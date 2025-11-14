@@ -81,23 +81,8 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public CreateConversationResponse getOpenAiChatResponse(CreateConversationRequest conversationRequest) {
-        return getChatResponse(createUniqueId(), conversationRequest, LlmProvider.OPENAI, openAiChatClient);
-    }
-
-    @Override
-    public CreateConversationResponse getAnthropicChatResponse(CreateConversationRequest conversationRequest) {
-        return getChatResponse(createUniqueId(), conversationRequest, LlmProvider.ANTHROPIC, anthropicChatClient);
-    }
-
-    @Override
-    public CreateConversationResponse getDockerChatResponse(CreateConversationRequest conversationRequest) {
-        return getChatResponse(createUniqueId(), conversationRequest, LlmProvider.DOCKER, dockerChatClient);
-    }
-
-    @Override
-    public CreateConversationResponse getOllamaChatResponse(CreateConversationRequest conversationRequest) {
-        return getChatResponse(createUniqueId(), conversationRequest, LlmProvider.OLLAMA, ollamaChatClient);
+    public CreateConversationResponse getChatResponse(CreateConversationRequest conversationRequest, LlmProvider llmProvider) {
+        return getChatResponse(createUniqueId(), conversationRequest, llmProvider, chatClientMap.get(llmProvider));
     }
 
     @Override
@@ -228,7 +213,7 @@ public class ChatServiceImpl implements ChatService {
             long start = System.currentTimeMillis();
 
             List<Mono<Map.Entry<LlmProvider, ChatResponse>>> entryList = chatClients.entrySet().stream()
-                    .map(entry -> callChatClient(conversationRequest, entry, message))
+                    .map(entry -> callChatClient(conversationRequest, entry.getKey(), entry.getValue(), message))
                     .toList();
 
             return combineResponses(start, id, entryList)
@@ -239,15 +224,15 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    private Mono<Map.Entry<LlmProvider,ChatResponse>> callChatClient(CreateConversationRequest conversationRequest, Map.Entry<LlmProvider,ChatClient> chatClient, Message message) {
-        return Mono.fromSupplier(() -> Map.entry(chatClient.getKey(),
-                        createRequestSpec(conversationRequest, Objects.requireNonNull(chatClient.getValue()), message)
+    private Mono<Map.Entry<LlmProvider, ChatResponse>> callChatClient(CreateConversationRequest conversationRequest, LlmProvider llmProvider, ChatClient chatClient, Message message) {
+        return Mono.fromSupplier(() -> Map.entry(llmProvider,
+                        Objects.requireNonNull(createRequestSpec(conversationRequest, chatClient, message)
                                 .call()
-                                .chatResponse()))
+                                .chatResponse())))
                 .onErrorResume(e -> {
                     log.error("Error in chat call", e);
-                    // In case of error, return an empty ChatResponse to continue processing other LLMs
-                    return Mono.fromSupplier(() -> Map.entry(chatClient.getKey(), new ChatResponse(List.of())));
+                    // In case of error, return an empty ChatResponse with LlmProvider to continue processing other LLMs
+                    return Mono.fromSupplier(() -> Map.entry(llmProvider, new ChatResponse(List.of())));
                 });
     }
 
@@ -264,16 +249,27 @@ public class ChatServiceImpl implements ChatService {
 
     private Mono<CreateCombinedConversationResponse> combineResponses(long start, String requestId, List<Mono<Map.Entry<LlmProvider, ChatResponse>>> responses) {
         return Mono.zip(responses, tuples -> Arrays.stream(tuples)
-                        .map(object -> {
-                            OffsetDateTime now = OffsetDateTime.now();
-                            return createCombinedSavePublishResponse(System.currentTimeMillis() - start, requestId, now, (Map.Entry<LlmProvider, ChatResponse>) Objects.requireNonNull(object));
-                        })
+                        .map(object ->
+                                createCombinedSavePublishResponse(System.currentTimeMillis() - start, requestId, OffsetDateTime.now(), castMapEntry(object))
+                        )
                         .toList())
                 .map(savePublishResponses ->
                         CreateCombinedConversationResponse.builder()
                                 .conversationResponses(savePublishResponses)
                                 .build()
                 );
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map.Entry<LlmProvider, ChatResponse> castMapEntry(Object entry) {
+        if (entry instanceof Map.Entry<?, ?> castEntry) {
+            //castEntry can't be null here due to the instanceof check
+            if ((castEntry.getKey() instanceof LlmProvider) && (castEntry.getValue() instanceof ChatResponse)) {
+                // Now safe to cast both Key and Value but compiler can't see that type check is done unless Map.entry is created with correct types
+                return (Map.Entry<LlmProvider, ChatResponse>) castEntry;
+            }
+        }
+        throw new IllegalArgumentException("Null value(s) or invalid entry type(s): " + entry);
     }
 
     private Message createSavePublishRequest(String requestId, CreateConversationRequest conversationRequest) {
@@ -289,8 +285,9 @@ public class ChatServiceImpl implements ChatService {
         return createSavePublishResponse(execTime, requestId, dateTime, response.getKey(), response.getValue());
     }
 
+    @SuppressWarnings("ConstantConditions")
     private CreateConversationResponse createSavePublishResponse(long execTime, String requestId, OffsetDateTime dateTime, LlmProvider llmProvider, ChatResponse response) {
-        if (response.getResult() == null) {
+        if (Objects.isNull(response.getResult())) {
             // No answer received which might happen if LLM is not available
             return CreateConversationResponse.builder()
                     .llmProvider(llmProvider)

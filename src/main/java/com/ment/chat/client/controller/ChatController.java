@@ -1,6 +1,7 @@
 package com.ment.chat.client.controller;
 
 import com.ment.chat.client.aop.LogExecutionTime;
+import com.ment.chat.client.config.LlmProvider;
 import com.ment.chat.client.model.in.CreateConversationRequest;
 import com.ment.chat.client.model.out.*;
 import com.ment.chat.client.service.ChatService;
@@ -24,35 +25,20 @@ public class ChatController {
     @GetMapping("/haiku")
     public ResponseEntity<CreateConversationResponse> haiku(@RequestParam(defaultValue = "funny") String style,
                                                             @RequestParam(defaultValue = "christmas") String topic) {
-        return ResponseEntity.ok(chatService.getDockerChatResponse(
+        return ResponseEntity.ok(chatService.getChatResponse(
                 CreateConversationRequest.builder()
                         .prompt(String.format("Write a %s Haiku about %s!", style, topic))
-                        .build()
+                        .build(),
+                LlmProvider.OLLAMA
         ));
     }
 
-    @PostMapping("/ollama")
+    @PostMapping("/llm")
     @LogExecutionTime
-    public ResponseEntity<CreateConversationResponse> chatWithOllama(@RequestBody @Valid CreateConversationRequest conversationRequest) {
-        return ResponseEntity.ok(chatService.getOllamaChatResponse(conversationRequest));
-    }
-
-    @PostMapping("/openai")
-    @LogExecutionTime
-    public ResponseEntity<CreateConversationResponse> chatWithOpenAi(@RequestBody @Valid CreateConversationRequest conversationRequest) {
-        return ResponseEntity.ok(chatService.getOpenAiChatResponse(conversationRequest));
-    }
-
-    @PostMapping("/anthropic")
-    @LogExecutionTime
-    public ResponseEntity<CreateConversationResponse> chatWithAnthropic(@RequestBody @Valid CreateConversationRequest conversationRequest) {
-        return ResponseEntity.ok(chatService.getAnthropicChatResponse(conversationRequest));
-    }
-
-    @PostMapping("/docker")
-    @LogExecutionTime
-    public ResponseEntity<CreateConversationResponse> chatWithDocker(@RequestBody @Valid CreateConversationRequest conversationRequest) {
-        return ResponseEntity.ok(chatService.getDockerChatResponse(conversationRequest));
+    public ResponseEntity<CreateConversationResponse> chatWithLlm(
+            @RequestParam LlmProvider provider,
+            @RequestBody @Valid CreateConversationRequest conversationRequest) {
+        return ResponseEntity.ok(chatService.getChatResponse(conversationRequest, provider));
     }
 
     @PostMapping("/combine")

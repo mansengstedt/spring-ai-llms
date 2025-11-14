@@ -18,7 +18,7 @@ GET {{host}}/chat/haiku?style=crazy&topic=Trump
 %}
 
 ### GET response from internal LLM like ollama with a fact
-POST {{host}}/chat/ollama
+POST {{host}}/chat/llm?provider=OLLAMA
 Content-Type: application/json
 
 {
@@ -28,7 +28,7 @@ Content-Type: application/json
 }
 
 ### GET response from internal LLM like ollama
-POST {{host}}/chat/ollama
+POST {{host}}/chat/llm?provider=OLLAMA
 Content-Type: application/json
 
 {
@@ -44,7 +44,7 @@ Content-Type: application/json
 %}
 
 ### GET response from external LLM Anthropic
-POST {{host}}/chat/anthropic
+POST {{host}}/chat/llm?provider=ANTHROPIC
 Content-Type: application/json
 
 {
@@ -53,7 +53,7 @@ Content-Type: application/json
 }
 
 ### GET response from external LLM OpenAi/chatGpt
-POST {{host}}/chat/openai
+POST {{host}}/chat/llm?provider=OPENAI
 Content-Type: application/json
 
 {
@@ -62,7 +62,7 @@ Content-Type: application/json
 }
 
 ### GET response using memory
-POST {{host}}/chat/openai
+POST {{host}}/chat/llm?provider=OPENAI
 Content-Type: application/json
 
 {
@@ -72,7 +72,7 @@ Content-Type: application/json
 }
 
 ### GET response relating to previous question
-POST {{host}}/chat/openai
+POST {{host}}/chat/llm?provider=OPENAI
 Content-Type: application/json
 
 {
@@ -82,7 +82,7 @@ Content-Type: application/json
 }
 
 ### GET response relating to previous question with correction
-POST {{host}}/chat/openai
+POST {{host}}/chat/llm?provider=OPENAI
 Content-Type: application/json
 
 {
@@ -92,7 +92,7 @@ Content-Type: application/json
 }
 
 ### GET response with complex relations
-POST {{host}}/chat/openai
+POST {{host}}/chat/llm?provider=OPENAI
 Content-Type: application/json
 
 {
@@ -101,7 +101,7 @@ Content-Type: application/json
 }
 
 ### GET response with correction
-POST {{host}}/chat/openai
+POST {{host}}/chat/llm?provider=OPENAI
 Content-Type: application/json
 
 {
@@ -116,7 +116,7 @@ Content-Type: application/json
 %}
 
 ### GET LLM response from docker
-POST {{host}}/chat/docker
+POST {{host}}/chat/llm?provider=DOCKER
 Content-Type: application/json
 
 {
@@ -130,7 +130,7 @@ Content-Type: application/json
     });
 %}
 
-### GET response from all LLMs like ollama, docker, OpenAi/chatGpt
+### GET response from all LLMs like ollama, docker, openai, anthropic
 POST {{host}}/chat/combine
 Content-Type: application/json
 
@@ -141,7 +141,7 @@ Content-Type: application/json
 
 
 ### GET one or several responses from request
-GET {{host}}/chat/request/945532c3-b241-4d8f-b773-8233370759f0
+GET {{host}}/chat/request/2466e808-a176-4a7f-a09b-2d461ef033b5
 
 ### GET several responses from several request with same chatId
 GET {{host}}/chat/chat/ping-chat-service-status
