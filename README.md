@@ -57,12 +57,12 @@ To see OpenApi account usage, goto https://console.anthropic.com/settings/billin
 
 ## Service End points
 
-* GET /haiku create a haiku with given parameters from Docker LLMs
-* POST /chat/internal chat with internal LLMs using Ollama
-* POST /chat/docker chat with docker LLMs using Docker
-* POST /chat/openai chat with external LLMs using OpenAI
-* POST /chat/anthropic chat with external LLMs using Anthropic
-* POST /chat/combine chat with all LLMs and combine answers
+* GET /chat/haiku create a haiku with given parameters from Docker LLMs
+* POST /chat/llm?provider=OLLAMA chat with internal LLMs using Ollama
+* POST /chat/llm?provider=DOCKER chat with docker LLMs using Docker
+* POST /chat/llm?provider=OPENAI chat with external LLMs using OpenAI
+* POST /chat/llm?provider=ANTHROPIC chat with external LLMs using Anthropic
+* POST /chat/combine chat with all LLMs and return all answers
 * GET /chat/request/{requestId} get request and responses from given requestId
 * GET /chat/chat/{chatId} get chat by chatId
 * GET /chat/status get chat service status for all LLMs
