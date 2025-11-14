@@ -62,7 +62,7 @@ class ChatServiceImplTest {
     }
 
     @Test
-    void testGetInternalChatResponse() {
+    void testGetOllamaChatResponse() {
         CreateConversationRequest request = CreateConversationRequest.builder()
                 .prompt("Internal prompt")
                 .build();
@@ -70,7 +70,7 @@ class ChatServiceImplTest {
         ChatResponse chatResponse = mockChatResponse("Internal model", new DefaultUsage(10, 20), "Internal answer");
         when(internalClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        CreateConversationResponse response = chatService.getInternalChatResponse(request);
+        CreateConversationResponse response = chatService.getOllamaChatResponse(request);
 
         assertEquals("Internal answer", response.getAnswer());
         assertEquals("Internal model", response.getLlm());

@@ -85,7 +85,7 @@ class ChatServiceImplToggleTest {
         when(internalClient.prompt(any(Prompt.class)).call().chatResponse()).thenReturn(resp);
 
         CreateConversationRequest req = CreateConversationRequest.builder().prompt("Ping").build();
-        CreateConversationResponse r = service.getInternalChatResponse(req);
+        CreateConversationResponse r = service.getOllamaChatResponse(req);
 
         assertEquals("internal", r.getAnswer());
         verify(internalClient).prompt(promptCaptor.capture());

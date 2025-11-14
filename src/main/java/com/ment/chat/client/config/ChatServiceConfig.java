@@ -27,10 +27,10 @@ public class ChatServiceConfig {
             .build();
 
     @Bean
-    public ChatClient internalChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
+    public ChatClient ollamaChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
         return mutateClient(baseChatModel,
-                nameToLlm(appProperties.models().internal().llmModelName(), LLM_OLLAMA_QWEN_3),
-                appProperties.models().internal().apiConnection());
+                nameToLlm(appProperties.models().ollama().llmModelName(), LLM_OLLAMA_QWEN_3),
+                appProperties.models().ollama().apiConnection());
     }
 
     @Bean

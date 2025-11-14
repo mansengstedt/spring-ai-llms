@@ -1,6 +1,7 @@
 package com.ment.chat.client.model.out;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.ment.chat.client.config.LlmProvider;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -25,6 +26,9 @@ public class CreateConversationResponse {
 
     @Schema(description = "Used llm", example = "llama3", requiredMode = Schema.RequiredMode.REQUIRED)
     String llm;
+
+    @Schema(description = "Llm provider", example = "OPENAI", requiredMode = Schema.RequiredMode.REQUIRED)
+    LlmProvider llmProvider;
 
     @Schema(description = "Usage of tokens", example = "promptTokens=52, completionTokens=227, totalTokens=279", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     String tokenUsage;

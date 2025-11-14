@@ -1,5 +1,6 @@
 package com.ment.chat.client.domain;
 
+import com.ment.chat.client.config.LlmProvider;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,6 +28,10 @@ public class Response {
 
     @Column(name = "LLM", nullable = false, updatable = false, length = 100)
     private String llm;
+
+    @Column(name = "LLM_PROVIDER", nullable = false, updatable = false, length = 100)
+    @Enumerated(EnumType.STRING)
+    private LlmProvider llmProvider;
 
     @Column(name = "TOKEN_USAGE", nullable = false, updatable = false, length = 128)
     private String tokenUsage;

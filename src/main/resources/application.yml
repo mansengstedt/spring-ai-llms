@@ -47,11 +47,11 @@ app:
   toggle:
     message-type: false
   models:
-    internal:
-      llm-model-name: ${INTERNAL_LLM_MODEL_NAME:unknown}
+    ollama:
+      llm-model-name: ${OLLAMA_LLM_MODEL_NAME:unknown}
       api-connection:
-        url: ${INTERNAL_CONNECTION_URL:http://localhost:11434}
-        key: ${INTERNAL_CONNECTION_KEY:NOT_NEEDED}
+        url: ${OLLAMA_CONNECTION_URL:http://localhost:11434}
+        key: ${OLLAMA_CONNECTION_KEY:NOT_NEEDED}
     open-ai:
       llm-model-name: ${OPEN_AI_LLM_MODEL_NAME:openai-latest}
       api-connection:

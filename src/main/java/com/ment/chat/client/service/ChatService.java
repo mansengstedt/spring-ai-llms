@@ -11,7 +11,7 @@ public interface ChatService {
 
     CreateConversationResponse getDockerChatResponse(CreateConversationRequest conversationRequest);
 
-    CreateConversationResponse getInternalChatResponse(CreateConversationRequest conversationRequest);
+    CreateConversationResponse getOllamaChatResponse(CreateConversationRequest conversationRequest);
 
     CreateCombinedConversationResponse getCombinedChatResponse(CreateConversationRequest conversationRequest);
 

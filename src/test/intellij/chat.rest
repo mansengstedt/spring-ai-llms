@@ -18,7 +18,7 @@ GET {{host}}/chat/haiku?style=crazy&topic=Trump
 %}
 
 ### GET response from internal LLM like ollama with a fact
-POST {{host}}/chat/internal
+POST {{host}}/chat/ollama
 Content-Type: application/json
 
 {
@@ -28,7 +28,7 @@ Content-Type: application/json
 }
 
 ### GET response from internal LLM like ollama
-POST {{host}}/chat/internal
+POST {{host}}/chat/ollama
 Content-Type: application/json
 
 {

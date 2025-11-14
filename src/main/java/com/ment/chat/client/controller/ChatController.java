@@ -31,21 +31,21 @@ public class ChatController {
         ));
     }
 
-    @PostMapping("/internal")
+    @PostMapping("/ollama")
     @LogExecutionTime
-    public ResponseEntity<CreateConversationResponse> chatInternal(@RequestBody @Valid CreateConversationRequest conversationRequest) {
-        return ResponseEntity.ok(chatService.getInternalChatResponse(conversationRequest));
+    public ResponseEntity<CreateConversationResponse> chatWithOllama(@RequestBody @Valid CreateConversationRequest conversationRequest) {
+        return ResponseEntity.ok(chatService.getOllamaChatResponse(conversationRequest));
     }
 
     @PostMapping("/openai")
     @LogExecutionTime
-    public ResponseEntity<CreateConversationResponse> chatOpenAi(@RequestBody @Valid CreateConversationRequest conversationRequest) {
+    public ResponseEntity<CreateConversationResponse> chatWithOpenAi(@RequestBody @Valid CreateConversationRequest conversationRequest) {
         return ResponseEntity.ok(chatService.getOpenAiChatResponse(conversationRequest));
     }
 
     @PostMapping("/anthropic")
     @LogExecutionTime
-    public ResponseEntity<CreateConversationResponse> chatAnthropic(@RequestBody @Valid CreateConversationRequest conversationRequest) {
+    public ResponseEntity<CreateConversationResponse> chatWithAnthropic(@RequestBody @Valid CreateConversationRequest conversationRequest) {
         return ResponseEntity.ok(chatService.getAnthropicChatResponse(conversationRequest));
     }
 
