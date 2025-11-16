@@ -14,7 +14,7 @@ import static com.ment.chat.client.config.Systems.HELPFUL_SYSTEM_MAX_50;
 @RequiredArgsConstructor
 @Getter
 
-public enum Llm {
+public enum LlmConfig {
     LLM_OPEN_AI_GPT_4O(OPENAI,"gpt-4o", 0.7d, HELPFUL_SYSTEM_NO_LIMIT, false),
     LLM_OPEN_AI_GPT_4O_MINI(OPENAI,"gpt-4o-mini", 0.7d, HELPFUL_SYSTEM_MAX_100, false),
     LLM_OPEN_AI_GPT_41_NANO(OPENAI,"gpt-4.1-nano", 0.7d, HELPFUL_SYSTEM_MAX_50, false),

@@ -19,7 +19,7 @@ public class OpenAPIConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Spring client for LLMs")
+                        .title("Spring client for different LLM providers")
                         .version("1.0.0")
                         .description("REST API for client connected to different LLM providers")
                         .contact(new Contact()

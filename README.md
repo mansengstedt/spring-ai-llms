@@ -75,6 +75,7 @@ To test, you can use the IntelliJ HTTP client with the provided `.rest` files in
 * rename objects and methods
 * remove 2 transitive vulnerabilities:
 * add tests
+* add security
 * get request and responses from given requestId, use LLM provider  (fixed)
 * swagger (fixed)
 * openAPI spec (fixed)

@@ -13,10 +13,10 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Arrays;
 
-import static com.ment.chat.client.config.Llm.LLM_ANTHROPIC_CLAUDE_4_5;
-import static com.ment.chat.client.config.Llm.LLM_DOCKER_DEEPSEEK_R1;
-import static com.ment.chat.client.config.Llm.LLM_OLLAMA_QWEN_3;
-import static com.ment.chat.client.config.Llm.LLM_OPEN_AI_GPT_5;
+import static com.ment.chat.client.config.LlmConfig.LLM_ANTHROPIC_CLAUDE_4_5;
+import static com.ment.chat.client.config.LlmConfig.LLM_DOCKER_DEEPSEEK_R1;
+import static com.ment.chat.client.config.LlmConfig.LLM_OLLAMA_QWEN_3;
+import static com.ment.chat.client.config.LlmConfig.LLM_OPEN_AI_GPT_5;
 
 @Configuration
 @Slf4j
@@ -54,19 +54,19 @@ public class ChatServiceConfig {
                 appProperties.models().docker().apiConnection());
     }
 
-    private Llm nameToLlm(String name, Llm defaultModel) {
-        return Arrays.stream(Llm.values())
-                .filter(llm -> llm.getName().equalsIgnoreCase(name))
+    private LlmConfig nameToLlm(String name, LlmConfig defaultModel) {
+        return Arrays.stream(LlmConfig.values())
+                .filter(llmConfig -> llmConfig.getName().equalsIgnoreCase(name))
                 .findFirst()
                 .orElse(defaultModel);
     }
 
-    private ChatClient mutateClient(OpenAiChatModel chatModel, Llm llm, AppProperties.Models.ApiConnection apiConnection) {
+    private ChatClient mutateClient(OpenAiChatModel chatModel, LlmConfig llmConfig, AppProperties.Models.ApiConnection apiConnection) {
         ChatMemory chatMemory = MessageWindowChatMemory.builder().build();
         OpenAiApi api = configApi(apiConnection);
-        OpenAiChatModel model = configChatModel(chatModel, api, llm);
+        OpenAiChatModel model = configChatModel(chatModel, api, llmConfig);
         return ChatClient.builder(model)
-                .defaultSystem(llm.getSystem())
+                .defaultSystem(llmConfig.getSystem())
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
                 .build();
     }
@@ -79,12 +79,12 @@ public class ChatServiceConfig {
                 .build();
     }
 
-    private OpenAiChatModel configChatModel(OpenAiChatModel chatModel, OpenAiApi api, Llm llm) {
+    private OpenAiChatModel configChatModel(OpenAiChatModel chatModel, OpenAiApi api, LlmConfig llmConfig) {
         return chatModel.mutate()
                 .openAiApi(api)
                 .defaultOptions(OpenAiChatOptions.builder()
-                        .model(llm.getName())
-                        .temperature(llm.getTemperature())
+                        .model(llmConfig.getName())
+                        .temperature(llmConfig.getTemperature())
                         .build())
                 .build();
     }

@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping("chat")
-@Tag(name = "LLM client", description = "client for connecting to several LLM providers")
+@Tag(name = "Client of different LLM providers", description = "client for connecting to several LLM providers")
 public class ChatController {
 
     private final ChatService chatService;
