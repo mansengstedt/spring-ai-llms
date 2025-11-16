@@ -1,6 +1,7 @@
 package com.ment.chat.client.service;
 
 import com.ment.chat.client.config.AppProperties;
+import com.ment.chat.client.config.LlmProvider;
 import com.ment.chat.client.model.in.CreateConversationRequest;
 import com.ment.chat.client.model.out.CreateConversationResponse;
 import lombok.RequiredArgsConstructor;
@@ -60,8 +61,8 @@ class ChatServiceImplToggleTest {
                 .chatId("c1")
                 .build();
 
-        CreateConversationResponse r1 = service.getOpenAiChatResponse(req);
-        CreateConversationResponse r2 = service.getOpenAiChatResponse(req);
+        CreateConversationResponse r1 = service.getChatResponse(req, LlmProvider.OPENAI);
+        CreateConversationResponse r2 = service.getChatResponse(req, LlmProvider.OPENAI);
 
         assertEquals("answer-1", r1.getAnswer());
         assertEquals("ext-model", r1.getLlm());
@@ -85,7 +86,7 @@ class ChatServiceImplToggleTest {
         when(internalClient.prompt(any(Prompt.class)).call().chatResponse()).thenReturn(resp);
 
         CreateConversationRequest req = CreateConversationRequest.builder().prompt("Ping").build();
-        CreateConversationResponse r = service.getOllamaChatResponse(req);
+        CreateConversationResponse r = service.getChatResponse(req, LlmProvider.OLLAMA);
 
         assertEquals("internal", r.getAnswer());
         verify(internalClient).prompt(promptCaptor.capture());

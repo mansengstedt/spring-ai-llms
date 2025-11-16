@@ -1,5 +1,6 @@
 package com.ment.chat.client.service;
 
+import com.ment.chat.client.config.LlmProvider;
 import com.ment.chat.client.model.in.CreateConversationRequest;
 import com.ment.chat.client.model.out.CreateConversationResponse;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +54,7 @@ class ChatServiceImplTest {
         ChatResponse chatResponse = mockChatResponse("Test model", new DefaultUsage(10, 20), "Test answer");
         when(externalClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        CreateConversationResponse response = chatService.getOpenAiChatResponse(request);
+        CreateConversationResponse response = chatService.getChatResponse(request, LlmProvider.OPENAI);
 
         assertEquals("Test answer", response.getAnswer());
         assertEquals("Test model", response.getLlm());
@@ -70,7 +71,7 @@ class ChatServiceImplTest {
         ChatResponse chatResponse = mockChatResponse("Internal model", new DefaultUsage(10, 20), "Internal answer");
         when(internalClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        CreateConversationResponse response = chatService.getOllamaChatResponse(request);
+        CreateConversationResponse response = chatService.getChatResponse(request, LlmProvider.OLLAMA);
 
         assertEquals("Internal answer", response.getAnswer());
         assertEquals("Internal model", response.getLlm());
@@ -87,7 +88,7 @@ class ChatServiceImplTest {
         ChatResponse chatResponse = mockChatResponse("Docker model", new DefaultUsage(10, 20), "Docker answer");
         when(dockerClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        CreateConversationResponse response = chatService.getDockerChatResponse(request);
+        CreateConversationResponse response = chatService.getChatResponse(request, LlmProvider.DOCKER);
 
         assertEquals("Docker answer", response.getAnswer());
         assertEquals("Docker model", response.getLlm());
