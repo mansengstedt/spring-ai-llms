@@ -57,12 +57,12 @@ To see OpenApi account usage, goto https://console.anthropic.com/settings/billin
 
 ## Service End points
 
-* GET /chat/haiku create a haiku with given parameters from Docker LLMs
+* GET /chat/haiku?provider=ANTHROPIC create a haiku from Anthropic with given parameters from Docker LLMs
 * POST /chat/llm?provider=OLLAMA chat with internal LLMs using Ollama
 * POST /chat/llm?provider=DOCKER chat with docker LLMs using Docker
 * POST /chat/llm?provider=OPENAI chat with external LLMs using OpenAI
 * POST /chat/llm?provider=ANTHROPIC chat with external LLMs using Anthropic
-* POST /chat/combine chat with all LLMs and return all answers
+* POST /chat/llm/all chat with all LLMs and return all answers
 * GET /chat/request/{requestId} get request and responses from given requestId
 * GET /chat/chat/{chatId} get chat by chatId
 * GET /chat/status get chat service status for all LLMs
@@ -72,14 +72,14 @@ To see OpenApi account usage, goto https://console.anthropic.com/settings/billin
 To test, you can use the IntelliJ HTTP client with the provided `.rest` files in the `src/test/intellij` directory.
 
 ## Todo
-* get request and responses from given requestId (fixed)
 * rename objects and methods
-* swagger
-* openAPI spec
-* remove ssl logging (fixed)
-* improve error messages (partly fixed)
 * remove 2 transitive vulnerabilities:
 * add tests
+* get request and responses from given requestId, use LLM provider  (fixed)
+* swagger (fixed)
+* openAPI spec (fixed)
+* remove ssl logging (fixed)
+* improve error messages (partly fixed)
 
 ## Prerequisites
 - Java 21 or higher

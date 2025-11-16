@@ -9,7 +9,7 @@ import lombok.extern.jackson.Jacksonized;
 
 import java.util.List;
 
-@Schema(title = "The stored responses of a request")
+@Schema(description = "The stored responses of all requests in a chat")
 @Value
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)

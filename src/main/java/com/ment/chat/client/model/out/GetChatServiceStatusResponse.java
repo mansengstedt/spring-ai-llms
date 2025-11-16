@@ -10,7 +10,7 @@ import lombok.extern.jackson.Jacksonized;
 
 import java.util.List;
 
-@Schema(title = "Status of all connected LLMs")
+@Schema(description = "Status of all connected LLMs")
 @Value
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -26,13 +26,13 @@ public class GetChatServiceStatusResponse {
     @Jacksonized
     public static class ChatServiceStatus {
 
-        @Schema(description = "name of LLM", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "name of LLM", example = "OLLAMA", requiredMode = Schema.RequiredMode.REQUIRED)
         String llm;
 
-        @Schema(description = "status of LLM", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "status of LLM", example = "gpt-5", requiredMode = Schema.RequiredMode.REQUIRED)
         LlmStatus status;
 
-        @Schema(description = "provider of LLM", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "provider of LLM", example = "AVAILABLE", requiredMode = Schema.RequiredMode.REQUIRED)
         LlmProvider provider;
     }
 

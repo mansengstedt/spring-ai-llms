@@ -1,6 +1,6 @@
 
 ### GET haiku with default params
-GET {{host}}/chat/haiku
+GET {{host}}/chat/haiku?provider=DOCKER
 
 > {%
     client.test("Status", function () {
@@ -9,7 +9,7 @@ GET {{host}}/chat/haiku
 %}
 
 ### GET haiku with params
-GET {{host}}/chat/haiku?style=crazy&topic=Trump
+GET {{host}}/chat/haiku?provider=DOCKER&style=crazy&topic=Trump
 
 > {%
     client.test("Status", function () {
@@ -131,7 +131,7 @@ Content-Type: application/json
 %}
 
 ### GET response from all LLMs like ollama, docker, openai, anthropic
-POST {{host}}/chat/combine
+POST {{host}}/chat/llm/all
 Content-Type: application/json
 
 {

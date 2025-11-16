@@ -91,6 +91,20 @@ management:
           # This service can not work without a DB
           include: readinessState
 
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+    swagger-ui:
+      path: /swagger-ui.html
+      enabled: true
+      operationsSorter: method
+      tagsSorter: alpha
+      layout: BaseLayout
+      disable-swagger-default-url: true
+    packagesToScan: com.ment.chat.client.**
+    pathsToMatch: /api/**
+
 ---
 
 spring:

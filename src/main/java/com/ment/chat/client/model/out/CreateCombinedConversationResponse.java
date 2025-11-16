@@ -9,7 +9,7 @@ import lombok.extern.jackson.Jacksonized;
 
 import java.util.List;
 
-@Schema(title = "Combined Request Responses")
+@Schema(description = "The Combined Request Responses")
 @Value
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)

@@ -10,7 +10,7 @@ import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
-@Schema(title = "Create Conversation Request")
+@Schema(description = "Conversation Request specification")
 @Value
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -19,7 +19,7 @@ public class CreateConversationRequest {
 
     @NotBlank
     @Size(min = 2, max = 40000, message = "Size must be between 2 and 40000 characters")
-    @Schema(description = "prompt as free text", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "prompt as free text", example = "Who is the present president of USA", requiredMode = Schema.RequiredMode.REQUIRED)
     String prompt;
 
     @Size(max = 100, message = "Size must be max 100 characters")

@@ -11,7 +11,7 @@ import lombok.extern.jackson.Jacksonized;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-@Schema(title = "The stored responses of a request")
+@Schema(description = "The stored responses of a request")
 @Value
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -29,14 +29,14 @@ public class GetConversationResponse implements Comparable<GetConversationRespon
         return this.request.getQueriedAt().compareTo(other.request.getQueriedAt());
     }
 
-    @Schema(title = "Original Request")
+    @Schema(description = "Original Request of the Conversation")
     @Value
     @Builder
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @Jacksonized
     public static class ConversationRequest {
 
-        @Schema(description = "Id", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "Id", example = "f3ccfb64-95d7-4e6a-a9ef-1455a0f81f6e", requiredMode = Schema.RequiredMode.REQUIRED)
         String id;
 
         @Schema(description = "Prompt", example = "who is presently the best male golf player in Sweden", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -45,7 +45,7 @@ public class GetConversationResponse implements Comparable<GetConversationRespon
         @Schema(description = "chatId", example = "swedish-golf-player", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
         String chatId;
 
-        @Schema(description = "Query time of the request", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "Query time of the request", example = "2025-11-14T16:50:01.115667+01:00", requiredMode = Schema.RequiredMode.REQUIRED)
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSxxx")
         OffsetDateTime queriedAt;
 
