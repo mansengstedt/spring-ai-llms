@@ -1,6 +1,7 @@
 package com.ment.chat.client.model.out;
 
-import com.ment.chat.client.config.LlmProvider;
+import com.ment.chat.client.model.enums.LlmProvider;
+import com.ment.chat.client.model.enums.LlmStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -15,9 +16,9 @@ import java.util.List;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Jacksonized
-public class GetChatServiceStatusResponse {
+public class GetLlmProviderStatusResponse {
 
-    @Schema(description = "list of LLM status", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "list of LLM provider status", requiredMode = Schema.RequiredMode.REQUIRED)
     List<ChatServiceStatus> statusList;
 
     @Value
@@ -36,8 +37,4 @@ public class GetChatServiceStatusResponse {
         LlmProvider provider;
     }
 
-    public enum LlmStatus {
-        AVAILABLE,
-        UNAVAILABLE
-    }
 }

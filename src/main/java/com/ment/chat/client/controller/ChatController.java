@@ -1,12 +1,12 @@
 package com.ment.chat.client.controller;
 
 import com.ment.chat.client.aop.LogExecutionTime;
-import com.ment.chat.client.config.LlmProvider;
+import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.in.CreateConversationRequest;
 import com.ment.chat.client.model.out.CreateCombinedConversationResponse;
 import com.ment.chat.client.model.out.CreateConversationResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
-import com.ment.chat.client.model.out.GetChatServiceStatusResponse;
+import com.ment.chat.client.model.out.GetLlmProviderStatusResponse;
 import com.ment.chat.client.model.out.GetConversationResponse;
 import com.ment.chat.client.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -64,7 +64,7 @@ public class ChatController {
                     )
             )
     })
-    @GetMapping("/haiku")
+    @PostMapping("/llm/haiku")
     public ResponseEntity<CreateConversationResponse> haiku(
             @RequestParam LlmProvider provider,
             @Parameter(
@@ -247,7 +247,7 @@ public class ChatController {
                     description = "Status was found for all LLM providers",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = GetChatServiceStatusResponse.class)
+                            schema = @Schema(implementation = GetLlmProviderStatusResponse.class)
                     )
             ),
             @ApiResponse(
@@ -260,7 +260,7 @@ public class ChatController {
             )
     })
     @GetMapping("/status")
-    public ResponseEntity<GetChatServiceStatusResponse> status() {
-        return ResponseEntity.ok(chatService.getChatServiceStatus());
+    public ResponseEntity<GetLlmProviderStatusResponse> status() {
+        return ResponseEntity.ok(chatService.getLlmProviderStatus());
     }
 }

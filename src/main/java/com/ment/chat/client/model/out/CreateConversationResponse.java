@@ -1,7 +1,7 @@
 package com.ment.chat.client.model.out;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.ment.chat.client.config.LlmProvider;
+import com.ment.chat.client.model.enums.LlmProvider;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
