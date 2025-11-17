@@ -1,7 +1,8 @@
 package com.ment.chat.client.exception;
 
 import com.ment.chat.client.domain.exception.ChatNotFoundException;
-import com.ment.chat.client.domain.exception.RequestNotFoundException;
+import com.ment.chat.client.domain.exception.PromptNotFoundException;
+import jakarta.validation.ValidationException;
 import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -18,11 +19,11 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
     public static final String CLIENT_RAISED_EXCEPTION = "Client raised exception";
     public static final String GENERAL_ERROR = "General error";
     public static final String CHAT_NOT_FOUND = "Chat not found";
-    public static final String REQUEST_NOT_FOUND = "Request not found";
+    public static final String REQUEST_NOT_FOUND = "InteractionPrompt not found";
     public static final String API_ERROR = "API error";
 
-    @ExceptionHandler(RequestNotFoundException.class)
-    ProblemDetail handleRequestNotFoundException(RequestNotFoundException ex) {
+    @ExceptionHandler(PromptNotFoundException.class)
+    ProblemDetail handleRequestNotFoundException(PromptNotFoundException ex) {
         HttpStatus status = HttpStatus.NOT_FOUND;
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
         problemDetail.setTitle(REQUEST_NOT_FOUND);
@@ -41,6 +42,14 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(WebClientException.class)
     ProblemDetail handleWebClientException(WebClientException ex) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
+        problemDetail.setTitle(GENERAL_ERROR);
+        return problemDetail;
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    ProblemDetail handleValidationException(ValidationException ex) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
         problemDetail.setTitle(GENERAL_ERROR);

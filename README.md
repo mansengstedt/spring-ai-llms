@@ -57,26 +57,33 @@ To see OpenApi account usage, goto https://console.anthropic.com/settings/billin
 
 ## Service End points
 
-* GET /chat/haiku?provider=ANTHROPIC create a haiku from Anthropic with given parameters from Docker LLMs
+* POST /chat/haiku?provider=ANTHROPIC create a haiku from Anthropic with given parameters from Docker LLMs
 * POST /chat/llm?provider=OLLAMA chat with internal LLMs using Ollama
 * POST /chat/llm?provider=DOCKER chat with docker LLMs using Docker
 * POST /chat/llm?provider=OPENAI chat with external LLMs using OpenAI
 * POST /chat/llm?provider=ANTHROPIC chat with external LLMs using Anthropic
 * POST /chat/llm/all chat with all LLMs and return all answers
-* GET /chat/request/{requestId} get request and responses from given requestId
-* GET /chat/chat/{chatId} get chat by chatId
+* GET /chat/prompt/{prompt-id} get llmPrompt and completions from given llmPromptId
+* GET /chat/chat/{chat-id} get chat by chatId
 * GET /chat/status get chat service status for all LLMs
 
+
+## Model
+The main domain objects are:
+* Prompt - the prompt to send to the LLM stored with a unique prompt id
+* Completion - the completion returned from the LLM with a unique completion id and a unique prompt id
+* Interaction - the interaction containing a prompt and N completions sharing a prompt id
+* Chat - the chat containing a list of N interactions having the same chat id
 
 ## Testing
 To test, you can use the IntelliJ HTTP client with the provided `.rest` files in the `src/test/intellij` directory.
 
 ## Todo
-* rename objects and methods
 * remove 2 transitive vulnerabilities:
 * add tests
 * add security
-* get request and responses from given requestId, use LLM provider  (fixed)
+* rename objects and methods (fixed)
+* get llmPrompt and llmCompletions from given llmPromptId, use LLM provider  (fixed)
 * swagger (fixed)
 * openAPI spec (fixed)
 * remove ssl logging (fixed)

@@ -1,16 +1,20 @@
 package com.ment.chat.client.service;
 
 import com.ment.chat.client.model.enums.LlmProvider;
-import com.ment.chat.client.model.in.CreateConversationRequest;
-import com.ment.chat.client.model.out.*;
+import com.ment.chat.client.model.in.CreateCompletionRequest;
+import com.ment.chat.client.model.out.CreateCombinedCompletionResponse;
+import com.ment.chat.client.model.out.CreateCompletionResponse;
+import com.ment.chat.client.model.out.GetChatResponse;
+import com.ment.chat.client.model.out.GetInteractionResponse;
+import com.ment.chat.client.model.out.GetLlmProviderStatusResponse;
 
 public interface ChatService {
 
-    CreateConversationResponse getChatResponse(CreateConversationRequest conversationRequest, LlmProvider llmProvider);
+    CreateCompletionResponse createCompletion(CreateCompletionRequest completionRequest, LlmProvider llmProvider);
 
-    CreateCombinedConversationResponse getCombinedChatResponse(CreateConversationRequest conversationRequest);
+    CreateCombinedCompletionResponse createCombinedCompletion(CreateCompletionRequest completionRequest);
 
-    GetConversationResponse getConversation(String requestId);
+    GetInteractionResponse getInteraction(String promptId);
 
     GetChatResponse getChat(String chatId);
 

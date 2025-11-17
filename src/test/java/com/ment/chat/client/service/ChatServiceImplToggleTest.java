@@ -2,8 +2,8 @@ package com.ment.chat.client.service;
 
 import com.ment.chat.client.config.AppProperties;
 import com.ment.chat.client.model.enums.LlmProvider;
-import com.ment.chat.client.model.in.CreateConversationRequest;
-import com.ment.chat.client.model.out.CreateConversationResponse;
+import com.ment.chat.client.model.in.CreateCompletionRequest;
+import com.ment.chat.client.model.out.CreateCompletionResponse;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,15 +56,15 @@ class ChatServiceImplToggleTest {
         ChatResponse resp = chatResponse("ext-model", "answer-1");
         when(externalClient.prompt(any(Prompt.class)).call().chatResponse()).thenReturn(resp);
 
-        CreateConversationRequest req = CreateConversationRequest.builder()
+        CreateCompletionRequest req = CreateCompletionRequest.builder()
                 .prompt("Hi")
                 .chatId("c1")
                 .build();
 
-        CreateConversationResponse r1 = service.getChatResponse(req, LlmProvider.OPENAI);
-        CreateConversationResponse r2 = service.getChatResponse(req, LlmProvider.OPENAI);
+        CreateCompletionResponse r1 = service.getChatResponse(req, LlmProvider.OPENAI);
+        CreateCompletionResponse r2 = service.getChatResponse(req, LlmProvider.OPENAI);
 
-        assertEquals("answer-1", r1.getAnswer());
+        assertEquals("answer-1", r1.getInteractionCompletion());
         assertEquals("ext-model", r1.getLlm());
         assertNotNull(r1.getTokenUsage());
 
@@ -85,10 +85,10 @@ class ChatServiceImplToggleTest {
         ChatResponse resp = chatResponse("int-model", "internal");
         when(internalClient.prompt(any(Prompt.class)).call().chatResponse()).thenReturn(resp);
 
-        CreateConversationRequest req = CreateConversationRequest.builder().prompt("Ping").build();
-        CreateConversationResponse r = service.getChatResponse(req, LlmProvider.OLLAMA);
+        CreateCompletionRequest req = CreateCompletionRequest.builder().prompt("Ping").build();
+        CreateCompletionResponse r = service.getChatResponse(req, LlmProvider.OLLAMA);
 
-        assertEquals("internal", r.getAnswer());
+        assertEquals("internal", r.getInteractionCompletion());
         verify(internalClient).prompt(promptCaptor.capture());
         Message m = promptCaptor.getValue().getUserMessages().getFirst();
         assertTrue(m instanceof UserMessage);

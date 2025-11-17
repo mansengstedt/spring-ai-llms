@@ -18,7 +18,7 @@ import java.util.List;
 @Jacksonized
 public class GetLlmProviderStatusResponse {
 
-    @Schema(description = "list of LLM provider status", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "List of LLM provider status", requiredMode = Schema.RequiredMode.REQUIRED)
     List<ChatServiceStatus> statusList;
 
     @Value
@@ -27,13 +27,13 @@ public class GetLlmProviderStatusResponse {
     @Jacksonized
     public static class ChatServiceStatus {
 
-        @Schema(description = "name of LLM", example = "gpt-5", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "Name of LLM", example = "gpt-5", requiredMode = Schema.RequiredMode.REQUIRED)
         String llm;
 
-        @Schema(description = "status of LLM", example = "AVAILABLE", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "Status of LLM", example = "AVAILABLE", requiredMode = Schema.RequiredMode.REQUIRED)
         LlmStatus status;
 
-        @Schema(description = "provider of LLM", example = "OPENAI", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "Provider of LLM", example = "OPENAI", requiredMode = Schema.RequiredMode.REQUIRED)
         LlmProvider provider;
     }
 

@@ -5,10 +5,10 @@ databaseChangeLog:
       objectQuotingStrategy: LEGACY
       changes:
         - createTable:
-            tableName: request
+            tableName: llm_prompt
             columns:
               - column:
-                  name: request_id
+                  name: prompt_id
                   type: VARCHAR(36)
                   constraints:
                     primaryKey: true
@@ -24,44 +24,44 @@ databaseChangeLog:
                   constraints:
                     nullable: true
               - column:
-                  name: queried_at
+                  name: prompted_at
                   type: TIMESTAMP
                   constraints:
                     nullable: false
 
         - createIndex:
-            tableName: request
-            indexName: idx_request_chatId
+            tableName: llm_prompt
+            indexName: idx_llm_prompt_chatId
             columns:
               - column:
                   name: chat_id
         - createIndex:
-            tableName: request
-            indexName: idx_request_queried_at
+            tableName: llm_prompt
+            indexName: idx_llm_prompt_prompted_at
             columns:
               - column:
-                  name: queried_at
+                  name: prompted_at
 
         - createTable:
-            tableName: response
+            tableName: llm_completion
             columns:
               - column:
-                  name: request_id
+                  name: prompt_id
                   type: VARCHAR(36)
                   constraints:
                     primaryKey: true
                     nullable: false
-                    foreignKeyName: response_request_fk
-                    references: request(request_id)
+                    foreignKeyName: llm_completion_llm_prompt_fk
+                    references: llm_prompt(prompt_id)
               - column:
-                  name: response_id
+                  name: completion_id
                   type: VARCHAR(36)
                   constraints:
                     primaryKey: true
                     nullable: false
                     unique: true
               - column:
-                  name: answer
+                  name: completion
                   type: CLOB
                   constraints:
                     nullable: false
@@ -86,13 +86,13 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: answered_at
+                  name: completed_at
                   type: TIMESTAMP
                   constraints:
                     nullable: false
         - createIndex:
-            tableName: response
-            indexName: idx_response_answered_at
+            tableName: llm_completion
+            indexName: idx_llm_completion_completed_at
             columns:
               - column:
-                  name: answered_at
+                  name: completed_at

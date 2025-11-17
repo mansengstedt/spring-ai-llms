@@ -1,5 +1,5 @@
 
-### GET haiku with default params
+### Create haiku with default params
 POST {{host}}/chat/llm/haiku?provider=DOCKER
 
 > {%
@@ -8,7 +8,7 @@ POST {{host}}/chat/llm/haiku?provider=DOCKER
     });
 %}
 
-### GET haiku with params
+### Create haiku with params
 POST {{host}}/chat/llm/haiku?provider=DOCKER&style=crazy&topic=Trump
 
 > {%
@@ -17,7 +17,7 @@ POST {{host}}/chat/llm/haiku?provider=DOCKER&style=crazy&topic=Trump
     });
 %}
 
-### GET response from internal LLM like ollama with a fact
+### Create llmCompletion from internal LLM like ollama with a fact
 POST {{host}}/chat/llm?provider=OLLAMA
 Content-Type: application/json
 
@@ -27,7 +27,7 @@ Content-Type: application/json
   "chat_id": "president-id"
 }
 
-### GET response from internal LLM like ollama
+### Create llmCompletion from internal LLM like ollama
 POST {{host}}/chat/llm?provider=OLLAMA
 Content-Type: application/json
 
@@ -43,7 +43,7 @@ Content-Type: application/json
     });
 %}
 
-### GET response from external LLM Anthropic
+### Create llmCompletion from external LLM Anthropic
 POST {{host}}/chat/llm?provider=ANTHROPIC
 Content-Type: application/json
 
@@ -52,7 +52,7 @@ Content-Type: application/json
   "style": "answer with max 10 word and end answer with Presently!"
 }
 
-### GET response from external LLM OpenAi/chatGpt
+### Create llmCompletion from external LLM OpenAi/chatGpt
 POST {{host}}/chat/llm?provider=OPENAI
 Content-Type: application/json
 
@@ -61,7 +61,7 @@ Content-Type: application/json
   "style": "answer with max 10 word and end answer with Presently!"
 }
 
-### GET response using memory
+### Create llmCompletion using chat-id
 POST {{host}}/chat/llm?provider=OPENAI
 Content-Type: application/json
 
@@ -71,7 +71,7 @@ Content-Type: application/json
   "chat_id": "me-id"
 }
 
-### GET response relating to previous question
+### Create llmCompletion relating to previous question
 POST {{host}}/chat/llm?provider=OPENAI
 Content-Type: application/json
 
@@ -81,7 +81,7 @@ Content-Type: application/json
   "chat_id": "me-id"
 }
 
-### GET response relating to previous question with correction
+### Create llmCompletion relating to previous question with correction
 POST {{host}}/chat/llm?provider=OPENAI
 Content-Type: application/json
 
@@ -91,7 +91,7 @@ Content-Type: application/json
   "chat_id": "me-id"
 }
 
-### GET response with complex relations
+### Create llmCompletion with complex relations
 POST {{host}}/chat/llm?provider=OPENAI
 Content-Type: application/json
 
@@ -100,7 +100,7 @@ Content-Type: application/json
   "style": "end answer with: Ok!"
 }
 
-### GET response with correction
+### Create llmCompletion with correction
 POST {{host}}/chat/llm?provider=OPENAI
 Content-Type: application/json
 
@@ -115,7 +115,7 @@ Content-Type: application/json
     });
 %}
 
-### GET LLM response from docker
+### Create LLM llmCompletion from docker
 POST {{host}}/chat/llm?provider=DOCKER
 Content-Type: application/json
 
@@ -130,7 +130,7 @@ Content-Type: application/json
     });
 %}
 
-### GET response from all LLMs like ollama, docker, openai, anthropic
+### Create llmCompletion from all LLMs like ollama, docker, openai, anthropic
 POST {{host}}/chat/llm/all
 Content-Type: application/json
 
@@ -140,10 +140,10 @@ Content-Type: application/json
 }
 
 
-### GET one or several responses from request
-GET {{host}}/chat/request/2466e808-a176-4a7f-a09b-2d461ef033b5
+### GET one or several completions from a given llmPrompt
+GET {{host}}/chat/prompt/1f3fa64a-295e-4085-9e4e-524583aeaa3f
 
-### GET several responses from several request with same chatId
+### GET several completions from several llmPrompt with same chatId
 GET {{host}}/chat/chat/ping-chat-service-status
 
 ### GET status of all LLMs

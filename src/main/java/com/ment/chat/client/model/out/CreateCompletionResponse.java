@@ -7,16 +7,14 @@ import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
-import java.util.List;
-
-@Schema(description = "The Combined Request Responses")
+@Schema(description = "The created interaction completion of an interaction prompt")
 @Value
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Jacksonized
-public class CreateCombinedConversationResponse {
+public class CreateCompletionResponse {
 
-    @Schema(description = "List of one conversation responses", requiredMode = Schema.RequiredMode.REQUIRED)
-    List<CreateConversationResponse> conversationResponses;
+    @Schema(description = "The created interaction completion", requiredMode = Schema.RequiredMode.REQUIRED)
+    InteractionCompletion interactionCompletion;
 
 }

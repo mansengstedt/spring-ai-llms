@@ -1,8 +1,8 @@
 package com.ment.chat.client.service;
 
 import com.ment.chat.client.model.enums.LlmProvider;
-import com.ment.chat.client.model.in.CreateConversationRequest;
-import com.ment.chat.client.model.out.CreateConversationResponse;
+import com.ment.chat.client.model.in.CreateCompletionRequest;
+import com.ment.chat.client.model.out.CreateCompletionResponse;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,8 +45,8 @@ class ChatServiceImplTest {
 
     @Test
     void testGetOpenAiChatResponse() {
-        CreateConversationRequest request = CreateConversationRequest.builder()
-                .prompt("Test prompt")
+        CreateCompletionRequest request = CreateCompletionRequest.builder()
+                .prompt("Test interactionPrompt")
                 .style("Test style")
                 .chatId("test-id")
                 .build();
@@ -54,9 +54,9 @@ class ChatServiceImplTest {
         ChatResponse chatResponse = mockChatResponse("Test model", new DefaultUsage(10, 20), "Test answer");
         when(externalClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        CreateConversationResponse response = chatService.getChatResponse(request, LlmProvider.OPENAI);
+        CreateCompletionResponse response = chatService.getChatResponse(request, LlmProvider.OPENAI);
 
-        assertEquals("Test answer", response.getAnswer());
+        assertEquals("Test answer", response.getInteractionCompletion());
         assertEquals("Test model", response.getLlm());
         assertEquals("Test tokenUsage", response.getTokenUsage());
         verify(externalClient, times(1)).prompt(request.createPrompt());
@@ -64,16 +64,16 @@ class ChatServiceImplTest {
 
     @Test
     void testGetOllamaChatResponse() {
-        CreateConversationRequest request = CreateConversationRequest.builder()
-                .prompt("Internal prompt")
+        CreateCompletionRequest request = CreateCompletionRequest.builder()
+                .prompt("Internal interactionPrompt")
                 .build();
 
         ChatResponse chatResponse = mockChatResponse("Internal model", new DefaultUsage(10, 20), "Internal answer");
         when(internalClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        CreateConversationResponse response = chatService.getChatResponse(request, LlmProvider.OLLAMA);
+        CreateCompletionResponse response = chatService.getChatResponse(request, LlmProvider.OLLAMA);
 
-        assertEquals("Internal answer", response.getAnswer());
+        assertEquals("Internal answer", response.getInteractionCompletion());
         assertEquals("Internal model", response.getLlm());
         assertEquals("Internal tokenUsage", response.getTokenUsage());
         verify(internalClient, times(1)).prompt(request.createPrompt());
@@ -81,16 +81,16 @@ class ChatServiceImplTest {
 
     @Test
     void testGetDockerChatResponse() {
-        CreateConversationRequest request = CreateConversationRequest.builder()
-                .prompt("Docker prompt")
+        CreateCompletionRequest request = CreateCompletionRequest.builder()
+                .prompt("Docker interactionPrompt")
                 .build();
 
         ChatResponse chatResponse = mockChatResponse("Docker model", new DefaultUsage(10, 20), "Docker answer");
         when(dockerClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        CreateConversationResponse response = chatService.getChatResponse(request, LlmProvider.DOCKER);
+        CreateCompletionResponse response = chatService.getChatResponse(request, LlmProvider.DOCKER);
 
-        assertEquals("Docker answer", response.getAnswer());
+        assertEquals("Docker answer", response.getInteractionCompletion());
         assertEquals("Docker model", response.getLlm());
         assertEquals("Docker tokenUsage", response.getTokenUsage());
         verify(dockerClient, times(1)).prompt(request.createPrompt());

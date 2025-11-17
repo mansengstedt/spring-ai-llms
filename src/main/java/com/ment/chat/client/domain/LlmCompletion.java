@@ -13,18 +13,18 @@ import java.time.OffsetDateTime;
 @Builder
 @ToString
 
-public class Response {
+public class LlmCompletion {
 
-    @Column(name = "RESPONSE_ID", nullable = false, updatable = false, length = 36)
+    @Column(name = "COMPLETION_ID", nullable = false, updatable = false, length = 36)
     @Id
-    private String responseId;
+    private String completionId;
 
-    @Column(name = "REQUEST_ID", nullable = false, updatable = false, length = 36)
-    private String requestId;
+    @Column(name = "PROMPT_ID", nullable = false, updatable = false, length = 36)
+    private String promptId;
 
-    @Column(name = "ANSWER", nullable = false, updatable = false)
+    @Column(name = "COMPLETION", nullable = false, updatable = false)
     @Lob
-    private String answer;
+    private String completion;
 
     @Column(name = "LLM", nullable = false, updatable = false, length = 100)
     private String llm;
@@ -39,12 +39,12 @@ public class Response {
     @Column(name = "EXECUTION_TIME_MS", nullable = false, updatable = false)
     private Long executionTimeMs;
 
-    @Column(name = "ANSWERED_AT", nullable = false, updatable = false)
-    private OffsetDateTime answeredAt;
+    @Column(name = "COMPLETED_AT", nullable = false, updatable = false)
+    private OffsetDateTime completedAt;
 
     @ManyToOne
-    @JoinColumn(name = "REQUEST_ID", referencedColumnName = "REQUEST_ID", nullable = false, insertable = false, updatable = false)
-    // Needs to exclude , otherwise a toString() causes an infinite loop between Process and Participant
+    @JoinColumn(name = "PROMPT_ID", referencedColumnName = "PROMPT_ID", nullable = false, insertable = false, updatable = false)
+    // Needs to exclude , otherwise a toString() causes an infinite loop between InteractionPrompt and InteractionCompletion
     @ToString.Exclude
-    private Request request;
+    private LlmPrompt llmPrompt;
 }

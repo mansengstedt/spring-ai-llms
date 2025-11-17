@@ -1,5 +1,7 @@
 package com.ment.chat.client.domain;
 
+
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,11 +15,11 @@ import java.util.List;
 @Builder
 @ToString
 
-public class Request {
+public class LlmPrompt {
 
     @Id
-    @Column(name = "REQUEST_ID", nullable = false, updatable = false, length = 36)
-    private String requestId;
+    @Column(name = "PROMPT_ID", nullable = false, updatable = false, length = 36)
+    private String promptId;
 
     @Column(name = "PROMPT", nullable = false, updatable = false)
     @Lob
@@ -26,11 +28,11 @@ public class Request {
     @Column(name = "CHAT_ID", updatable = false, length = 128)
     private String chatId;
 
-    @Column(name = "QUERIED_AT", nullable = false, updatable = false)
-    private OffsetDateTime queriedAt;
+    @Column(name = "PROMPTED_AT", nullable = false, updatable = false)
+    private OffsetDateTime promptedAt;
 
-    @OneToMany(mappedBy = "request", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "llmPrompt", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, fetch = FetchType.EAGER)
     @OrderBy("llm asc")
-    private List<Response> responses;
+    private List<LlmCompletion> completions;
 
 }

@@ -9,14 +9,14 @@ import lombok.extern.jackson.Jacksonized;
 
 import java.util.List;
 
-@Schema(description = "The stored interaction completions of all prompts in a chat")
+@Schema(description = "The set of completions for a prompt across multiple LLM providers")
 @Value
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Jacksonized
-public class GetChatResponse {
+public class CreateCombinedCompletionResponse {
 
-    @Schema(description = "List of interactions", requiredMode = Schema.RequiredMode.REQUIRED)
-    List<GetInteractionResponse> interactions;
+    @Schema(description = "List of completions in the interaction", requiredMode = Schema.RequiredMode.REQUIRED)
+    List<InteractionCompletion> interactionCompletions;
 
 }

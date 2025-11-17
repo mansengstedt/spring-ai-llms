@@ -10,24 +10,24 @@ import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
-@Schema(description = "Conversation Request specification")
+@Schema(description = "Interaction prompt specification using style and chatId for memory")
 @Value
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Jacksonized
-public class CreateConversationRequest {
+public class CreateCompletionRequest {
 
     @NotBlank
     @Size(min = 2, max = 40000, message = "Size must be between 2 and 40000 characters")
-    @Schema(description = "prompt as free text", example = "Who is the present president of USA", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Prompt as free text", example = "Who is the present president of USA", requiredMode = Schema.RequiredMode.REQUIRED)
     String prompt;
 
     @Size(max = 100, message = "Size must be max 100 characters")
-    @Schema(description = "the style of the response", example = "funny like comedian", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Schema(description = "The style of the completion", example = "funny like comedian", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     String style;
 
     @Size(max = 128, message = "Size must be max 128 characters")
-    @Schema(description = "the id of the conversation used for memory", example = "myId", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Schema(description = "The chat id of the interaction used for memory", example = "myId", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     String chatId;
 
     public String createPrompt() {
