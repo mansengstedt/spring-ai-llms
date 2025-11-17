@@ -61,12 +61,12 @@ class ChatServiceImplToggleTest {
                 .chatId("c1")
                 .build();
 
-        CreateCompletionResponse r1 = service.getChatResponse(req, LlmProvider.OPENAI);
-        CreateCompletionResponse r2 = service.getChatResponse(req, LlmProvider.OPENAI);
+        CreateCompletionResponse r1 = service.createCompletion(req, LlmProvider.OPENAI);
+        CreateCompletionResponse r2 = service.createCompletion(req, LlmProvider.OPENAI);
 
         assertEquals("answer-1", r1.getInteractionCompletion());
-        assertEquals("ext-model", r1.getLlm());
-        assertNotNull(r1.getTokenUsage());
+        assertEquals("ext-model", r1.getInteractionCompletion().getLlm());
+        assertNotNull(r1.getInteractionCompletion().getTokenUsage());
 
         // Capture both prompts to assert alternating message types
         verify(externalClient, times(3)).prompt(promptCaptor.capture());
@@ -86,7 +86,7 @@ class ChatServiceImplToggleTest {
         when(internalClient.prompt(any(Prompt.class)).call().chatResponse()).thenReturn(resp);
 
         CreateCompletionRequest req = CreateCompletionRequest.builder().prompt("Ping").build();
-        CreateCompletionResponse r = service.getChatResponse(req, LlmProvider.OLLAMA);
+        CreateCompletionResponse r = service.createCompletion(req, LlmProvider.OLLAMA);
 
         assertEquals("internal", r.getInteractionCompletion());
         verify(internalClient).prompt(promptCaptor.capture());

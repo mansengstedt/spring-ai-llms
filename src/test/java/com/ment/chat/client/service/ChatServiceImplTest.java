@@ -54,11 +54,11 @@ class ChatServiceImplTest {
         ChatResponse chatResponse = mockChatResponse("Test model", new DefaultUsage(10, 20), "Test answer");
         when(externalClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        CreateCompletionResponse response = chatService.getChatResponse(request, LlmProvider.OPENAI);
+        CreateCompletionResponse response = chatService.createCompletion(request, LlmProvider.OPENAI);
 
         assertEquals("Test answer", response.getInteractionCompletion());
-        assertEquals("Test model", response.getLlm());
-        assertEquals("Test tokenUsage", response.getTokenUsage());
+        assertEquals("Test model", response.getInteractionCompletion().getLlm());
+        assertEquals("Test tokenUsage", response.getInteractionCompletion().getTokenUsage());
         verify(externalClient, times(1)).prompt(request.createPrompt());
     }
 
@@ -71,11 +71,11 @@ class ChatServiceImplTest {
         ChatResponse chatResponse = mockChatResponse("Internal model", new DefaultUsage(10, 20), "Internal answer");
         when(internalClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        CreateCompletionResponse response = chatService.getChatResponse(request, LlmProvider.OLLAMA);
+        CreateCompletionResponse response = chatService.createCompletion(request, LlmProvider.OLLAMA);
 
         assertEquals("Internal answer", response.getInteractionCompletion());
-        assertEquals("Internal model", response.getLlm());
-        assertEquals("Internal tokenUsage", response.getTokenUsage());
+        assertEquals("Internal model", response.getInteractionCompletion().getLlm());
+        assertEquals("Internal tokenUsage", response.getInteractionCompletion().getTokenUsage());
         verify(internalClient, times(1)).prompt(request.createPrompt());
     }
 
@@ -88,11 +88,11 @@ class ChatServiceImplTest {
         ChatResponse chatResponse = mockChatResponse("Docker model", new DefaultUsage(10, 20), "Docker answer");
         when(dockerClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        CreateCompletionResponse response = chatService.getChatResponse(request, LlmProvider.DOCKER);
+        CreateCompletionResponse response = chatService.createCompletion(request, LlmProvider.DOCKER);
 
         assertEquals("Docker answer", response.getInteractionCompletion());
-        assertEquals("Docker model", response.getLlm());
-        assertEquals("Docker tokenUsage", response.getTokenUsage());
+        assertEquals("Docker model", response.getInteractionCompletion().getLlm());
+        assertEquals("Docker tokenUsage", response.getInteractionCompletion().getTokenUsage());
         verify(dockerClient, times(1)).prompt(request.createPrompt());
     }
 
