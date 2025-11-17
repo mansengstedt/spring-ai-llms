@@ -1,4 +1,4 @@
-package com.ment.chat.client.config;
+package com.ment.chat.client.model.enums;
 
 public enum LlmProvider {
     OPENAI,
