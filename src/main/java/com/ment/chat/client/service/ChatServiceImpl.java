@@ -28,7 +28,7 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
-//import org.springframework.ai.chat.interactionPrompt.InteractionPrompt;
+import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -238,7 +238,7 @@ public class ChatServiceImpl implements ChatService {
 
     private ChatClient.ChatClientRequestSpec createRequestSpec(CreateCompletionRequest completionRequest, ChatClient chatClient, Message message) {
         ChatClient.ChatClientRequestSpec reqSpec = chatClient
-                .prompt(org.springframework.ai.chat.prompt.Prompt.builder()
+                .prompt(Prompt.builder()
                         .messages(message)
                         .build());
         if (StringUtils.hasText(completionRequest.getChatId())) {
@@ -280,7 +280,7 @@ public class ChatServiceImpl implements ChatService {
 
     private Message createSavePublishRequest(String promptId, CreateCompletionRequest completionRequest) {
         String prompt = completionRequest.createPrompt();
-        log.info("Sending interactionPrompt to LLMs: {}", prompt);
+        log.info("Sending prompt to LLMs: {}", prompt);
         LlmPrompt llmPrompt = createLlmPrompt(promptId, prompt, completionRequest.getChatId());
         llmPromptRepository.save(llmPrompt);
         applicationEventPublisher.publishEvent(llmPrompt);
