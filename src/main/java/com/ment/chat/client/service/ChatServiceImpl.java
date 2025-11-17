@@ -1,19 +1,18 @@
 package com.ment.chat.client.service;
 
 import com.ment.chat.client.config.AppProperties;
-import com.ment.chat.client.model.enums.LlmProvider;
+import com.ment.chat.client.config.LlmProvider;
 import com.ment.chat.client.domain.Request;
 import com.ment.chat.client.domain.Response;
 import com.ment.chat.client.domain.exception.ChatNotFoundException;
 import com.ment.chat.client.domain.exception.RequestNotFoundException;
 import com.ment.chat.client.domain.repository.RequestRepository;
 import com.ment.chat.client.domain.repository.ResponseRepository;
-import com.ment.chat.client.model.enums.LlmStatus;
 import com.ment.chat.client.model.in.CreateConversationRequest;
 import com.ment.chat.client.model.out.CreateCombinedConversationResponse;
 import com.ment.chat.client.model.out.CreateConversationResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
-import com.ment.chat.client.model.out.GetLlmProviderStatusResponse;
+import com.ment.chat.client.model.out.GetChatServiceStatusResponse;
 import com.ment.chat.client.model.out.GetConversationResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -134,27 +133,27 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public GetLlmProviderStatusResponse getLlmProviderStatus() {
+    public GetChatServiceStatusResponse getChatServiceStatus() {
         return extractStatusFrom(getCombinedChatResponse(CreateConversationRequest.builder()
                 .prompt("ping LLM to check status")
                 .chatId("ping-chat-service-status")
                 .build()));
     }
 
-    private GetLlmProviderStatusResponse extractStatusFrom(CreateCombinedConversationResponse combinedChatResponse) {
+    private GetChatServiceStatusResponse extractStatusFrom(CreateCombinedConversationResponse combinedChatResponse) {
         if (combinedChatResponse == null) {
-            return GetLlmProviderStatusResponse.builder()
+            return GetChatServiceStatusResponse.builder()
                     .statusList(List.of())
                     .build();
         }
-        List<GetLlmProviderStatusResponse.ChatServiceStatus> statusList = combinedChatResponse.getConversationResponses().stream()
-                .map(response -> GetLlmProviderStatusResponse.ChatServiceStatus.builder()
-                        .status(response.getLlm() == null ? LlmStatus.UNAVAILABLE : LlmStatus.AVAILABLE)
+        List<GetChatServiceStatusResponse.ChatServiceStatus> statusList = combinedChatResponse.getConversationResponses().stream()
+                .map(response -> GetChatServiceStatusResponse.ChatServiceStatus.builder()
+                        .status(response.getLlm() == null ? GetChatServiceStatusResponse.LlmStatus.UNAVAILABLE : GetChatServiceStatusResponse.LlmStatus.AVAILABLE)
                         .llm(response.getLlm() == null ? "Unknown" : response.getLlm()) //TODO: how to handle llm when no answer by using chat client data
                         .provider(response.getLlmProvider())
                         .build())
                 .toList();
-        return GetLlmProviderStatusResponse.builder()
+        return GetChatServiceStatusResponse.builder()
                 .statusList(statusList)
                 .build();
 
@@ -340,7 +339,7 @@ public class ChatServiceImpl implements ChatService {
 
     private Response createResponse(String requestId, CreateConversationResponse response) {
         return Response.builder()
-                .responseId(createUniqueId())
+                .responseId(UUID.randomUUID().toString())
                 .requestId(requestId)
                 .answer(response.getAnswer())
                 .llm(response.getLlm())

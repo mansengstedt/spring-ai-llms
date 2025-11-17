@@ -1,6 +1,6 @@
 package com.ment.chat.client.domain;
 
-import com.ment.chat.client.model.enums.LlmProvider;
+import com.ment.chat.client.config.LlmProvider;
 import jakarta.persistence.*;
 import lombok.*;
 

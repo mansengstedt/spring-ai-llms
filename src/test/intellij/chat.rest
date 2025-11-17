@@ -1,6 +1,6 @@
 
 ### GET haiku with default params
-POST {{host}}/chat/llm/haiku?provider=DOCKER
+GET {{host}}/chat/haiku?provider=DOCKER
 
 > {%
     client.test("Status", function () {
@@ -9,7 +9,7 @@ POST {{host}}/chat/llm/haiku?provider=DOCKER
 %}
 
 ### GET haiku with params
-POST {{host}}/chat/llm/haiku?provider=DOCKER&style=crazy&topic=Trump
+GET {{host}}/chat/haiku?provider=DOCKER&style=crazy&topic=Trump
 
 > {%
     client.test("Status", function () {

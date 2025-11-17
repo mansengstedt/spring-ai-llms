@@ -1,13 +1,12 @@
 package com.ment.chat.client.config;
 
-import com.ment.chat.client.model.enums.LlmProvider;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import static com.ment.chat.client.model.enums.LlmProvider.ANTHROPIC;
-import static com.ment.chat.client.model.enums.LlmProvider.DOCKER;
-import static com.ment.chat.client.model.enums.LlmProvider.OLLAMA;
-import static com.ment.chat.client.model.enums.LlmProvider.OPENAI;
+import static com.ment.chat.client.config.LlmProvider.ANTHROPIC;
+import static com.ment.chat.client.config.LlmProvider.DOCKER;
+import static com.ment.chat.client.config.LlmProvider.OLLAMA;
+import static com.ment.chat.client.config.LlmProvider.OPENAI;
 import static com.ment.chat.client.config.Systems.HELPFUL_SYSTEM_NO_LIMIT;
 import static com.ment.chat.client.config.Systems.HELPFUL_SYSTEM_MAX_100;
 import static com.ment.chat.client.config.Systems.HELPFUL_SYSTEM_MAX_50;
