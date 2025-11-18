@@ -6,8 +6,8 @@ import com.ment.chat.client.model.in.CreateCompletionRequest;
 import com.ment.chat.client.model.out.CreateCombinedCompletionResponse;
 import com.ment.chat.client.model.out.CreateCompletionResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
-import com.ment.chat.client.model.out.GetLlmProviderStatusResponse;
 import com.ment.chat.client.model.out.GetInteractionResponse;
+import com.ment.chat.client.model.out.GetLlmProviderStatusResponse;
 import com.ment.chat.client.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -44,7 +44,7 @@ public class ChatController {
 
     @Operation(
             summary = "Create a haiku for given parameters",
-            description = "A haiku with specific style and type."
+            description = "A haiku with specific style and topic."
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -87,12 +87,12 @@ public class ChatController {
 
     @Operation(
             summary = "Create a completion for a specified prompt and given LLM provider",
-            description = "Retrieves a interactionCompletion from the specified LLM provider based on the given interactionPrompt."
+            description = "Retrieves a interaction completion from the specified LLM provider based on the given interaction prompt."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Successful answer to interactionPrompt",
+                    description = "Successful answer to interaction prompt",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = CreateCompletionResponse.class)
@@ -130,7 +130,7 @@ public class ChatController {
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Successful completion of prompt",
+                    description = "Successful completions of prompt",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = CreateCombinedCompletionResponse.class)
@@ -161,12 +161,12 @@ public class ChatController {
 
     @Operation(
             summary = "Get the completions of an earlier prompt with given id",
-            description = "Retrieves the answers from the LLM providers based on the given interactionPrompt id."
+            description = "Retrieves the completions from the LLM providers based on the given interaction prompt id."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Successful completion to prompt id was found",
+                    description = "Successful completions to prompt id was found",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = GetInteractionResponse.class)
@@ -215,8 +215,8 @@ public class ChatController {
     }
 
     @Operation(
-            summary = "Get the completion of earlier prompts with a given chat id",
-            description = "Retrieves all the answers in the chat from the LLM providers based on the given chat id."
+            summary = "Get the completions of earlier prompts with a given chat id",
+            description = "Retrieves all the completions in the chat from the LLM providers based on the given chat id."
     )
     @ApiResponses(value = {
             @ApiResponse(

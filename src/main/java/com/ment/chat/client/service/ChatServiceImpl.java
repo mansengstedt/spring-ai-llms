@@ -10,12 +10,12 @@ import com.ment.chat.client.domain.repository.LlmPromptRepository;
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.enums.LlmStatus;
 import com.ment.chat.client.model.in.CreateCompletionRequest;
-import com.ment.chat.client.model.out.InteractionCompletion;
 import com.ment.chat.client.model.out.CreateCombinedCompletionResponse;
 import com.ment.chat.client.model.out.CreateCompletionResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
 import com.ment.chat.client.model.out.GetInteractionResponse;
 import com.ment.chat.client.model.out.GetLlmProviderStatusResponse;
+import com.ment.chat.client.model.out.InteractionCompletion;
 import com.ment.chat.client.model.out.InteractionPrompt;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +48,9 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
+
+    private static final String PING_STATUS_CHAT_ID = "ping-chat-service-status";
+    private static final String PING_STATUS_PROMPT = "ping LLM to check status";
 
     private final LlmPromptRepository llmPromptRepository;
 
@@ -125,7 +128,6 @@ public class ChatServiceImpl implements ChatService {
                                 .build())
                         .interactionCompletions(transform(llmPrompt.getCompletions()))
                         .build())
-                .toList().stream()
                 .sorted()
                 .toList();
 
@@ -137,8 +139,8 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public GetLlmProviderStatusResponse getLlmProviderStatus() {
         return extractStatusFrom(createCombinedCompletion(CreateCompletionRequest.builder()
-                .prompt("ping LLM to check status")
-                .chatId("ping-chat-service-status")
+                .prompt(PING_STATUS_PROMPT)
+                .chatId(PING_STATUS_CHAT_ID)
                 .build()));
     }
 
