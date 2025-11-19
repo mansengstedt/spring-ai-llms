@@ -93,7 +93,7 @@ public class OpenAPIConfig {
             LinkedHashMap<String, PathItem> sortedPaths = new LinkedHashMap<>();
 
             for (PathOp po : opList) {
-                PathItem pathItem = sortedPaths.computeIfAbsent(po.path, k -> new PathItem());
+                PathItem pathItem = sortedPaths.computeIfAbsent(po.path, _ -> new PathItem());
                 pathItem.operation(po.method, po.op);
             }
 
@@ -115,8 +115,9 @@ public class OpenAPIConfig {
             case POST -> 0;
             case GET -> 1;
             case PUT -> 2;
-            case DELETE -> 3;
-            default -> 4;
+            case PATCH -> 3;
+            case DELETE -> 4;
+            default -> 100;
         };
     }
 
