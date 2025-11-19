@@ -14,6 +14,7 @@ import com.ment.chat.client.model.out.CreateCombinedCompletionResponse;
 import com.ment.chat.client.model.out.CreateCompletionResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
 import com.ment.chat.client.model.out.GetInteractionResponse;
+import com.ment.chat.client.model.out.GetInteractionsResponse;
 import com.ment.chat.client.model.out.GetLlmProviderStatusResponse;
 import com.ment.chat.client.model.out.InteractionCompletion;
 import com.ment.chat.client.model.out.InteractionPrompt;
@@ -86,17 +87,17 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public CreateCompletionResponse createCompletion(CreateCompletionRequest completionRequest, LlmProvider llmProvider) {
+    public CreateCompletionResponse createCompletionByProvider(CreateCompletionRequest completionRequest, LlmProvider llmProvider) {
         return getChatResponse(createUniqueId(), completionRequest, llmProvider, chatClientMap.get(llmProvider));
     }
 
     @Override
-    public CreateCombinedCompletionResponse createCombinedCompletion(CreateCompletionRequest completionRequest) {
+    public CreateCombinedCompletionResponse createCompletionsByAllProviders(CreateCompletionRequest completionRequest) {
         return getChatResponses(createUniqueId(), completionRequest, chatClientMap);
     }
 
     @Override
-    public GetInteractionResponse getInteraction(String promptId) {
+    public GetInteractionResponse getInteractionByPromptId(String promptId) {
         return llmPromptRepository.findById(promptId)
                 .map(llmPrompt -> GetInteractionResponse.builder()
                         .interactionPrompt(InteractionPrompt.builder()
@@ -111,12 +112,55 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public GetChatResponse getChat(String chatId) {
+    public GetChatResponse getChatByChatId(String chatId) {
         List<LlmPrompt> llmPrompts = llmPromptRepository.findByChatId(chatId);
         if (llmPrompts.isEmpty()) {
             throw new ChatNotFoundException(chatId);
         }
 
+        return getGetChatResponse(llmPrompts);
+    }
+
+    @Override
+    public GetChatResponse getChatByPrompt(String partOfPrompt) {
+        List<LlmPrompt> llmPrompts = llmPromptRepository.findByPromptContains(partOfPrompt);
+        if (llmPrompts.isEmpty()) {
+            return GetChatResponse.builder()
+                    .interactions(List.of())
+                    .build();
+        }
+
+        return getGetChatResponse(llmPrompts);
+    }
+
+    @Override
+    public GetInteractionsResponse getInteractionsByCompletion(String partOfCompletion) {
+        List<LlmCompletion> llmCompletions = llmCompletionRepository.findByCompletionContains(partOfCompletion);
+        if (llmCompletions.isEmpty()) {
+            return GetInteractionsResponse.builder()
+                    .interactions(List.of())
+                    .build();
+        }
+
+        return GetInteractionsResponse.builder()
+                .interactions(llmCompletions.stream()
+                        .map(LlmCompletion::getPromptId)
+                        .distinct()
+                        .map(this::getInteractionByPromptId)
+                        .sorted()
+                        .toList())
+                .build();
+    }
+
+    @Override
+    public GetLlmProviderStatusResponse getAllProviderStatus() {
+        return extractStatusFrom(createCompletionsByAllProviders(CreateCompletionRequest.builder()
+                .prompt(PING_STATUS_PROMPT)
+                .chatId(PING_STATUS_CHAT_ID)
+                .build()));
+    }
+
+    private GetChatResponse getGetChatResponse(List<LlmPrompt> llmPrompts) {
         List<GetInteractionResponse> responses = llmPrompts
                 .stream()
                 .map(llmPrompt -> GetInteractionResponse.builder()
@@ -134,14 +178,6 @@ public class ChatServiceImpl implements ChatService {
         return GetChatResponse.builder()
                 .interactions(responses)
                 .build();
-    }
-
-    @Override
-    public GetLlmProviderStatusResponse getLlmProviderStatus() {
-        return extractStatusFrom(createCombinedCompletion(CreateCompletionRequest.builder()
-                .prompt(PING_STATUS_PROMPT)
-                .chatId(PING_STATUS_CHAT_ID)
-                .build()));
     }
 
     private GetLlmProviderStatusResponse extractStatusFrom(CreateCombinedCompletionResponse combinedChatResponse) {

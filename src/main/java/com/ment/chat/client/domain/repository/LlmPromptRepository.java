@@ -8,4 +8,6 @@ import java.util.List;
 public interface LlmPromptRepository extends JpaRepository<LlmPrompt, String> {
 
     List<LlmPrompt> findByChatId(String chatId);
+
+    List<LlmPrompt> findByPromptContains(String partOfPrompt);
 }

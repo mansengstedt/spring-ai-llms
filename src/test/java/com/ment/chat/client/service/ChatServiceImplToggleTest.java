@@ -61,8 +61,8 @@ class ChatServiceImplToggleTest {
                 .chatId("c1")
                 .build();
 
-        CreateCompletionResponse r1 = service.createCompletion(req, LlmProvider.OPENAI);
-        CreateCompletionResponse r2 = service.createCompletion(req, LlmProvider.OPENAI);
+        CreateCompletionResponse r1 = service.createCompletionByProvider(req, LlmProvider.OPENAI);
+        CreateCompletionResponse r2 = service.createCompletionByProvider(req, LlmProvider.OPENAI);
 
         assertEquals("answer-1", r1.getInteractionCompletion());
         assertEquals("ext-model", r1.getInteractionCompletion().getLlm());
@@ -86,7 +86,7 @@ class ChatServiceImplToggleTest {
         when(internalClient.prompt(any(Prompt.class)).call().chatResponse()).thenReturn(resp);
 
         CreateCompletionRequest req = CreateCompletionRequest.builder().prompt("Ping").build();
-        CreateCompletionResponse r = service.createCompletion(req, LlmProvider.OLLAMA);
+        CreateCompletionResponse r = service.createCompletionByProvider(req, LlmProvider.OLLAMA);
 
         assertEquals("internal", r.getInteractionCompletion());
         verify(internalClient).prompt(promptCaptor.capture());

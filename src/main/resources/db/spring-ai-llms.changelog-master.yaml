@@ -2,3 +2,6 @@ databaseChangeLog:
   - include:
       file: changelog/v1.0-new-service.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/v1.1-create-index-prompt-completion.yaml
+      relativeToChangelogFile: true

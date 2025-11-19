@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface LlmCompletionRepository extends JpaRepository<LlmCompletion, String> {
 
-    List<LlmCompletion> findByPromptId(String promptId);
+    List<LlmCompletion> findByCompletionContains(String partOfCompletion);
 }

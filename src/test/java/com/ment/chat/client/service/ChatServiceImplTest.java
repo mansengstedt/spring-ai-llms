@@ -54,7 +54,7 @@ class ChatServiceImplTest {
         ChatResponse chatResponse = mockChatResponse("Test model", new DefaultUsage(10, 20), "Test answer");
         when(externalClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        CreateCompletionResponse response = chatService.createCompletion(request, LlmProvider.OPENAI);
+        CreateCompletionResponse response = chatService.createCompletionByProvider(request, LlmProvider.OPENAI);
 
         assertEquals("Test answer", response.getInteractionCompletion());
         assertEquals("Test model", response.getInteractionCompletion().getLlm());
@@ -71,7 +71,7 @@ class ChatServiceImplTest {
         ChatResponse chatResponse = mockChatResponse("Internal model", new DefaultUsage(10, 20), "Internal answer");
         when(internalClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        CreateCompletionResponse response = chatService.createCompletion(request, LlmProvider.OLLAMA);
+        CreateCompletionResponse response = chatService.createCompletionByProvider(request, LlmProvider.OLLAMA);
 
         assertEquals("Internal answer", response.getInteractionCompletion());
         assertEquals("Internal model", response.getInteractionCompletion().getLlm());
@@ -88,7 +88,7 @@ class ChatServiceImplTest {
         ChatResponse chatResponse = mockChatResponse("Docker model", new DefaultUsage(10, 20), "Docker answer");
         when(dockerClient.prompt(anyString()).call().chatResponse()).thenReturn(chatResponse);
 
-        CreateCompletionResponse response = chatService.createCompletion(request, LlmProvider.DOCKER);
+        CreateCompletionResponse response = chatService.createCompletionByProvider(request, LlmProvider.DOCKER);
 
         assertEquals("Docker answer", response.getInteractionCompletion());
         assertEquals("Docker model", response.getInteractionCompletion().getLlm());

@@ -19,7 +19,7 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
     public static final String CLIENT_RAISED_EXCEPTION = "Client raised exception";
     public static final String GENERAL_ERROR = "General error";
     public static final String CHAT_NOT_FOUND = "Chat not found";
-    public static final String REQUEST_NOT_FOUND = "InteractionPrompt not found";
+    public static final String REQUEST_NOT_FOUND = "Interaction prompt not found";
     public static final String API_ERROR = "API error";
 
     @ExceptionHandler(PromptNotFoundException.class)

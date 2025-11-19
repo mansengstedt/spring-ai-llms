@@ -140,8 +140,14 @@ Content-Type: application/json
 }
 
 
-### GET one or several completions from a given llmPrompt
+### GET one or several completions from a given llmPrompt id
 GET {{host}}/chat/prompt/1f3fa64a-295e-4085-9e4e-524583aeaa3f
+
+### GET one or several completions from a given text in a previous prompt (case sensitive)
+GET {{host}}/chat/prompt/contains/Epstein
+
+### GET one or several interactions from a given text in a previous completion (case sensitive)
+GET {{host}}/chat/completion/contains/Trump
 
 ### GET several completions from several llmPrompt with same chatId
 GET {{host}}/chat/chat/ping-chat-service-status

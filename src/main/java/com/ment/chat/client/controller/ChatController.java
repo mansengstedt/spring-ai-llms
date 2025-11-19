@@ -7,6 +7,7 @@ import com.ment.chat.client.model.out.CreateCombinedCompletionResponse;
 import com.ment.chat.client.model.out.CreateCompletionResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
 import com.ment.chat.client.model.out.GetInteractionResponse;
+import com.ment.chat.client.model.out.GetInteractionsResponse;
 import com.ment.chat.client.model.out.GetLlmProviderStatusResponse;
 import com.ment.chat.client.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -77,7 +78,7 @@ public class ChatController {
                     schema = @Schema(maxLength = 100)  // This shows in Swagger UI
             )
             @RequestParam(defaultValue = "christmas") @Size(max = 100) String topic) {
-        return ResponseEntity.ok(chatService.createCompletion(
+        return ResponseEntity.ok(chatService.createCompletionByProvider(
                 CreateCompletionRequest.builder()
                         .prompt(String.format("Write a %s Haiku about %s!", style, topic))
                         .build(),
@@ -117,10 +118,10 @@ public class ChatController {
     })
     @PostMapping("/llm")
     @LogExecutionTime
-    public ResponseEntity<CreateCompletionResponse> chatWithLlm(
+    public ResponseEntity<CreateCompletionResponse> createCompletionByProvider(
             @RequestParam LlmProvider provider,
             @RequestBody @Valid CreateCompletionRequest completionRequest) {
-        return ResponseEntity.ok(chatService.createCompletion(completionRequest, provider));
+        return ResponseEntity.ok(chatService.createCompletionByProvider(completionRequest, provider));
     }
 
     @Operation(
@@ -155,8 +156,8 @@ public class ChatController {
     })
     @PostMapping("/llm/all")
     @LogExecutionTime
-    public ResponseEntity<CreateCombinedCompletionResponse> chatWithAll(@RequestBody @Valid CreateCompletionRequest completionRequest) {
-        return ResponseEntity.ok(chatService.createCombinedCompletion(completionRequest));
+    public ResponseEntity<CreateCombinedCompletionResponse> createCompletionsByAllProviders(@RequestBody @Valid CreateCompletionRequest completionRequest) {
+        return ResponseEntity.ok(chatService.createCompletionsByAllProviders(completionRequest));
     }
 
     @Operation(
@@ -198,7 +199,7 @@ public class ChatController {
             )
     })
     @GetMapping("/prompt/{prompt-id}")
-    public ResponseEntity<GetInteractionResponse> getInteractionWithResponses(
+    public ResponseEntity<GetInteractionResponse> getInteractionByPromptId(
             @Parameter(
                     description = "prompt ID (UUID format)",
                     required = true,
@@ -211,7 +212,99 @@ public class ChatController {
                     )
             )
             @PathVariable("prompt-id") @NotNull @Size(min = 36, max = 36) String promptId) {
-        return ResponseEntity.ok(chatService.getInteraction(promptId));
+        return ResponseEntity.ok(chatService.getInteractionByPromptId(promptId));
+    }
+
+    @Operation(
+            summary = "Get the completions of an earlier prompt containing the sub-prompt",
+            description = "Retrieves the completions from the LLM providers based on the given sub-prompt. If no match an empty list is returned"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successful completions containing sub-prompt was found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GetChatResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid prompt",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            )
+    })
+    @GetMapping("/prompt/contains/{part-of-prompt}")
+    public ResponseEntity<GetChatResponse> getInteractionByPrompt(
+            @Parameter(
+                    description = "part of prompt (free text)",
+                    required = true,
+                    example = "Donald Trump",
+                    schema = @Schema(
+                            type = "string",
+                            maxLength = 1000,
+                            minLength = 5
+                    )
+            )
+            @PathVariable("part-of-prompt") @NotNull @Size(min = 5, max = 1000) String partOfPrompt) {
+        return ResponseEntity.ok(chatService.getChatByPrompt(partOfPrompt));
+    }
+
+    @Operation(
+            summary = "Get the interactions of earlier interactions containing the sub-completion",
+            description = "Retrieves the interactions from the LLM providers based on the given sub-completions. If no match an empty list is returned"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successful interactions to sub-completion was found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GetInteractionsResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid sub-completion",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            )
+    })
+    @GetMapping("/completion/contains/{part-of-completion}")
+    public ResponseEntity<GetInteractionsResponse> getInteractionsByCompletion(
+            @Parameter(
+                    description = "part of completion (free text)",
+                    required = true,
+                    example = "Donald Trump",
+                    schema = @Schema(
+                            type = "string",
+                            maxLength = 1000,
+                            minLength = 5
+                    )
+            )
+            @PathVariable("part-of-completion") @NotNull @Size(min = 5, max = 1000) String partOfCompletion) {
+        return ResponseEntity.ok(chatService.getInteractionsByCompletion(partOfCompletion));
     }
 
     @Operation(
@@ -253,9 +346,9 @@ public class ChatController {
             )
     })
     @GetMapping("/chat/{chat-id}")
-    public ResponseEntity<GetChatResponse> getChat(
+    public ResponseEntity<GetChatResponse> getChatByChatId(
             @Parameter(
-                    description = "chat ID (free text)",
+                    description = "chat Id (free text)",
                     required = true,
                     example = "my-chat-id-123",
                     schema = @Schema(
@@ -264,7 +357,7 @@ public class ChatController {
                     )
             )
             @PathVariable("chat-id") @NotNull @Size(max = 36) String chatId) {
-        return ResponseEntity.ok(chatService.getChat(chatId));
+        return ResponseEntity.ok(chatService.getChatByChatId(chatId));
     }
 
     @Operation(
@@ -291,6 +384,6 @@ public class ChatController {
     })
     @GetMapping("/status")
     public ResponseEntity<GetLlmProviderStatusResponse> getAllStatuses() {
-        return ResponseEntity.ok(chatService.getLlmProviderStatus());
+        return ResponseEntity.ok(chatService.getAllProviderStatus());
     }
 }

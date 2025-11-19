@@ -6,17 +6,22 @@ import com.ment.chat.client.model.out.CreateCombinedCompletionResponse;
 import com.ment.chat.client.model.out.CreateCompletionResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
 import com.ment.chat.client.model.out.GetInteractionResponse;
+import com.ment.chat.client.model.out.GetInteractionsResponse;
 import com.ment.chat.client.model.out.GetLlmProviderStatusResponse;
 
 public interface ChatService {
 
-    CreateCompletionResponse createCompletion(CreateCompletionRequest completionRequest, LlmProvider llmProvider);
+    CreateCompletionResponse createCompletionByProvider(CreateCompletionRequest completionRequest, LlmProvider llmProvider);
 
-    CreateCombinedCompletionResponse createCombinedCompletion(CreateCompletionRequest completionRequest);
+    CreateCombinedCompletionResponse createCompletionsByAllProviders(CreateCompletionRequest completionRequest);
 
-    GetInteractionResponse getInteraction(String promptId);
+    GetInteractionResponse getInteractionByPromptId(String promptId);
 
-    GetChatResponse getChat(String chatId);
+    GetInteractionsResponse getInteractionsByCompletion(String partOfCompletion);
 
-    GetLlmProviderStatusResponse getLlmProviderStatus();
+    GetChatResponse getChatByChatId(String chatId);
+
+    GetChatResponse getChatByPrompt(String partOfPrompt);
+
+    GetLlmProviderStatusResponse getAllProviderStatus();
 }

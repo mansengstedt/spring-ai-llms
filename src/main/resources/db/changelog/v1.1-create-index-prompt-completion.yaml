@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-index-prompt-completion
+      author: mansengstedt
+      comment: "must be native sql since liquibase does not support CONTEXT indexes"
+      changes:
+        - sql:
+            sql:
+              "CREATE INDEX idx_llm_prompt_prompt ON llm_prompt(prompt) INDEXTYPE IS CTXSYS.CONTEXT"
+            dbms: oracle
+
+        - sql:
+            sql:
+              "CREATE INDEX idx_llm_completion_completion ON llm_completion(completion) INDEXTYPE IS CTXSYS.CONTEXT"
+            dbms: oracle
