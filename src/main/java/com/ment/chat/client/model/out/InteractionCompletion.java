@@ -21,6 +21,9 @@ public class InteractionCompletion implements Comparable<InteractionCompletion> 
     @Schema(description = "Completion Id", example = "2466e808-a176-4a7f-a09b-2d461ef033b5", requiredMode = Schema.RequiredMode.REQUIRED)
     String completionId;
 
+    @Schema(description = "PromptId Id", example = "2466e808-a176-4a7f-a09b-2d461ef033b5", requiredMode = Schema.RequiredMode.REQUIRED)
+    String promptId;
+
     @Schema(description = "Completion of the interaction", example = "Trump is the present president of USA", requiredMode = Schema.RequiredMode.REQUIRED)
     String completion;
 

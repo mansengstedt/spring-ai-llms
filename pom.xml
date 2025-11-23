@@ -29,6 +29,8 @@
     <properties>
         <java.version>25</java.version>
         <spring-ai.version>1.0.3</spring-ai.version>
+        <mockito.version>5.20.0</mockito.version>
+        <spring-doc.version>2.8.9</spring-doc.version>
     </properties>
     <dependencies>
         <dependency>
@@ -50,7 +52,7 @@
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-client-chat</artifactId>
-            <version>1.0.3</version>
+            <version>${spring-ai.version}</version>
         </dependency>
 
         <dependency>
@@ -66,7 +68,7 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.8.9</version>
+            <version>${spring-doc.version}</version>
         </dependency>
 
         <dependency>
@@ -111,7 +113,29 @@
             <scope>runtime</scope>
             <!-- This library enables an automatic Prometheus actuator -->
         </dependency>
+
+        <!--wiremock-->
+        <!--dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-contract-wiremock</artifactId>
+            <scope>test</scope>
+        </dependency-->
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!--dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-javaagent</artifactId>
+            <version>5.12.0</version>
+            <scope>test</scope>
+        </dependency-->
     </dependencies>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -166,6 +190,25 @@
                 <configuration>
                     <excludes>
                     </excludes>
+                </configuration>
+            </plugin>
+            <!-- To add Mockito as an agent to Maven's surefire plugin, add 2 following plugins -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
                 </configuration>
             </plugin>
         </plugins>

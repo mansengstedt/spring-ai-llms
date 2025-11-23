@@ -1,0 +1,49 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  application:
+    name: spring-ai-llms
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:signingdb;Mode=Oracle
+    username: llmclient
+    password: llmclient
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: wiremock
+
+app:
+  toggle:
+    message-type: false
+  models:
+    ollama:
+      llm-model-name: unknown
+      api-connection:
+        url: http://localhost:11434
+        key: NOT_NEEDED
+    open-ai:
+      llm-model-name: openai-latest
+      api-connection:
+        url: https://api.openai.com
+        key: test-open-ai-key-secret
+    anthropic:
+      llm-model-name: anthropic-latest
+      api-connection:
+        url: https://api.anthropic.com
+        key: test-anthropic-key-secret
+    docker:
+      llm-model-name: unknown
+      api-connection:
+        url: http://localhost:12434/engines
+        key: NOT_NEEDED
+
+wiremock:
+  server:
+    stubs: classpath:/wiremock/mappings

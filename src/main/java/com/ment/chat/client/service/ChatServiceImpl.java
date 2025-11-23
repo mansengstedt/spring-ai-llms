@@ -203,6 +203,7 @@ public class ChatServiceImpl implements ChatService {
         return completions.stream()
                 .map(resp -> InteractionCompletion.builder()
                         .completionId(resp.getCompletionId())
+                        .promptId(resp.getPromptId())
                         .completion(resp.getCompletion())
                         .llm(resp.getLlm())
                         .llmProvider(resp.getLlmProvider())
@@ -321,7 +322,8 @@ public class ChatServiceImpl implements ChatService {
         log.info("Sending prompt to LLMs: {}", prompt);
         LlmPrompt llmPrompt = createLlmPrompt(promptId, prompt, completionRequest.getChatId());
         llmPromptRepository.save(llmPrompt);
-        applicationEventPublisher.publishEvent(llmPrompt);
+        LlmPrompt savedPrompt = llmPromptRepository.findByPromptId(llmPrompt.getPromptId()); //should be present as just saved (not really needed)
+        applicationEventPublisher.publishEvent(savedPrompt);
         return createMessageAndToggleMessageType(prompt);
     }
 
@@ -336,6 +338,8 @@ public class ChatServiceImpl implements ChatService {
             return CreateCompletionResponse.builder()
                     .interactionCompletion(
                             InteractionCompletion.builder()
+                                    .completionId(createUniqueId())
+                                    .promptId(promptId)
                                     .llmProvider(llmProvider)
                                     .build())
                     .build();
@@ -343,6 +347,8 @@ public class ChatServiceImpl implements ChatService {
         CreateCompletionResponse createCompletionResponse = CreateCompletionResponse.builder()
                 .interactionCompletion(
                         InteractionCompletion.builder()
+                                .completionId(createUniqueId())
+                                .promptId(promptId)
                                 .completion(response.getResults().getFirst().getOutput().getText())
                                 .llm(response.getMetadata().getModel())
                                 .llmProvider(llmProvider)
@@ -389,7 +395,7 @@ public class ChatServiceImpl implements ChatService {
 
     private LlmCompletion createLlmCompletion(String promptId, CreateCompletionResponse response) {
         return LlmCompletion.builder()
-                .completionId(createUniqueId())
+                .completionId(response.getInteractionCompletion().getCompletionId())
                 .promptId(promptId)
                 .completion(response.getInteractionCompletion().getCompletion())
                 .llm(response.getInteractionCompletion().getLlm())
