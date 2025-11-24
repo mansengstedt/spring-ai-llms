@@ -1,0 +1,49 @@
+package com.ment.chat.client.service;
+
+import com.ment.chat.client.model.enums.LlmProvider;
+import com.ment.chat.client.model.in.CreateCompletionRequest;
+import com.ment.chat.client.model.out.CreateCompletionResponse;
+import org.junit.jupiter.params.provider.Arguments;
+
+import java.time.OffsetDateTime;
+import java.util.UUID;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public abstract class BaseChatServiceTest {
+
+    void testProvider(ChatService chatService, LlmProvider provider) {
+        var completion = chatService.createCompletionByProvider(createCompletionRequest("Who is Donald Trump?", null), provider);
+
+        assertThat(completion).isInstanceOf(CreateCompletionResponse.class);
+        assertThat(completion.getInteractionCompletion().getCompletion()).contains("Trump"); //provider dependent
+        assertThat(completion.getInteractionCompletion().getLlm()).isNotEmpty(); //provider dependent
+        assertThat(completion.getInteractionCompletion().getTokenUsage()).isNotEmpty(); //provider dependent
+        assertThat(UUID.fromString(completion.getInteractionCompletion().getCompletionId())).isInstanceOf(UUID.class); //service dependent
+        assertThat(completion.getInteractionCompletion().getLlmProvider()).isEqualTo(provider); //service dependent
+        assertThat(completion.getInteractionCompletion().getCompletedAt()).isBefore(OffsetDateTime.now()); //service dependent
+        assertThat(completion.getInteractionCompletion().getExecutionTimeMs()).isGreaterThan(0); //service dependent
+    }
+
+    Stream<Arguments> localProviders() {
+        return Stream.of(
+                Arguments.of(LlmProvider.OLLAMA),
+                Arguments.of(LlmProvider.DOCKER)
+        );
+    }
+
+    Stream<Arguments> externalProviders() {
+        return Stream.of(
+                Arguments.of(LlmProvider.OPENAI),
+                Arguments.of(LlmProvider.ANTHROPIC)
+        );
+    }
+
+    CreateCompletionRequest createCompletionRequest(String prompt, String chatId) {
+        return CreateCompletionRequest.builder()
+                .prompt(prompt)
+                .chatId(chatId)
+                .build();
+    }
+}

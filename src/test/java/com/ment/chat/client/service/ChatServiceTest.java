@@ -2,14 +2,12 @@ package com.ment.chat.client.service;
 
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.enums.LlmStatus;
-import com.ment.chat.client.model.in.CreateCompletionRequest;
 import com.ment.chat.client.model.out.CreateCompletionResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
 import com.ment.chat.client.model.out.GetInteractionResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +18,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -30,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ActiveProfiles(value = {"test"})
 @EnableAutoConfiguration()
 @DirtiesContext
-public class ChatServiceTest {
+public class ChatServiceTest extends BaseChatServiceTest  {
 
     @Autowired
     private ChatService chatService;
@@ -38,16 +35,7 @@ public class ChatServiceTest {
     @ParameterizedTest
     @MethodSource("localProviders")
     void chatProviderCallOk(LlmProvider provider) {
-        var completion = chatService.createCompletionByProvider(createCompletionRequest("Who is Donald Trump?", null), provider);
-
-        assertThat(completion).isInstanceOf(CreateCompletionResponse.class);
-        assertThat(completion.getInteractionCompletion().getCompletion()).contains("Trump"); //provider dependent
-        assertThat(completion.getInteractionCompletion().getLlm()).isNotEmpty(); //provider dependent
-        assertThat(completion.getInteractionCompletion().getTokenUsage()).isNotEmpty(); //provider dependent
-        assertThat(UUID.fromString(completion.getInteractionCompletion().getCompletionId())).isInstanceOf(UUID.class); //service dependent
-        assertThat(completion.getInteractionCompletion().getLlmProvider()).isEqualTo(provider); //service dependent
-        assertThat(completion.getInteractionCompletion().getCompletedAt()).isBefore(OffsetDateTime.now()); //service dependent
-        assertThat(completion.getInteractionCompletion().getExecutionTimeMs()).isGreaterThan(0); //service dependent
+        testProvider(chatService, provider);
     }
 
     @Test
@@ -128,26 +116,5 @@ public class ChatServiceTest {
                 });
     }
 
-
-    private Stream<Arguments> localProviders() {
-        return Stream.of(
-                Arguments.of(LlmProvider.OLLAMA),
-                Arguments.of(LlmProvider.DOCKER)
-        );
-    }
-
-    private Stream<Arguments> externalProviders() {
-        return Stream.of(
-                Arguments.of(LlmProvider.OPENAI),
-                Arguments.of(LlmProvider.ANTHROPIC)
-        );
-    }
-
-    private CreateCompletionRequest createCompletionRequest(String prompt, String chatId) {
-        return CreateCompletionRequest.builder()
-                .prompt(prompt)
-                .chatId(chatId)
-                .build();
-    }
 
 }

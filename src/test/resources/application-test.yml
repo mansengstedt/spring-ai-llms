@@ -2,6 +2,7 @@ spring:
   config:
     activate:
       on-profile: test
+    import: classpath:secret/application-test-external.yml
   application:
     name: spring-ai-llms
   main:
@@ -11,13 +12,6 @@ spring:
     url: jdbc:h2:mem:signingdb;Mode=Oracle
     username: llmclient
     password: llmclient
-
----
-
-spring:
-  config:
-    activate:
-      on-profile: wiremock
 
 app:
   toggle:
@@ -32,17 +26,24 @@ app:
       llm-model-name: openai-latest
       api-connection:
         url: https://api.openai.com
-        key: test-open-ai-key-secret
+        key: fake-open-ai-key-secret
     anthropic:
       llm-model-name: anthropic-latest
       api-connection:
         url: https://api.anthropic.com
-        key: test-anthropic-key-secret
+        key: fake-anthropic-key-secret
     docker:
       llm-model-name: unknown
       api-connection:
         url: http://localhost:12434/engines
         key: NOT_NEEDED
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: wiremock
 
 wiremock:
   server:
