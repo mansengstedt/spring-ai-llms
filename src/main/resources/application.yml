@@ -34,8 +34,8 @@ spring:
   #springAi params
   ai:
     anthropic:
-      #must be set even if not used to avoid errors at start up
-      api-key: ${ANTHROPIC_CONNECTION_KEY:sk-ant-dummy}
+      #must be set to dummy value even if not used to avoid errors at start up
+      api-key: ${ANTHROPIC_CONNECTION_KEY:NOT_NEEDED}
     openai:
       api-key: ${OPEN_AI_CONNECTION_KEY:NOT_NEEDED}
     chat:
@@ -56,12 +56,12 @@ app:
       llm-model-name: ${OPEN_AI_LLM_MODEL_NAME:openai-latest}
       api-connection:
         url: ${OPEN_AI_CONNECTION_URL:https://api.openai.com}
-        key: ${OPEN_AI_CONNECTION_KEY}
+        key: ${OPEN_AI_CONNECTION_KEY} #set in env variable
     anthropic:
       llm-model-name: ${ANTHROPIC_LLM_MODEL_NAME:anthropic-latest}
       api-connection:
         url: ${ANTHROPIC_CONNECTION_URL:https://api.anthropic.com}
-        key: ${ANTHROPIC_CONNECTION_KEY}
+        key: ${ANTHROPIC_CONNECTION_KEY} #set in env variable
     docker:
       llm-model-name: ${DOCKER_LLM_MODEL_NAME:unknown}
       api-connection:

@@ -1,6 +1,9 @@
 package com.ment.chat.client.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.anthropic.AnthropicChatModel;
+import org.springframework.ai.anthropic.AnthropicChatOptions;
+import org.springframework.ai.anthropic.api.AnthropicApi;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -40,9 +43,21 @@ public class ChatServiceConfig {
                 appProperties.models().openAi().apiConnection());
     }
 
+
+    /**
+     * Creates an Anthropic ChatClient bean configured based on application properties.
+     * <p>
+     * The anthropicChatClient could be mutated from OpenAi classes exactly like Ollama and Docker.
+     * If done like this some params must be set explicitly, like 'max_tokens', to avoid errors like:
+     * "invalid_request_error","message":"max_tokens: Field required"
+     * since AnthropicChatModel can not be mutated from a base Anthropic Model.
+     *
+     * @param appProperties the application properties containing model and API connection details
+     * @return a configured ChatClient for Anthropic
+     */
     @Bean
-    public ChatClient anthropicChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
-        return mutateClient(baseChatModel,
+    public ChatClient anthropicChatClient(AppProperties appProperties) {
+        return mutateClient(
                 nameToLlm(appProperties.models().anthropic().llmModelName(), LLM_ANTHROPIC_CLAUDE_4_5),
                 appProperties.models().anthropic().apiConnection());
     }
@@ -63,7 +78,7 @@ public class ChatServiceConfig {
 
     private ChatClient mutateClient(OpenAiChatModel chatModel, LlmConfig llmConfig, AppProperties.Models.ApiConnection apiConnection) {
         ChatMemory chatMemory = MessageWindowChatMemory.builder().build();
-        OpenAiApi api = configApi(apiConnection);
+        OpenAiApi api = configOpenAiApi(apiConnection);
         OpenAiChatModel model = configChatModel(chatModel, api, llmConfig);
         return ChatClient.builder(model)
                 .defaultSystem(llmConfig.getSystem())
@@ -71,9 +86,27 @@ public class ChatServiceConfig {
                 .build();
     }
 
-    private OpenAiApi configApi(AppProperties.Models.ApiConnection apiConnection) {
+    private ChatClient mutateClient(LlmConfig llmConfig, AppProperties.Models.ApiConnection apiConnection) {
+        ChatMemory chatMemory = MessageWindowChatMemory.builder().build();
+        AnthropicApi api = configAnthropicApi(apiConnection);
+        AnthropicChatModel model = configChatModel(api, llmConfig);
+        return ChatClient.builder(model)
+                .defaultSystem(llmConfig.getSystem())
+                .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
+                .build();
+    }
+
+    private OpenAiApi configOpenAiApi(AppProperties.Models.ApiConnection apiConnection) {
         log.info("Configuring OpenAiApi with apiConnection: {}", apiConnection);
         return baseOpenAiApi.mutate()
+                .baseUrl(apiConnection.url())
+                .apiKey(apiConnection.key())
+                .build();
+    }
+
+    private AnthropicApi configAnthropicApi(AppProperties.Models.ApiConnection apiConnection) {
+        log.info("Configuring AnthropicApi with apiConnection: {}", apiConnection);
+        return AnthropicApi.builder()
                 .baseUrl(apiConnection.url())
                 .apiKey(apiConnection.key())
                 .build();
@@ -84,6 +117,19 @@ public class ChatServiceConfig {
                 .openAiApi(api)
                 .defaultOptions(OpenAiChatOptions.builder()
                         .model(llmConfig.getName())
+                        .maxTokens(llmConfig.getMaxTokens())
+                        .temperature(llmConfig.getTemperature())
+                        .build())
+                .build();
+    }
+
+    private AnthropicChatModel configChatModel(AnthropicApi api, LlmConfig llmConfig) {
+        return AnthropicChatModel.builder()
+                .anthropicApi(api)
+                .defaultOptions(AnthropicChatOptions.builder()
+                        .model(llmConfig.getName())
+                        //maxTokens must be set explicitly for Anthropic to avoid: "invalid_request_error","message":"max_tokens: Field required"
+                        .maxTokens(llmConfig.getMaxTokens())
                         .temperature(llmConfig.getTemperature())
                         .build())
                 .build();
