@@ -1,15 +1,18 @@
 package com.ment.chat.client.config;
 
 import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.validation.beanvalidation.CustomValidatorBean;
 
+import java.util.Iterator;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,11 +38,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 })
 class AppPropertiesTest {
 
+    @EnableConfigurationProperties(AppProperties.class)
+    static class TestConfig {
+    }
+
     @Autowired
     private AppProperties appProperties;
 
-    //@Autowired
-    private final Validator validator = new CustomValidatorBean();
+    private static Validator validator;
+
+    @BeforeAll
+    static void setUp() {
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            validator = factory.getValidator();
+        }
+    }
 
     @Test
     void shouldLoadValidConfiguration() {
@@ -79,7 +92,51 @@ class AppPropertiesTest {
         assertThat(violations.iterator().next().getPropertyPath().toString()).isEqualTo("models");
     }
 
-    @EnableConfigurationProperties(AppProperties.class)
-    static class TestConfig {
+    @Test
+    void shouldFailValidationWhenToggleAttributesAreNull() {
+        AppProperties invalidProperties =
+                new AppProperties(new AppProperties.Toggle(null, null, null),
+                appProperties.models());
+
+        Set<ConstraintViolation<AppProperties>> violations = validator.validate(invalidProperties);
+
+        assertThat(violations).hasSize(3);
+        Iterator<ConstraintViolation<AppProperties>> iterator = violations.iterator();
+        assertThat(iterator.next().getPropertyPath().toString()).startsWith("toggle.");
+        assertThat(iterator.next().getPropertyPath().toString()).startsWith("toggle.");
+        assertThat(iterator.next().getPropertyPath().toString()).startsWith("toggle.");
+    }
+
+    @Test
+    void shouldFailValidationWhenModelAttributesAreNull() {
+        AppProperties invalidProperties =
+                new AppProperties(appProperties.toggle(),
+                        new AppProperties.Models(null, null, null, null));
+
+        Set<ConstraintViolation<AppProperties>> violations = validator.validate(invalidProperties);
+
+        assertThat(violations).hasSize(4);
+        Iterator<ConstraintViolation<AppProperties>> iterator = violations.iterator();
+        assertThat(iterator.next().getPropertyPath().toString()).startsWith("models.");
+        assertThat(iterator.next().getPropertyPath().toString()).startsWith("models.");
+        assertThat(iterator.next().getPropertyPath().toString()).startsWith("models.");
+        assertThat(iterator.next().getPropertyPath().toString()).startsWith("models.");
+    }
+
+    @Test
+    void shouldFailValidationWhenLeafAttributesIsNull() {
+        AppProperties.Models.ApiConnection apiConnection = new AppProperties.Models.ApiConnection("url", "key");
+        AppProperties invalidProperties =
+                new AppProperties(appProperties.toggle(),
+                        new AppProperties.Models(new AppProperties.Models.Ollama("llmModelName", apiConnection),
+                                new AppProperties.Models.OpenAi("llmModelName", apiConnection),
+                                new AppProperties.Models.Anthropic("llmModelName", apiConnection),
+                                new AppProperties.Models.Docker("llmModelName", new AppProperties.Models.ApiConnection("url", null))));
+
+        Set<ConstraintViolation<AppProperties>> violations = validator.validate(invalidProperties);
+
+        assertThat(violations).hasSize(1);
+        Iterator<ConstraintViolation<AppProperties>> iterator = violations.iterator();
+        assertThat(iterator.next().getPropertyPath().toString()).isEqualTo("models.docker.apiConnection.key");
     }
 }

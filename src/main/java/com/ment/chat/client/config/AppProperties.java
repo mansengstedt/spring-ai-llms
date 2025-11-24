@@ -1,29 +1,43 @@
 package com.ment.chat.client.config;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 @ConfigurationProperties(prefix = "app")
 @Validated
-public record AppProperties(@NotNull Toggle toggle, @NotNull Models models) {
+public record AppProperties(@Valid @NotNull Toggle toggle,
+                            @Valid @NotNull Models models) {
 
-    public record Toggle(@NotNull Boolean messageType,
-                         @NotNull Boolean enableChat,
-                          @NotNull Boolean enableChatHistory) {
+    public record Toggle(@Valid @NotNull Boolean messageType,
+                         @Valid @NotNull Boolean enableChat,
+                         @Valid @NotNull Boolean enableChatHistory) {
     }
 
-    public record Models(@NotNull Ollama ollama, @NotNull OpenAi openAi, @NotNull Anthropic anthropic, @NotNull Docker docker) {
-        public record Ollama(@NotNull String llmModelName, @NotNull ApiConnection apiConnection) {
-        }
-        public record OpenAi(@NotNull String llmModelName, @NotNull ApiConnection apiConnection) {
-        }
-        public record Anthropic(@NotNull String llmModelName, @NotNull ApiConnection apiConnection) {
-        }
-        public record Docker(@NotNull String llmModelName, @NotNull ApiConnection apiConnection) {
+    public record Models(@Valid @NotNull Ollama ollama,
+                         @Valid @NotNull OpenAi openAi,
+                         @Valid @NotNull Anthropic anthropic,
+                         @Valid @NotNull Docker docker) {
+
+        public record Ollama(@Valid @NotNull String llmModelName,
+                             @Valid @NotNull ApiConnection apiConnection) {
         }
 
-        public record ApiConnection(@NotNull String url, @NotNull String key) {
+        public record OpenAi(@Valid @NotNull String llmModelName,
+                             @Valid @NotNull ApiConnection apiConnection) {
+        }
+
+        public record Anthropic(@Valid @NotNull String llmModelName,
+                                @Valid @NotNull ApiConnection apiConnection) {
+        }
+
+        public record Docker(@Valid @NotNull String llmModelName,
+                             @Valid @NotNull ApiConnection apiConnection) {
+        }
+
+        public record ApiConnection(@Valid @NotNull String url,
+                                    @Valid @NotNull String key) {
         }
     }
 }
