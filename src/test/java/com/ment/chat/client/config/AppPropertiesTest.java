@@ -100,11 +100,9 @@ class AppPropertiesTest {
 
         Set<ConstraintViolation<AppProperties>> violations = validator.validate(invalidProperties);
 
-        assertThat(violations).hasSize(3);
+        assertThat(violations).hasSize(1);
         Iterator<ConstraintViolation<AppProperties>> iterator = violations.iterator();
-        assertThat(iterator.next().getPropertyPath().toString()).startsWith("toggle.");
-        assertThat(iterator.next().getPropertyPath().toString()).startsWith("toggle.");
-        assertThat(iterator.next().getPropertyPath().toString()).startsWith("toggle.");
+        assertThat(iterator.next().getPropertyPath().toString()).isEqualTo("toggle.messageType");
     }
 
     @Test

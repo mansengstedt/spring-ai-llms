@@ -7,37 +7,38 @@ import org.springframework.validation.annotation.Validated;
 
 @ConfigurationProperties(prefix = "app")
 @Validated
-public record AppProperties(@Valid @NotNull Toggle toggle,
-                            @Valid @NotNull Models models) {
+public record AppProperties(@NotNull @Valid Toggle toggle,
+                            @NotNull @Valid Models models) {
 
-    public record Toggle(@Valid @NotNull Boolean messageType,
-                         @Valid @NotNull Boolean enableChat,
-                         @Valid @NotNull Boolean enableChatHistory) {
+
+    public record Toggle(@NotNull Boolean messageType,
+                         Boolean enableChat,
+                         Boolean enableChatHistory) {
     }
 
-    public record Models(@Valid @NotNull Ollama ollama,
-                         @Valid @NotNull OpenAi openAi,
-                         @Valid @NotNull Anthropic anthropic,
-                         @Valid @NotNull Docker docker) {
+    public record Models(@NotNull @Valid Ollama ollama,
+                         @NotNull @Valid OpenAi openAi,
+                         @NotNull @Valid Anthropic anthropic,
+                         @NotNull @Valid Docker docker) {
 
-        public record Ollama(@Valid @NotNull String llmModelName,
-                             @Valid @NotNull ApiConnection apiConnection) {
+        public record Ollama(@NotNull @Valid String llmModelName,
+                             @NotNull ApiConnection apiConnection) {
         }
 
-        public record OpenAi(@Valid @NotNull String llmModelName,
-                             @Valid @NotNull ApiConnection apiConnection) {
+        public record OpenAi(@NotNull String llmModelName,
+                             @NotNull @Valid ApiConnection apiConnection) {
         }
 
-        public record Anthropic(@Valid @NotNull String llmModelName,
-                                @Valid @NotNull ApiConnection apiConnection) {
+        public record Anthropic(@NotNull String llmModelName,
+                                @NotNull @Valid ApiConnection apiConnection) {
         }
 
-        public record Docker(@Valid @NotNull String llmModelName,
-                             @Valid @NotNull ApiConnection apiConnection) {
+        public record Docker(@NotNull String llmModelName,
+                             @NotNull @Valid ApiConnection apiConnection) {
         }
 
-        public record ApiConnection(@Valid @NotNull String url,
-                                    @Valid @NotNull String key) {
+        public record ApiConnection(@NotNull String url,
+                                    @NotNull @Valid String key) {
         }
     }
 }
