@@ -21,8 +21,8 @@ public record AppProperties(@NotNull @Valid Toggle toggle,
                          @NotNull @Valid Anthropic anthropic,
                          @NotNull @Valid Docker docker) {
 
-        public record Ollama(@NotNull @Valid String llmModelName,
-                             @NotNull ApiConnection apiConnection) {
+        public record Ollama(@NotNull String llmModelName,
+                             @NotNull @Valid ApiConnection apiConnection) {
         }
 
         public record OpenAi(@NotNull String llmModelName,
