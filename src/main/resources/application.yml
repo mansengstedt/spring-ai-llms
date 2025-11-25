@@ -52,7 +52,7 @@ app:
       api-connection:
         url: ${OLLAMA_CONNECTION_URL:http://localhost:11434}
         key: ${OLLAMA_CONNECTION_KEY:NOT_NEEDED}
-    open-ai:
+    openai:
       llm-model-name: ${OPEN_AI_LLM_MODEL_NAME:openai-latest}
       api-connection:
         url: ${OPEN_AI_CONNECTION_URL:https://api.openai.com}

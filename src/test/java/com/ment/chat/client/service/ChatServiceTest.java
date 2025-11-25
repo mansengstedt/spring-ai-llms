@@ -2,7 +2,6 @@ package com.ment.chat.client.service;
 
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.enums.LlmStatus;
-import com.ment.chat.client.model.out.CreateCompletionResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
 import com.ment.chat.client.model.out.GetInteractionResponse;
 import org.junit.jupiter.api.Test;
@@ -16,9 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.OffsetDateTime;
-import java.util.UUID;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -27,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ActiveProfiles(value = {"test"})
 @EnableAutoConfiguration()
 @DirtiesContext
-public class ChatServiceTest extends BaseChatServiceTest  {
+public class ChatServiceTest extends BaseChatServiceTest {
 
     @Autowired
     private ChatService chatService;
@@ -60,7 +56,13 @@ public class ChatServiceTest extends BaseChatServiceTest  {
     void chatProviderCallWithWrongPassword(LlmProvider provider) {
         assertThatThrownBy(() -> chatService.createCompletionByProvider(createCompletionRequest("Who is Donald Trump?", null), provider))
                 .isInstanceOf(NonTransientAiException.class)
-                .message().contains("invalid_request_error");
+                .satisfies(ex ->
+                        assertThat(ex.getMessage())
+                                .matches(msg ->
+                                        msg.contains("authentication_error") ||
+                                                msg.contains("invalid_request_error")
+                                )
+                );
     }
 
     @ParameterizedTest

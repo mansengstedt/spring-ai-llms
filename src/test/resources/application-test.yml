@@ -22,16 +22,16 @@ app:
       api-connection:
         url: http://localhost:11434
         key: NOT_NEEDED
-    open-ai:
+    openai:
       llm-model-name: openai-latest
       api-connection:
         url: https://api.openai.com
-        key: fake-open-ai-key-secret
+        key: sk-proj-fake-open-ai-key-secret
     anthropic:
       llm-model-name: anthropic-latest
       api-connection:
         url: https://api.anthropic.com
-        key: fake-anthropic-key-secret
+        key: sk-ant-api03-fake-anthropic-key-secret
     docker:
       llm-model-name: unknown
       api-connection:

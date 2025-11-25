@@ -1,14 +1,18 @@
 package com.ment.chat.client.config;
 
+import com.ment.chat.client.model.enums.LlmProvider;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.Map;
+
 @ConfigurationProperties(prefix = "app")
 @Validated
 public record AppProperties(@NotNull @Valid Toggle toggle,
-                            @NotNull @Valid Models models) {
+                            @NotNull @NotEmpty @Valid Map<LlmProvider, ProviderModel> models) {
 
 
     public record Toggle(@NotNull Boolean messageType,
@@ -16,29 +20,11 @@ public record AppProperties(@NotNull @Valid Toggle toggle,
                          Boolean enableChatHistory) {
     }
 
-    public record Models(@NotNull @Valid Ollama ollama,
-                         @NotNull @Valid OpenAi openAi,
-                         @NotNull @Valid Anthropic anthropic,
-                         @NotNull @Valid Docker docker) {
-
-        public record Ollama(@NotNull String llmModelName,
-                             @NotNull @Valid ApiConnection apiConnection) {
-        }
-
-        public record OpenAi(@NotNull String llmModelName,
-                             @NotNull @Valid ApiConnection apiConnection) {
-        }
-
-        public record Anthropic(@NotNull String llmModelName,
+    public record ProviderModel(@NotNull String llmModelName,
                                 @NotNull @Valid ApiConnection apiConnection) {
-        }
+    }
 
-        public record Docker(@NotNull String llmModelName,
-                             @NotNull @Valid ApiConnection apiConnection) {
-        }
-
-        public record ApiConnection(@NotNull String url,
-                                    @NotNull @Valid String key) {
-        }
+    public record ApiConnection(@NotNull String url,
+                                @NotNull @Valid String key) {
     }
 }

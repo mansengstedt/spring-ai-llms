@@ -1,5 +1,6 @@
 package com.ment.chat.client.config;
 
+import com.ment.chat.client.model.enums.LlmProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.anthropic.AnthropicChatModel;
 import org.springframework.ai.anthropic.AnthropicChatOptions;
@@ -32,15 +33,15 @@ public class ChatServiceConfig {
     @Bean
     public ChatClient ollamaChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
         return mutateClient(baseChatModel,
-                nameToLlm(appProperties.models().ollama().llmModelName(), LLM_OLLAMA_QWEN_3),
-                appProperties.models().ollama().apiConnection());
+                nameToLlm(appProperties.models().get(LlmProvider.OLLAMA).llmModelName(), LLM_OLLAMA_QWEN_3),
+                appProperties.models().get(LlmProvider.OLLAMA).apiConnection());
     }
 
     @Bean
     public ChatClient openAiChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
         return mutateClient(baseChatModel,
-                nameToLlm(appProperties.models().openAi().llmModelName(), LLM_OPEN_AI_GPT_5),
-                appProperties.models().openAi().apiConnection());
+                nameToLlm(appProperties.models().get(LlmProvider.OPENAI).llmModelName(), LLM_OPEN_AI_GPT_5),
+                appProperties.models().get(LlmProvider.OPENAI).apiConnection());
     }
 
 
@@ -58,15 +59,15 @@ public class ChatServiceConfig {
     @Bean
     public ChatClient anthropicChatClient(AppProperties appProperties) {
         return mutateClient(
-                nameToLlm(appProperties.models().anthropic().llmModelName(), LLM_ANTHROPIC_CLAUDE_4_5),
-                appProperties.models().anthropic().apiConnection());
+                nameToLlm(appProperties.models().get(LlmProvider.ANTHROPIC).llmModelName(), LLM_ANTHROPIC_CLAUDE_4_5),
+                appProperties.models().get(LlmProvider.ANTHROPIC).apiConnection());
     }
 
     @Bean
     public ChatClient dockerChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
         return mutateClient(baseChatModel,
-                nameToLlm(appProperties.models().docker().llmModelName(), LLM_DOCKER_DEEPSEEK_R1),
-                appProperties.models().docker().apiConnection());
+                nameToLlm(appProperties.models().get(LlmProvider.DOCKER).llmModelName(), LLM_DOCKER_DEEPSEEK_R1),
+                appProperties.models().get(LlmProvider.DOCKER).apiConnection());
     }
 
     private LlmConfig nameToLlm(String name, LlmConfig defaultModel) {
@@ -76,7 +77,7 @@ public class ChatServiceConfig {
                 .orElse(defaultModel);
     }
 
-    private ChatClient mutateClient(OpenAiChatModel chatModel, LlmConfig llmConfig, AppProperties.Models.ApiConnection apiConnection) {
+    private ChatClient mutateClient(OpenAiChatModel chatModel, LlmConfig llmConfig, AppProperties.ApiConnection apiConnection) {
         ChatMemory chatMemory = MessageWindowChatMemory.builder().build();
         OpenAiApi api = configOpenAiApi(apiConnection);
         OpenAiChatModel model = configChatModel(chatModel, api, llmConfig);
@@ -86,7 +87,7 @@ public class ChatServiceConfig {
                 .build();
     }
 
-    private ChatClient mutateClient(LlmConfig llmConfig, AppProperties.Models.ApiConnection apiConnection) {
+    private ChatClient mutateClient(LlmConfig llmConfig, AppProperties.ApiConnection apiConnection) {
         ChatMemory chatMemory = MessageWindowChatMemory.builder().build();
         AnthropicApi api = configAnthropicApi(apiConnection);
         AnthropicChatModel model = configChatModel(api, llmConfig);
@@ -96,7 +97,7 @@ public class ChatServiceConfig {
                 .build();
     }
 
-    private OpenAiApi configOpenAiApi(AppProperties.Models.ApiConnection apiConnection) {
+    private OpenAiApi configOpenAiApi(AppProperties.ApiConnection apiConnection) {
         log.info("Configuring OpenAiApi with apiConnection: {}", apiConnection);
         return baseOpenAiApi.mutate()
                 .baseUrl(apiConnection.url())
@@ -104,7 +105,7 @@ public class ChatServiceConfig {
                 .build();
     }
 
-    private AnthropicApi configAnthropicApi(AppProperties.Models.ApiConnection apiConnection) {
+    private AnthropicApi configAnthropicApi(AppProperties.ApiConnection apiConnection) {
         log.info("Configuring AnthropicApi with apiConnection: {}", apiConnection);
         return AnthropicApi.builder()
                 .baseUrl(apiConnection.url())

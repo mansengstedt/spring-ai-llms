@@ -1,5 +1,6 @@
 package com.ment.chat.client.config;
 
+import com.ment.chat.client.model.enums.LlmProvider;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -12,7 +13,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,9 +29,9 @@ import static org.assertj.core.api.Assertions.assertThat;
         "app.models.ollama.llm-model-name=llama2",
         "app.models.ollama.api-connection.url=http://localhost:11434",
         "app.models.ollama.api-connection.key=test-key",
-        "app.models.open-ai.llm-model-name=gpt-4",
-        "app.models.open-ai.api-connection.url=https://api.openai.com",
-        "app.models.open-ai.api-connection.key=sk-test",
+        "app.models.openai.llm-model-name=gpt-4",
+        "app.models.openai.api-connection.url=https://api.openai.com",
+        "app.models.openai.api-connection.key=sk-test",
         "app.models.anthropic.llm-model-name=claude-3",
         "app.models.anthropic.api-connection.url=https://api.anthropic.com",
         "app.models.anthropic.api-connection.key=ant-test",
@@ -61,11 +64,11 @@ class AppPropertiesTest {
         assertThat(appProperties.toggle().enableChat()).isTrue();
         assertThat(appProperties.toggle().enableChatHistory()).isFalse();
 
-        assertThat(appProperties.models().ollama().llmModelName()).isEqualTo("llama2");
-        assertThat(appProperties.models().ollama().apiConnection().url()).isEqualTo("http://localhost:11434");
-        assertThat(appProperties.models().openAi().llmModelName()).isEqualTo("gpt-4");
-        assertThat(appProperties.models().anthropic().llmModelName()).isEqualTo("claude-3");
-        assertThat(appProperties.models().docker().llmModelName()).isEqualTo("local-model");
+        assertThat(appProperties.models().get(LlmProvider.OLLAMA).llmModelName()).isEqualTo("llama2");
+        assertThat(appProperties.models().get(LlmProvider.OLLAMA).apiConnection().url()).isEqualTo("http://localhost:11434");
+        assertThat(appProperties.models().get(LlmProvider.OPENAI).llmModelName()).isEqualTo("gpt-4");
+        assertThat(appProperties.models().get(LlmProvider.ANTHROPIC).llmModelName()).isEqualTo("claude-3");
+        assertThat(appProperties.models().get(LlmProvider.DOCKER).llmModelName()).isEqualTo("local-model");
     }
 
     @Test
@@ -88,7 +91,7 @@ class AppPropertiesTest {
         AppProperties invalidProperties = new AppProperties(appProperties.toggle(), null);
 
         Set<ConstraintViolation<AppProperties>> violations = validator.validate(invalidProperties);
-        assertThat(violations).hasSize(1);
+        assertThat(violations).hasSize(2);
         assertThat(violations.iterator().next().getPropertyPath().toString()).isEqualTo("models");
     }
 
@@ -109,32 +112,27 @@ class AppPropertiesTest {
     void shouldFailValidationWhenModelAttributesAreNull() {
         AppProperties invalidProperties =
                 new AppProperties(appProperties.toggle(),
-                        new AppProperties.Models(null, null, null, null));
+                        new HashMap<>()); //must have at least one element
 
         Set<ConstraintViolation<AppProperties>> violations = validator.validate(invalidProperties);
 
-        assertThat(violations).hasSize(4);
-        Iterator<ConstraintViolation<AppProperties>> iterator = violations.iterator();
-        assertThat(iterator.next().getPropertyPath().toString()).startsWith("models.");
-        assertThat(iterator.next().getPropertyPath().toString()).startsWith("models.");
-        assertThat(iterator.next().getPropertyPath().toString()).startsWith("models.");
-        assertThat(iterator.next().getPropertyPath().toString()).startsWith("models.");
+        assertThat(violations).hasSize(1);
     }
 
     @Test
     void shouldFailValidationWhenLeafAttributesIsNull() {
-        AppProperties.Models.ApiConnection apiConnection = new AppProperties.Models.ApiConnection("url", "key");
-        AppProperties invalidProperties =
-                new AppProperties(appProperties.toggle(),
-                        new AppProperties.Models(new AppProperties.Models.Ollama("llmModelName", apiConnection),
-                                new AppProperties.Models.OpenAi("llmModelName", apiConnection),
-                                new AppProperties.Models.Anthropic("llmModelName", apiConnection),
-                                new AppProperties.Models.Docker("llmModelName", new AppProperties.Models.ApiConnection("url", null))));
+        AppProperties.ApiConnection apiConnection = new AppProperties.ApiConnection("url", "key");
+        Map<LlmProvider, AppProperties.ProviderModel> map = new HashMap<>();
+        map.put(LlmProvider.OLLAMA, new AppProperties.ProviderModel("llmModelName", apiConnection));
+        map.put(LlmProvider.OPENAI, new AppProperties.ProviderModel("llmModelName", apiConnection));
+        map.put(LlmProvider.ANTHROPIC, new AppProperties.ProviderModel("llmModelName", apiConnection));
+        map.put(LlmProvider.DOCKER, new AppProperties.ProviderModel("llmModelName", new AppProperties.ApiConnection("url", null)));
+        AppProperties invalidProperties = new AppProperties(appProperties.toggle(), map);
 
         Set<ConstraintViolation<AppProperties>> violations = validator.validate(invalidProperties);
 
         assertThat(violations).hasSize(1);
         Iterator<ConstraintViolation<AppProperties>> iterator = violations.iterator();
-        assertThat(iterator.next().getPropertyPath().toString()).isEqualTo("models.docker.apiConnection.key");
+        assertThat(iterator.next().getPropertyPath().toString()).isEqualTo("models[DOCKER].apiConnection.key");
     }
 }
