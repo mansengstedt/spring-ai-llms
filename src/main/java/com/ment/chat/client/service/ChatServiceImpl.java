@@ -231,9 +231,8 @@ public class ChatServiceImpl implements ChatService {
 
             ChatClient.ChatClientRequestSpec reqSpec = createRequestSpec(completionRequest, chatClient, message);
 
-            ChatResponse chatResponse = reqSpec
-                    .call()
-                    .chatResponse();
+
+            ChatResponse chatResponse = callProvider(chatClient, reqSpec);
 
             assert chatResponse != null;
 
@@ -243,6 +242,16 @@ public class ChatServiceImpl implements ChatService {
             log.error("Error in flow from {}", chatClient, e);
             throw e;
         }
+    }
+
+    private ChatResponse callProvider(ChatClient chatClient, ChatClient.ChatClientRequestSpec reqSpec) {
+        long start = System.currentTimeMillis();
+        log.info("Calling provider with {}", chatClient);
+        ChatResponse chatResponse = reqSpec
+                .call()
+                .chatResponse();
+        log.info("Called provider answered within {} ms", System.currentTimeMillis() - start);
+        return chatResponse;
     }
 
     private CreateCombinedCompletionResponse getChatResponses(String id, CreateCompletionRequest completionRequest, Map<LlmProvider, ChatClient> chatClients) {
@@ -265,9 +274,7 @@ public class ChatServiceImpl implements ChatService {
 
     private Mono<Map.Entry<LlmProvider, ChatResponse>> callChatClient(CreateCompletionRequest completionRequest, LlmProvider llmProvider, ChatClient chatClient, Message message) {
         return Mono.fromSupplier(() -> Map.entry(llmProvider,
-                        Objects.requireNonNull(createRequestSpec(completionRequest, chatClient, message)
-                                .call()
-                                .chatResponse())))
+                        callProvider(chatClient, Objects.requireNonNull(createRequestSpec(completionRequest, chatClient, message)))))
                 .onErrorResume(e -> {
                     log.error("Error in chat call", e);
                     // In case of error, return an empty ChatResponse with LlmProvider to continue processing other LLMs
@@ -372,11 +379,13 @@ public class ChatServiceImpl implements ChatService {
             if (Boolean.TRUE == appProperties.toggle().messageType()) {
                 messageType = MessageType.ASSISTANT;
             }
+            log.info("Sending user message to LLMs: {}", prompt);
             return new UserMessage(prompt);
         } else if (messageType == MessageType.ASSISTANT) {
             if (Boolean.TRUE == appProperties.toggle().messageType()) {
                 messageType = MessageType.USER;
             }
+            log.info("Sending assistant message to LLMs: {}", prompt);
             return new AssistantMessage(prompt);
         } else {
             throw new IllegalStateException("Unknown message type: " + messageType);
