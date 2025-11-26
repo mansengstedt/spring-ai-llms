@@ -1,6 +1,7 @@
 package com.ment.chat.client.service;
 
 import com.ment.chat.client.config.AppProperties;
+import com.ment.chat.client.domain.ChatResponseTimer;
 import com.ment.chat.client.domain.LlmCompletion;
 import com.ment.chat.client.domain.LlmPrompt;
 import com.ment.chat.client.domain.exception.ChatNotFoundException;
@@ -227,16 +228,11 @@ public class ChatServiceImpl implements ChatService {
             */
             Message message = createSavePublishRequest(id, completionRequest);
 
-            long start = System.currentTimeMillis();
-
             ChatClient.ChatClientRequestSpec reqSpec = createRequestSpec(completionRequest, chatClient, message);
 
+            ChatResponseTimer chatResponse = callProvider(llmProvider, reqSpec);
 
-            ChatResponse chatResponse = callProvider(chatClient, reqSpec);
-
-            assert chatResponse != null;
-
-            return createSavePublishResponse(System.currentTimeMillis() - start, id, OffsetDateTime.now(), llmProvider, chatResponse);
+            return createSavePublishResponse(id, OffsetDateTime.now(), llmProvider, chatResponse);
 
         } catch (Exception e) {
             log.error("Error in flow from {}", chatClient, e);
@@ -244,14 +240,15 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    private ChatResponse callProvider(ChatClient chatClient, ChatClient.ChatClientRequestSpec reqSpec) {
+    private ChatResponseTimer callProvider(LlmProvider llmProvider, ChatClient.ChatClientRequestSpec reqSpec) {
         long start = System.currentTimeMillis();
-        log.info("Calling provider with {}", chatClient);
+        log.info("Calling provider {}", llmProvider);
         ChatResponse chatResponse = reqSpec
                 .call()
                 .chatResponse();
-        log.info("Called provider answered within {} ms", System.currentTimeMillis() - start);
-        return chatResponse;
+        Long executionTime = System.currentTimeMillis() - start;
+        log.info("Called provider answered within {} ms", executionTime);
+        return new ChatResponseTimer(chatResponse, executionTime);
     }
 
     private CreateCombinedCompletionResponse getChatResponses(String id, CreateCompletionRequest completionRequest, Map<LlmProvider, ChatClient> chatClients) {
@@ -260,25 +257,28 @@ public class ChatServiceImpl implements ChatService {
 
             long start = System.currentTimeMillis();
 
-            List<Mono<Map.Entry<LlmProvider, ChatResponse>>> entryList = chatClients.entrySet().stream()
+            List<Mono<Map.Entry<LlmProvider, ChatResponseTimer>>> entryList = chatClients.entrySet().stream()
                     .map(entry -> callChatClient(completionRequest, entry.getKey(), entry.getValue(), message))
                     .toList();
 
-            return combineResponses(start, id, entryList)
+            CreateCombinedCompletionResponse response = combineResponses(id, entryList)
                     .block();
+
+            log.info("Created combined completion response within {} ms", System.currentTimeMillis() - start);
+            return response;
         } catch (Exception e) {
             log.error("Error in combined flow ", e);
             throw e;
         }
     }
 
-    private Mono<Map.Entry<LlmProvider, ChatResponse>> callChatClient(CreateCompletionRequest completionRequest, LlmProvider llmProvider, ChatClient chatClient, Message message) {
+    private Mono<Map.Entry<LlmProvider, ChatResponseTimer>> callChatClient(CreateCompletionRequest completionRequest, LlmProvider llmProvider, ChatClient chatClient, Message message) {
         return Mono.fromSupplier(() -> Map.entry(llmProvider,
-                        callProvider(chatClient, Objects.requireNonNull(createRequestSpec(completionRequest, chatClient, message)))))
+                        callProvider(llmProvider, Objects.requireNonNull(createRequestSpec(completionRequest, chatClient, message)))))
                 .onErrorResume(e -> {
                     log.error("Error in chat call", e);
                     // In case of error, return an empty ChatResponse with LlmProvider to continue processing other LLMs
-                    return Mono.fromSupplier(() -> Map.entry(llmProvider, new ChatResponse(List.of())));
+                    return Mono.fromSupplier(() -> Map.entry(llmProvider, new ChatResponseTimer(new ChatResponse(List.of()), 0L)));
                 });
     }
 
@@ -293,10 +293,10 @@ public class ChatServiceImpl implements ChatService {
         return reqSpec;
     }
 
-    private Mono<CreateCombinedCompletionResponse> combineResponses(long start, String promptId, List<Mono<Map.Entry<LlmProvider, ChatResponse>>> responses) {
+    private Mono<CreateCombinedCompletionResponse> combineResponses(String promptId, List<Mono<Map.Entry<LlmProvider, ChatResponseTimer>>> responses) {
         return Mono.zip(responses, tuples -> Arrays.stream(tuples)
                         .map(object ->
-                                createCombinedSavePublishResponse(System.currentTimeMillis() - start, promptId, OffsetDateTime.now(), castMapEntry(object))
+                                createCombinedSavePublishResponse(promptId, OffsetDateTime.now(), castMapEntry(object))
                         )
                         .toList())
                 .map(savePublishResponses ->
@@ -313,12 +313,12 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @SuppressWarnings("unchecked")
-    private Map.Entry<LlmProvider, ChatResponse> castMapEntry(Object entry) {
+    private Map.Entry<LlmProvider, ChatResponseTimer> castMapEntry(Object entry) {
         if (entry instanceof Map.Entry<?, ?> castEntry) {
             //castEntry can't be null here due to the instanceof check
-            if ((castEntry.getKey() instanceof LlmProvider) && (castEntry.getValue() instanceof ChatResponse)) {
+            if ((castEntry.getKey() instanceof LlmProvider) && (castEntry.getValue() instanceof ChatResponseTimer)) {
                 // Now safe to cast both Key and Value but compiler can't see that type check is done unless Map.entry is created with correct types
-                return (Map.Entry<LlmProvider, ChatResponse>) castEntry;
+                return (Map.Entry<LlmProvider, ChatResponseTimer>) castEntry;
             }
         }
         throw new IllegalArgumentException("Null value(s) or invalid entry type(s): " + entry);
@@ -334,13 +334,13 @@ public class ChatServiceImpl implements ChatService {
         return createMessageAndToggleMessageType(prompt);
     }
 
-    private CreateCompletionResponse createCombinedSavePublishResponse(long execTime, String promptId, OffsetDateTime dateTime, Map.Entry<LlmProvider, ChatResponse> response) {
-        return createSavePublishResponse(execTime, promptId, dateTime, response.getKey(), response.getValue());
+    private CreateCompletionResponse createCombinedSavePublishResponse(String promptId, OffsetDateTime dateTime, Map.Entry<LlmProvider, ChatResponseTimer> response) {
+        return createSavePublishResponse(promptId, dateTime, response.getKey(), response.getValue());
     }
 
     @SuppressWarnings("ConstantConditions")
-    private CreateCompletionResponse createSavePublishResponse(long execTime, String promptId, OffsetDateTime dateTime, LlmProvider llmProvider, ChatResponse response) {
-        if (Objects.isNull(response.getResult())) {
+    private CreateCompletionResponse createSavePublishResponse(String promptId, OffsetDateTime dateTime, LlmProvider llmProvider, ChatResponseTimer response) {
+        if (Objects.isNull(response.chatResponse().getResult())) {
             // No answer received which might happen if LLM is not available
             return CreateCompletionResponse.builder()
                     .interactionCompletion(
@@ -356,11 +356,11 @@ public class ChatServiceImpl implements ChatService {
                         InteractionCompletion.builder()
                                 .completionId(createUniqueId())
                                 .promptId(promptId)
-                                .completion(response.getResults().getFirst().getOutput().getText())
-                                .llm(response.getMetadata().getModel())
+                                .completion(response.chatResponse().getResults().getFirst().getOutput().getText())
+                                .llm(response.chatResponse().getMetadata().getModel())
                                 .llmProvider(llmProvider)
-                                .tokenUsage(response.getMetadata().getUsage().toString())
-                                .executionTimeMs(execTime)
+                                .tokenUsage(response.chatResponse().getMetadata().getUsage().toString())
+                                .executionTimeMs(response.executionTimeMs())
                                 .completedAt(dateTime)
                                 .build())
                 .build();
