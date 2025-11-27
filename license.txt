@@ -1,0 +1,40 @@
+IntelliJ IDEA 2025.2.4 (Ultimate Edition)
+Build #IU-252.27397.103, built on October 23, 2025
+Source revision: 9b31ba2c05b47
+Licensed to Måns Engstedt
+Subscription is active until November 20, 2025.
+Evaluation purpose only.
+Runtime version: 21.0.8+9-b1038.73 aarch64 (JCEF 122.1.9)
+VM: OpenJDK 64-Bit Server VM by JetBrains s.r.o.
+Toolkit: sun.lwawt.macosx.LWCToolkit
+macOS 15.6.1
+GC: G1 Young Generation, G1 Concurrent GC, G1 Old Generation
+Memory: 2048M
+Cores: 14
+Metal Rendering is ON
+Registry:
+  ide.experimental.ui=true
+  llm.selector.config.refresh.interval=10
+  llm.rules.refresh.interval=10
+Non-Bundled Plugins:
+  JavaScriptDebugger (252.27397.107)
+  com.intellij.notebooks.core (252.27397.109)
+  Subversion (252.27397.129)
+  org.editorconfig.editorconfigjetbrains (252.27397.107)
+  PythonCore (252.27397.103)
+  org.toml.lang (252.27397.109)
+  com.intellij.kubernetes (252.27397.129)
+  com.intellij.properties (252.27397.107)
+  com.intellij.velocity (252.27397.107)
+  com.intellij.swagger (252.27397.129)
+  intellij.jupyter (252.27397.109)
+  Docker (252.27397.129)
+  com.intellij.ml.llm (252.27397.130)
+  JavaScript (252.27397.106)
+  com.intellij.react (252.27397.106)
+  org.jetbrains.plugins.vue (252.27397.112)
+  com.github.copilot (1.5.59-243)
+  com.intellij.mcpServer (252.27397.106)
+  org.jetbrains.security.package-checker (252.27397.114)
+  com.intellij.microservices.ui (252.27397.129)
+Kotlin: 252.27397.103-IJ

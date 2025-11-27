@@ -107,12 +107,12 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public CreateCompletionResponse createCompletionByProvider(CreateCompletionRequest completionRequest, LlmProvider llmProvider) {
-        return getChatResponse(createUniqueId(), completionRequest, llmProvider, chatClientMap.get(llmProvider));
+        return getCompletionResponse(createUniqueId(), completionRequest, llmProvider, chatClientMap.get(llmProvider));
     }
 
     @Override
     public CreateCombinedCompletionResponse createCompletionsByAllProviders(CreateCompletionRequest completionRequest) {
-        return getChatResponses(createUniqueId(), completionRequest, chatClientMap);
+        return getCompletionResponses(createUniqueId(), completionRequest, chatClientMap);
     }
 
     @Override
@@ -234,7 +234,7 @@ public class ChatServiceImpl implements ChatService {
                 .toList();
     }
 
-    private CreateCompletionResponse getChatResponse(String id, CreateCompletionRequest completionRequest, LlmProvider llmProvider, ChatClient chatClient) {
+    private CreateCompletionResponse getCompletionResponse(String id, CreateCompletionRequest completionRequest, LlmProvider llmProvider, ChatClient chatClient) {
         try {
             /* simpler call, not using chat memory
             String llmAnswer = defaultChatClient
@@ -268,7 +268,7 @@ public class ChatServiceImpl implements ChatService {
         return new ChatResponseTimer(chatResponse, executionTime);
     }
 
-    private CreateCombinedCompletionResponse getChatResponses(String id, CreateCompletionRequest completionRequest, Map<LlmProvider, ChatClient> chatClients) {
+    private CreateCombinedCompletionResponse getCompletionResponses(String id, CreateCompletionRequest completionRequest, Map<LlmProvider, ChatClient> chatClients) {
         try {
             long start = System.currentTimeMillis();
             log.info("Start combined calling");

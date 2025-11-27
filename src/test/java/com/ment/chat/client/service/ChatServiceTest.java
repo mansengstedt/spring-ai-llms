@@ -25,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @DirtiesContext
 public class ChatServiceTest extends BaseChatServiceTest {
 
+    //will actually call the providers
     @Autowired
     private ChatService chatService;
 
@@ -98,11 +99,11 @@ public class ChatServiceTest extends BaseChatServiceTest {
         assertThat(response).isInstanceOf(GetChatResponse.class);
         assertThat(response.getInteractions().size()).isEqualTo(2);
         response.getInteractions()
-                .forEach(i -> {
-                    assertThat(i.getInteractionPrompt().getChatId()).isEqualTo(chatId);
-                    assertThat(i.getInteractionCompletions().size()).isEqualTo(1);
-                    if (!i.getInteractionPrompt().getPrompt().equals(prompt1) && !i.getInteractionPrompt().getPrompt().equals(prompt2)) {
-                        throw new AssertionError("Unexpected prompt in chat interactions: " + i.getInteractionPrompt().getPrompt());
+                .forEach(interactionResponse -> {
+                    assertThat(interactionResponse.getInteractionPrompt().getChatId()).isEqualTo(chatId);
+                    assertThat(interactionResponse.getInteractionCompletions().size()).isEqualTo(1);
+                    if (!interactionResponse.getInteractionPrompt().getPrompt().equals(prompt1) && !interactionResponse.getInteractionPrompt().getPrompt().equals(prompt2)) {
+                        throw new AssertionError("Unexpected prompt in chat interactions: " + interactionResponse.getInteractionPrompt().getPrompt());
                     }
                 });
     }
