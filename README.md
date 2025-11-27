@@ -80,8 +80,9 @@ To test, you can use the IntelliJ HTTP client with the provided `.rest` files in
 
 ## Todo
 * remove 2 transitive vulnerabilities:
-* add tests
 * add security
+* proper parallelization in ChatService (fixed)
+* add tests (fixed)
 * rename objects and methods (fixed)
 * get llmPrompt and llmCompletions from given llmPromptId, use LLM provider  (fixed)
 * swagger (fixed)

@@ -35,10 +35,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.OffsetDateTime;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +55,9 @@ public class ChatServiceImpl implements ChatService {
 
     private static final String PING_STATUS_CHAT_ID = "ping-chat-service-status";
     private static final String PING_STATUS_PROMPT = "ping LLM to check status";
+    private static final Integer MAX_NO_PROVIDERS = 10;
+
+    private static Scheduler scheduler;
 
     private final LlmPromptRepository llmPromptRepository;
 
@@ -85,6 +90,19 @@ public class ChatServiceImpl implements ChatService {
         chatClientMap.put(LlmProvider.DOCKER, dockerChatClient);
         chatClientMap.put(LlmProvider.OPENAI, openAiChatClient);
         chatClientMap.put(LlmProvider.ANTHROPIC, anthropicChatClient);
+        checkProviders();
+    }
+
+    private void checkProviders() {
+        if (chatClientMap.size() > MAX_NO_PROVIDERS) {
+            //config error
+            System.exit(3);
+        }
+        if (chatClientMap.size() > 4) {
+            scheduler = Schedulers.boundedElastic();
+        } else {
+            scheduler = Schedulers.parallel();
+        }
     }
 
     @Override
@@ -190,7 +208,7 @@ public class ChatServiceImpl implements ChatService {
         List<GetLlmProviderStatusResponse.ChatServiceStatus> statusList = combinedChatResponse.getInteractionCompletions().stream()
                 .map(response -> GetLlmProviderStatusResponse.ChatServiceStatus.builder()
                         .status(response.getLlm() == null ? LlmStatus.UNAVAILABLE : LlmStatus.AVAILABLE)
-                        .llm(response.getLlm() == null ? "Unknown" : response.getLlm()) //TODO: how to handle llm when no answer by using chat client data
+                        .llm(response.getLlm() == null ? "Unknown" : response.getLlm())
                         .provider(response.getLlmProvider())
                         .build())
                 .toList();
@@ -212,7 +230,6 @@ public class ChatServiceImpl implements ChatService {
                         .executionTimeMs(resp.getExecutionTimeMs())
                         .completedAt(resp.getCompletedAt())
                         .build())
-                .toList().stream()
                 .sorted()
                 .toList();
     }
@@ -247,24 +264,22 @@ public class ChatServiceImpl implements ChatService {
                 .call()
                 .chatResponse();
         Long executionTime = System.currentTimeMillis() - start;
-        log.info("Called provider answered within {} ms", executionTime);
+        log.info("Called provider {} answered after {} ms", llmProvider, executionTime);
         return new ChatResponseTimer(chatResponse, executionTime);
     }
 
     private CreateCombinedCompletionResponse getChatResponses(String id, CreateCompletionRequest completionRequest, Map<LlmProvider, ChatClient> chatClients) {
         try {
-            Message message = createSavePublishRequest(id, completionRequest);
-
             long start = System.currentTimeMillis();
+            log.info("Start combined calling");
 
-            List<Mono<Map.Entry<LlmProvider, ChatResponseTimer>>> entryList = chatClients.entrySet().stream()
-                    .map(entry -> callChatClient(completionRequest, entry.getKey(), entry.getValue(), message))
-                    .toList();
+            Map<LlmProvider, ChatResponseTimer> chatResponses =
+                    getChatResponsesInParallel(id, completionRequest, chatClients)
+                            .block();
 
-            CreateCombinedCompletionResponse response = combineResponses(id, entryList)
-                    .block();
+            CreateCombinedCompletionResponse response = combineResponses(id, Objects.requireNonNull(chatResponses));
 
-            log.info("Created combined completion response within {} ms", System.currentTimeMillis() - start);
+            log.info("Created combined completion response after {} ms", System.currentTimeMillis() - start);
             return response;
         } catch (Exception e) {
             log.error("Error in combined flow ", e);
@@ -272,14 +287,41 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    private Mono<Map.Entry<LlmProvider, ChatResponseTimer>> callChatClient(CreateCompletionRequest completionRequest, LlmProvider llmProvider, ChatClient chatClient, Message message) {
-        return Mono.fromSupplier(() -> Map.entry(llmProvider,
-                        callProvider(llmProvider, Objects.requireNonNull(createRequestSpec(completionRequest, chatClient, message)))))
-                .onErrorResume(e -> {
-                    log.error("Error in chat call", e);
-                    // In case of error, return an empty ChatResponse with LlmProvider to continue processing other LLMs
-                    return Mono.fromSupplier(() -> Map.entry(llmProvider, new ChatResponseTimer(new ChatResponse(List.of()), 0L)));
-                });
+    // Parallel execution with Mono
+    public Mono<Map<LlmProvider, ChatResponseTimer>> getChatResponsesInParallel(String id,
+                                                                                CreateCompletionRequest completionRequest,
+                                                                                Map<LlmProvider, ChatClient> chatClients) {
+        Message message = createSavePublishRequest(id, completionRequest);
+
+        return Flux.fromIterable(chatClients.values())
+                .zipWith(Flux.fromIterable(chatClients.keySet()))
+                .flatMap(tupleClientProvider -> {
+                    ChatClient client = tupleClientProvider.getT1();
+                    LlmProvider llmProvider = tupleClientProvider.getT2();
+
+                    return Mono.fromCallable(() -> {
+                                ChatClient.ChatClientRequestSpec input = createRequestSpec(completionRequest, client, message);
+                                ChatResponseTimer result = callProvider(llmProvider, input);
+                                return Map.entry(llmProvider, result);
+                            })
+                            .subscribeOn(scheduler)
+                            .onErrorResume(ex -> {
+                                log.error("Error calling provider {} with client {}, error: {}", llmProvider, client, ex.getMessage());
+                                return errorResponse(llmProvider);
+                            });
+                }, MAX_NO_PROVIDERS)
+                .collectMap(Map.Entry::getKey, Map.Entry::getValue);
+    }
+
+    /**
+     * When the call to the provider fails, we still return an answer with the LlmProvider and an empty ChatResponse.
+     * The alternative is to return Mono.empty() to skip failed calls but then the provider info is lost which is needed further up in call chain.
+     *
+     * @param llmProvider the used provider
+     * @return an entry with the provider and the resulting ChatResponseTimer
+     */
+    private Mono<Map.Entry<LlmProvider, ChatResponseTimer>> errorResponse(LlmProvider llmProvider) {
+        return Mono.just(Map.entry(llmProvider, new ChatResponseTimer(new ChatResponse(List.of()), 0L)));
     }
 
     private ChatClient.ChatClientRequestSpec createRequestSpec(CreateCompletionRequest completionRequest, ChatClient chatClient, Message message) {
@@ -293,18 +335,16 @@ public class ChatServiceImpl implements ChatService {
         return reqSpec;
     }
 
-    private Mono<CreateCombinedCompletionResponse> combineResponses(String promptId, List<Mono<Map.Entry<LlmProvider, ChatResponseTimer>>> responses) {
-        return Mono.zip(responses, tuples -> Arrays.stream(tuples)
-                        .map(object ->
-                                createCombinedSavePublishResponse(promptId, OffsetDateTime.now(), castMapEntry(object))
-                        )
-                        .toList())
-                .map(savePublishResponses ->
-                        CreateCombinedCompletionResponse.builder()
-                                .interactionCompletions(transformCompletions(savePublishResponses))
-                                .build()
-                );
+    private CreateCombinedCompletionResponse combineResponses(String promptId, Map<LlmProvider, ChatResponseTimer> responses) {
+        List<CreateCompletionResponse> completionResponses = responses.entrySet().stream()
+                .map(entry -> createSavePublishResponse(promptId, OffsetDateTime.now(), entry.getKey(), entry.getValue()))
+                .toList();
+
+        return CreateCombinedCompletionResponse.builder()
+                .interactionCompletions(transformCompletions(completionResponses))
+                .build();
     }
+
 
     private List<InteractionCompletion> transformCompletions(List<CreateCompletionResponse> savePublishResponses) {
         return savePublishResponses.stream()
@@ -312,30 +352,14 @@ public class ChatServiceImpl implements ChatService {
                 .toList();
     }
 
-    @SuppressWarnings("unchecked")
-    private Map.Entry<LlmProvider, ChatResponseTimer> castMapEntry(Object entry) {
-        if (entry instanceof Map.Entry<?, ?> castEntry) {
-            //castEntry can't be null here due to the instanceof check
-            if ((castEntry.getKey() instanceof LlmProvider) && (castEntry.getValue() instanceof ChatResponseTimer)) {
-                // Now safe to cast both Key and Value but compiler can't see that type check is done unless Map.entry is created with correct types
-                return (Map.Entry<LlmProvider, ChatResponseTimer>) castEntry;
-            }
-        }
-        throw new IllegalArgumentException("Null value(s) or invalid entry type(s): " + entry);
-    }
-
     private Message createSavePublishRequest(String promptId, CreateCompletionRequest completionRequest) {
         String prompt = completionRequest.createPrompt();
-        log.info("Sending prompt to LLMs: {}", prompt);
+        log.info("Save and publish prompt to be sent: {}", prompt);
         LlmPrompt llmPrompt = createLlmPrompt(promptId, prompt, completionRequest.getChatId());
         llmPromptRepository.save(llmPrompt);
         LlmPrompt savedPrompt = llmPromptRepository.findByPromptId(llmPrompt.getPromptId()); //should be present as just saved (not really needed)
         applicationEventPublisher.publishEvent(savedPrompt);
         return createMessageAndToggleMessageType(prompt);
-    }
-
-    private CreateCompletionResponse createCombinedSavePublishResponse(String promptId, OffsetDateTime dateTime, Map.Entry<LlmProvider, ChatResponseTimer> response) {
-        return createSavePublishResponse(promptId, dateTime, response.getKey(), response.getValue());
     }
 
     @SuppressWarnings("ConstantConditions")

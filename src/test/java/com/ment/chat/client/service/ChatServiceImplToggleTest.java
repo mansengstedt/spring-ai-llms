@@ -6,7 +6,6 @@ import com.ment.chat.client.domain.repository.LlmPromptRepository;
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.in.CreateCompletionRequest;
 import com.ment.chat.client.model.out.CreateCompletionResponse;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -32,6 +31,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -98,29 +98,29 @@ class ChatServiceImplToggleTest {
 
         verify(chatClient, times(3)).prompt(promptCaptor.capture());
 
-        Assertions.assertThat(r1.getInteractionCompletion().getCompletion()).isEqualTo(answer1);
-        Assertions.assertThat(r2.getInteractionCompletion().getCompletion()).isEqualTo(answer1); //any prompt returns answer1
-        Assertions.assertThat(r1.getInteractionCompletion().getLlm()).isEqualTo(model);
-        Assertions.assertThat(r1.getInteractionCompletion().getTokenUsage()).isNotNull();
+        assertThat(r1.getInteractionCompletion().getCompletion()).isEqualTo(answer1);
+        assertThat(r2.getInteractionCompletion().getCompletion()).isEqualTo(answer1); //any prompt returns answer1
+        assertThat(r1.getInteractionCompletion().getLlm()).isEqualTo(model);
+        assertThat(r1.getInteractionCompletion().getTokenUsage()).isNotNull();
 
 
         List<Prompt> prompts = promptCaptor.getAllValues();
-        Assertions.assertThat(prompts.size()).isEqualTo(3);
+        assertThat(prompts.size()).isEqualTo(3);
 
         Message first = prompts.get(1).getUserMessages().getFirst();
         Message second = prompts.get(2).getSystemMessage();
-        Assertions.assertThat(first).isInstanceOf(UserMessage.class);
-        Assertions.assertThat(second).isInstanceOf(SystemMessage.class);
+        assertThat(first).isInstanceOf(UserMessage.class);
+        assertThat(second).isInstanceOf(SystemMessage.class);
 
-        Assertions.assertThat(prompts.get(1).getUserMessage().getText()).isEqualTo(prompt1);
+        assertThat(prompts.get(1).getUserMessage().getText()).isEqualTo(prompt1);
         if (toggle) {
             //toggling from MessageType.USER to MessageType.ASSISTANT
-            Assertions.assertThat(prompts.get(2).getUserMessage().getText()).isEqualTo("");
-            Assertions.assertThat(prompts.get(2).toString()).contains("messageType=ASSISTANT");
+            assertThat(prompts.get(2).getUserMessage().getText()).isEqualTo("");
+            assertThat(prompts.get(2).toString()).contains("messageType=ASSISTANT");
         } else {
             //no toggling: always MessageType.USER
-            Assertions.assertThat(prompts.get(2).getUserMessage().getText()).isEqualTo(prompt2);
-            Assertions.assertThat(prompts.get(2).toString()).contains("messageType=USER");
+            assertThat(prompts.get(2).getUserMessage().getText()).isEqualTo(prompt2);
+            assertThat(prompts.get(2).toString()).contains("messageType=USER");
         }
     }
 
