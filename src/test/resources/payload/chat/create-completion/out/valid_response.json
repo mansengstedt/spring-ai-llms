@@ -1,0 +1,12 @@
+{
+  "interaction_completion": {
+    "completion_id": "cf564738-ea73-4e6a-9435-243770756d8c",
+    "prompt_id": "6cd59009-bc1a-476f-9bb0-3301223fd27f",
+    "completion": "Their relationship appears strained after recent public disagreements. Presently!",
+    "llm": "claude-sonnet-4-5-20250929",
+    "llm_provider": "ANTHROPIC",
+    "token_usage": "DefaultUsage{promptTokens=72, completionTokens=18, totalTokens=90}",
+    "execution_time_ms": 4052,
+    "completed_at": "2025-11-28T16:05:21.678272+01:00"
+  }
+}

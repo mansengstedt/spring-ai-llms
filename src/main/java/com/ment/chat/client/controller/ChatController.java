@@ -31,11 +31,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Validated
+import static com.ment.chat.client.controller.ChatController.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
+
 @RestController
-@RequestMapping("chat")
-@Tag(name = "Client of different LLM providers", description = "client for connecting to several LLM providers")
+@RequestMapping(
+        value = BASE_PATH,
+        produces = {APPLICATION_JSON_VALUE, APPLICATION_PROBLEM_JSON_VALUE})
+@Tag(name = "Client of different LLM providers", description = "Client for connecting to several LLM providers like OpenAI etc.")
+@Validated
 public class ChatController {
+
+    public static final String BASE_PATH = "/chat";
+    public static final String LLM_PATH = "/llm";
+    public static final String LLM_ALL_PATH = LLM_PATH + "/all";
+    public static final String LLM_HAIKU_PATH = LLM_PATH + "/haiku";
+    public static final String PROMPT_PATH = "/prompt";
+    public static final String PROMPT_CONTAINS_PATH = PROMPT_PATH + "/contains";
+    public static final String COMPLETION_PATH = "/completion";
+    public static final String COMPLETION_CONTAINS_PATH = COMPLETION_PATH + "/contains";
+    public static final String CHAT_PATH = "chat";
+    public static final String STATUS_PATH = "status";
 
     private final ChatService chatService;
 
@@ -65,7 +82,7 @@ public class ChatController {
                     )
             )
     })
-    @PostMapping("/llm/haiku")
+    @PostMapping(value = LLM_HAIKU_PATH)
     public ResponseEntity<CreateCompletionResponse> createHaiku(
             @RequestParam LlmProvider provider,
             @Parameter(
@@ -116,7 +133,7 @@ public class ChatController {
                     )
             )
     })
-    @PostMapping("/llm")
+    @PostMapping(value = LLM_PATH, consumes = {APPLICATION_JSON_VALUE})
     @LogExecutionTime
     public ResponseEntity<CreateCompletionResponse> createCompletionByProvider(
             @RequestParam LlmProvider provider,
@@ -154,7 +171,7 @@ public class ChatController {
                     )
             )
     })
-    @PostMapping("/llm/all")
+    @PostMapping(value = LLM_ALL_PATH, consumes = {APPLICATION_JSON_VALUE})
     @LogExecutionTime
     public ResponseEntity<CreateCombinedCompletionResponse> createCompletionsByAllProviders(@RequestBody @Valid CreateCompletionRequest completionRequest) {
         return ResponseEntity.ok(chatService.createCompletionsByAllProviders(completionRequest));
@@ -198,7 +215,7 @@ public class ChatController {
                     )
             )
     })
-    @GetMapping("/prompt/{prompt-id}")
+    @GetMapping(value =PROMPT_PATH + "/{prompt-id}", consumes = {APPLICATION_JSON_VALUE})
     public ResponseEntity<GetInteractionResponse> getInteractionByPromptId(
             @Parameter(
                     description = "prompt ID (UUID format)",
@@ -245,7 +262,7 @@ public class ChatController {
                     )
             )
     })
-    @GetMapping("/prompt/contains/{part-of-prompt}")
+    @GetMapping(value = PROMPT_CONTAINS_PATH + "/{part-of-prompt}", consumes = {APPLICATION_JSON_VALUE})
     public ResponseEntity<GetChatResponse> getInteractionByPrompt(
             @Parameter(
                     description = "part of prompt (free text)",
@@ -291,7 +308,7 @@ public class ChatController {
                     )
             )
     })
-    @GetMapping("/completion/contains/{part-of-completion}")
+    @GetMapping(value = COMPLETION_CONTAINS_PATH + "/{part-of-completion}", consumes = {APPLICATION_JSON_VALUE})
     public ResponseEntity<GetInteractionsResponse> getInteractionsByCompletion(
             @Parameter(
                     description = "part of completion (free text)",
@@ -345,7 +362,7 @@ public class ChatController {
                     )
             )
     })
-    @GetMapping("/chat/{chat-id}")
+    @GetMapping(value = CHAT_PATH + "/{chat-id}")
     public ResponseEntity<GetChatResponse> getChatByChatId(
             @Parameter(
                     description = "chat Id (free text)",
@@ -382,7 +399,7 @@ public class ChatController {
                     )
             )
     })
-    @GetMapping("/status")
+    @GetMapping(value = STATUS_PATH)
     public ResponseEntity<GetLlmProviderStatusResponse> getAllStatuses() {
         return ResponseEntity.ok(chatService.getAllProviderStatus());
     }

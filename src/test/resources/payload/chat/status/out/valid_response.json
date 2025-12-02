@@ -1,0 +1,24 @@
+{
+  "status_list": [
+    {
+      "llm": "qwen3",
+      "status": "AVAILABLE",
+      "provider": "OLLAMA"
+    },
+    {
+      "llm": "claude-sonnet-4-5-20250929",
+      "status": "AVAILABLE",
+      "provider": "ANTHROPIC"
+    },
+    {
+      "llm": "ai/deepseek-r1-distill-llama",
+      "status": "AVAILABLE",
+      "provider": "DOCKER"
+    },
+    {
+      "llm": "gpt-5-2025-08-07",
+      "status": "AVAILABLE",
+      "provider": "OPENAI"
+    }
+  ]
+}

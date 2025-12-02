@@ -7,6 +7,8 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 import java.util.Arrays;
 
+import static com.ment.chat.client.utils.Utilities.clearSslLogging;
+
 @SpringBootApplication
 @ConfigurationPropertiesScan
 @Slf4j
@@ -16,7 +18,7 @@ public class ChatClientApplication {
 
     static void main(String[] args) {
 
-        clearSslLogging();
+        clearSslLogging(); //not needed since no cert is used
 
         var ctx = SpringApplication.run(ChatClientApplication.class, args);
 
@@ -27,17 +29,4 @@ public class ChatClientApplication {
 
     }
 
-    /**
-     * To avoid logging of SSL information like cipher suites and ssl timeouts.
-     */
-    private static void clearSslLogging() {
-        // Remove JSSE debug if set via JVM arg
-        System.clearProperty("javax.net.debug");
-
-        // Lower java.util.logging verbosity for JSSE internals
-        java.util.logging.Logger.getLogger("sun.security.ssl")
-                .setLevel(java.util.logging.Level.WARNING);
-        java.util.logging.Logger.getLogger("javax.net.ssl")
-                .setLevel(java.util.logging.Level.WARNING);
-    }
 }
