@@ -215,7 +215,7 @@ public class ChatController {
                     )
             )
     })
-    @GetMapping(value =PROMPT_PATH + "/{prompt-id}", consumes = {APPLICATION_JSON_VALUE})
+    @GetMapping(value =PROMPT_PATH + "/{prompt-id}")
     public ResponseEntity<GetInteractionResponse> getInteractionByPromptId(
             @Parameter(
                     description = "prompt ID (UUID format)",
@@ -262,7 +262,7 @@ public class ChatController {
                     )
             )
     })
-    @GetMapping(value = PROMPT_CONTAINS_PATH + "/{part-of-prompt}", consumes = {APPLICATION_JSON_VALUE})
+    @GetMapping(value = PROMPT_CONTAINS_PATH + "/{part-of-prompt}")
     public ResponseEntity<GetChatResponse> getInteractionByPrompt(
             @Parameter(
                     description = "part of prompt (free text)",
@@ -308,7 +308,7 @@ public class ChatController {
                     )
             )
     })
-    @GetMapping(value = COMPLETION_CONTAINS_PATH + "/{part-of-completion}", consumes = {APPLICATION_JSON_VALUE})
+    @GetMapping(value = COMPLETION_CONTAINS_PATH + "/{part-of-completion}")
     public ResponseEntity<GetInteractionsResponse> getInteractionsByCompletion(
             @Parameter(
                     description = "part of completion (free text)",

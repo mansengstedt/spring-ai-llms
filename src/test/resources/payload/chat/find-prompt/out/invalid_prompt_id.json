@@ -1,0 +1,7 @@
+{
+  "type": "about:blank",
+  "title": "General error",
+  "status": 400,
+  "detail": "getInteractionByPromptId.promptId: size must be between 36 and 36",
+  "instance": "/chat/prompt/{{prompt_id}}"
+}
