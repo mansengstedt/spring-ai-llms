@@ -6,6 +6,7 @@ import com.ment.chat.client.ChatClientApplication;
 import com.ment.chat.client.config.CommonTestConfiguration;
 import com.ment.chat.client.domain.repository.LlmCompletionRepository;
 import com.ment.chat.client.domain.repository.LlmPromptRepository;
+import org.json.JSONException;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -29,6 +30,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static com.ment.chat.client.controller.ChatController.BASE_PATH;
+import static com.ment.chat.client.controller.ChatController.CHAT_PATH;
 import static com.ment.chat.client.controller.ChatController.LLM_PATH;
 import static com.ment.chat.client.controller.ChatController.PROMPT_PATH;
 import static com.ment.chat.client.utils.Utility.readFileResource;
@@ -72,14 +74,16 @@ public class LocalIT {
 
     @ParameterizedTest
     @CsvSource({
-            "missing-prompt, payload/chat/create-completion/in/missing_prompt.json, payload/chat/create-completion/out/bad_request.json, 400",
-            "too-short-prompt, payload/chat/create-completion/in/too_short_prompt.json, payload/chat/create-completion/out/bad_request.json, 400",})
+            "missing-prompt, payload/chat/create-completion/in/missing_prompt.json, DOCKER, payload/chat/create-completion/out/bad_request.json, 400",
+            "too-short-prompt, payload/chat/create-completion/in/too_short_prompt.json, DOCKER, payload/chat/create-completion/out/bad_request.json, 400",
+            "invalid-provider, payload/chat/create-completion/in/valid_request.json, PERPLEXITY, payload/chat/create-completion/out/bad_request.json, 400",})
     void testMissingPrompt_badRequest_createCompletion(String idpMatcher,
                                                        String requestFileName,
+                                                       String provider,
                                                        String responseFileName,
                                                        String httpStatus) throws Exception {
         String requestBody = readFileResource(requestFileName);
-        WebTestClient.ResponseSpec response = client.post().uri(BASE_PATH + LLM_PATH)
+        WebTestClient.ResponseSpec response = client.post().uri(BASE_PATH + LLM_PATH + "?provider=" + provider)
                 .headers(httpHeaders -> {
                     httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
                     httpHeaders.add("Correlation-Id", CORRELATION_ID);
@@ -114,8 +118,28 @@ public class LocalIT {
                                                        String httpStatus) throws Exception {
         String responseBody = readFileResource(responseFileName);
         String expectedJson = replaceTemplateValue(responseBody, "prompt_id", promptId);
+        String path = BASE_PATH + PROMPT_PATH + "/" + promptId;
 
-        byte[] actualResponseBody = client.get().uri(BASE_PATH + PROMPT_PATH + "/" + promptId)
+        compareResults(path, idpMatcher, httpStatus, expectedJson);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "unknown-chat-id, xxxxxx, payload/chat/find-chat/out/chat_id_not_found.json, 404",
+            "invalid-chat-id, xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, payload/chat/find-chat/out/invalid_chat_id.json, 400",})
+    void testChatId_badRequest_findChat(String idpMatcher,
+                                            String chatId,
+                                            String responseFileName,
+                                            String httpStatus) throws Exception {
+        String responseBody = readFileResource(responseFileName);
+        String expectedJson = replaceTemplateValue(responseBody, "chat_id", chatId);
+        String path = BASE_PATH + CHAT_PATH + "/" + chatId;
+
+        compareResults(path, idpMatcher, httpStatus, expectedJson);
+    }
+
+    private void compareResults(String path, String idpMatcher, String httpStatus, String expectedJson) throws JsonProcessingException, JSONException {
+        byte[] actualResponseBody = client.get().uri(path)
                 .headers(httpHeaders -> {
                     httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
                     httpHeaders.add("Correlation-Id", CORRELATION_ID);

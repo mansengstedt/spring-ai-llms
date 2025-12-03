@@ -1,0 +1,7 @@
+{
+  "type": "chat",
+  "title": "Chat not found",
+  "status": 404,
+  "detail": "{{chat_id}}",
+  "instance": "/chat/chat/{{chat_id}}"
+}

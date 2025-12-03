@@ -51,8 +51,8 @@ public class ChatController {
     public static final String PROMPT_CONTAINS_PATH = PROMPT_PATH + "/contains";
     public static final String COMPLETION_PATH = "/completion";
     public static final String COMPLETION_CONTAINS_PATH = COMPLETION_PATH + "/contains";
-    public static final String CHAT_PATH = "chat";
-    public static final String STATUS_PATH = "status";
+    public static final String CHAT_PATH = "/chat";
+    public static final String STATUS_PATH = "/status";
 
     private final ChatService chatService;
 
