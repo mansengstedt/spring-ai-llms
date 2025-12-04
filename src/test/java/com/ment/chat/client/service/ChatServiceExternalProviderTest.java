@@ -27,7 +27,7 @@ public class ChatServiceExternalProviderTest extends BaseChatServiceTest {
     @ParameterizedTest
     @MethodSource("externalProviders")
     void chatProviderCallOk(LlmProvider provider) {
-        testProvider(chatService, provider);
+        testProvider(chatService, "Who is Donald Trump?", provider);
     }
 
     @Test

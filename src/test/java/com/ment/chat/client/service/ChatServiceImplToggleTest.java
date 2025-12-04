@@ -4,7 +4,7 @@ import com.ment.chat.client.config.AppProperties;
 import com.ment.chat.client.domain.repository.LlmCompletionRepository;
 import com.ment.chat.client.domain.repository.LlmPromptRepository;
 import com.ment.chat.client.model.enums.LlmProvider;
-import com.ment.chat.client.model.in.CreateCompletionRequest;
+import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
 import com.ment.chat.client.model.out.CreateCompletionResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -83,18 +83,20 @@ class ChatServiceImplToggleTest {
         when(appProperties.toggle().messageType()).thenReturn(toggle);
         when(chatClient.prompt(any(Prompt.class)).call().chatResponse()).thenReturn(resp1);
 
-        CreateCompletionRequest req1 = CreateCompletionRequest.builder()
+        CreateCompletionByProviderRequest req1 = CreateCompletionByProviderRequest.builder()
                 .prompt(prompt1)
                 .chatId(chatId)
+                .llmProvider(llmProvider)
                 .build();
 
-        CreateCompletionRequest req2 = CreateCompletionRequest.builder()
+        CreateCompletionByProviderRequest req2 = CreateCompletionByProviderRequest.builder()
                 .prompt(prompt2)
                 .chatId(chatId)
+                .llmProvider(llmProvider)
                 .build();
 
-        CreateCompletionResponse r1 = service.createCompletionByProvider(req1, llmProvider);
-        CreateCompletionResponse r2 = service.createCompletionByProvider(req2, llmProvider);
+        CreateCompletionResponse r1 = service.createCompletionByProvider(req1);
+        CreateCompletionResponse r2 = service.createCompletionByProvider(req2);
 
         verify(chatClient, times(3)).prompt(promptCaptor.capture());
 

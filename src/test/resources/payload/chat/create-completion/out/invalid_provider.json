@@ -2,6 +2,6 @@
   "type": "validation",
   "title": "Validation error",
   "status": 400,
-  "detail": "Method parameter 'provider': Failed to convert value of type 'java.lang.String' to required type 'com.ment.chat.client.model.enums.LlmProvider'; Failed to convert from type [java.lang.String] to type [@org.springframework.web.bind.annotation.RequestParam com.ment.chat.client.model.enums.LlmProvider] for value [PERPLEXITY]",
+  "detail": "JSON parse error: Cannot deserialize value of type `com.ment.chat.client.model.enums.LlmProvider` from String \"PERPLEXITY\": not one of the values accepted for Enum class: [DOCKER, OPENAI, ANTHROPIC, OLLAMA]",
   "instance": "/chat/llm"
 }

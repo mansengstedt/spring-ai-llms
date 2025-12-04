@@ -2,6 +2,7 @@ package com.ment.chat.client.controller;
 
 import com.ment.chat.client.aop.LogExecutionTime;
 import com.ment.chat.client.model.enums.LlmProvider;
+import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
 import com.ment.chat.client.model.in.CreateCompletionRequest;
 import com.ment.chat.client.model.out.CreateCombinedCompletionResponse;
 import com.ment.chat.client.model.out.CreateCompletionResponse;
@@ -96,10 +97,10 @@ public class ChatController {
             )
             @RequestParam(defaultValue = "christmas") @Size(max = 100) String topic) {
         return ResponseEntity.ok(chatService.createCompletionByProvider(
-                CreateCompletionRequest.builder()
+                CreateCompletionByProviderRequest.builder()
                         .prompt(String.format("Write a %s Haiku about %s!", style, topic))
-                        .build(),
-                provider
+                        .llmProvider(provider)
+                        .build()
         ));
     }
 
@@ -136,9 +137,8 @@ public class ChatController {
     @PostMapping(value = LLM_PATH, consumes = {APPLICATION_JSON_VALUE})
     @LogExecutionTime
     public ResponseEntity<CreateCompletionResponse> createCompletionByProvider(
-            @RequestParam LlmProvider provider,
-            @RequestBody @Valid CreateCompletionRequest completionRequest) {
-        return ResponseEntity.ok(chatService.createCompletionByProvider(completionRequest, provider));
+            @RequestBody @Valid CreateCompletionByProviderRequest completionRequest) {
+        return ResponseEntity.ok(chatService.createCompletionByProvider(completionRequest));
     }
 
     @Operation(

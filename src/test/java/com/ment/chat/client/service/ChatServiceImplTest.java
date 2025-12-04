@@ -6,7 +6,7 @@ import com.ment.chat.client.domain.LlmPrompt;
 import com.ment.chat.client.domain.repository.LlmCompletionRepository;
 import com.ment.chat.client.domain.repository.LlmPromptRepository;
 import com.ment.chat.client.model.enums.LlmProvider;
-import com.ment.chat.client.model.in.CreateCompletionRequest;
+import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
 import com.ment.chat.client.model.out.CreateCompletionResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -68,9 +68,10 @@ class ChatServiceImplTest {
 
     @Test
     void testChatResponse() {
-        CreateCompletionRequest request = CreateCompletionRequest.builder()
+        CreateCompletionByProviderRequest request = CreateCompletionByProviderRequest.builder()
                 .prompt("Test interactionPrompt")
                 .chatId("test-id")
+                .llmProvider(LlmProvider.OPENAI)
                 .build();
 
         ChatResponse chatResponse = mockChatResponse("Test model", new DefaultUsage(10, 20), "Test answer");
@@ -78,7 +79,7 @@ class ChatServiceImplTest {
         when(appProperties.toggle()).thenReturn(new AppProperties.Toggle(Boolean.FALSE, null, null));
         when(chatClient.prompt(any(Prompt.class)).call().chatResponse()).thenReturn(chatResponse);
 
-        CreateCompletionResponse response = chatService.createCompletionByProvider(request, LlmProvider.OPENAI);
+        CreateCompletionResponse response = chatService.createCompletionByProvider(request);
 
         assertThat(response.getInteractionCompletion().getLlmProvider()).isEqualTo(LlmProvider.OPENAI);
         assertThat(response.getInteractionCompletion().getCompletion()).isEqualTo("Test answer");

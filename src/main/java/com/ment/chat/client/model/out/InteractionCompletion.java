@@ -45,6 +45,7 @@ public class InteractionCompletion implements Comparable<InteractionCompletion> 
 
     @Override
     public int compareTo(InteractionCompletion other) {
-        return completedAt.compareTo(other.getCompletedAt());
+        //since done in parallel, we sort by llm provider name to have a consistent order
+        return llmProvider.name().compareTo(other.getLlmProvider().name());
     }
 }

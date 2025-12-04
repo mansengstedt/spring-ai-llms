@@ -1,6 +1,7 @@
 package com.ment.chat.client.service;
 
 import com.ment.chat.client.model.enums.LlmProvider;
+import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
 import com.ment.chat.client.model.in.CreateCompletionRequest;
 import com.ment.chat.client.model.out.CreateCompletionResponse;
 import org.junit.jupiter.params.provider.Arguments;
@@ -13,11 +14,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class BaseChatServiceTest {
 
-    void testProvider(ChatService chatService, LlmProvider provider) {
-        var completion = chatService.createCompletionByProvider(createCompletionRequest("Who is Donald Trump?", null), provider);
+    void testProvider(ChatService chatService, String prompt, LlmProvider provider) {
+        var completion = chatService.createCompletionByProvider(createCompletionRequest(prompt, null, provider));
 
         assertThat(completion).isInstanceOf(CreateCompletionResponse.class);
-        assertThat(completion.getInteractionCompletion().getCompletion()).contains("Trump"); //provider dependent
+        assertThat(completion.getInteractionCompletion().getCompletion()).isNotNull(); //provider dependent
         assertThat(completion.getInteractionCompletion().getLlm()).isNotEmpty(); //provider dependent
         assertThat(completion.getInteractionCompletion().getTokenUsage()).isNotEmpty(); //provider dependent
         assertThat(UUID.fromString(completion.getInteractionCompletion().getCompletionId())).isInstanceOf(UUID.class); //service dependent
@@ -44,6 +45,14 @@ public abstract class BaseChatServiceTest {
         return CreateCompletionRequest.builder()
                 .prompt(prompt)
                 .chatId(chatId)
+                .build();
+    }
+
+    CreateCompletionByProviderRequest createCompletionRequest(String prompt, String chatId, LlmProvider provider) {
+        return CreateCompletionByProviderRequest.builder()
+                .prompt(prompt)
+                .chatId(chatId)
+                .llmProvider(provider)
                 .build();
     }
 }

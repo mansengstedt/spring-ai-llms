@@ -18,23 +18,36 @@ POST {{host}}/chat/llm/haiku?provider=DOCKER&style=crazy&topic=Trump
 %}
 
 ### Create llmCompletion from internal LLM like ollama with a fact
-POST {{host}}/chat/llm?provider=OLLAMA
+POST {{host}}/chat/llm
 Content-Type: application/json
 
 {
   "prompt": "I'm the president of France and my name is Macron",
   "style": "end answer with: Hope answer is correct!",
-  "chat_id": "president-id"
+  "chat_id": "president-id",
+  "llm_provider": "OLLAMA"
+}
+
+### invalid provider
+POST {{host}}/chat/llm
+Content-Type: application/json
+
+{
+  "prompt": "I'm the president of France and my name is Macron",
+  "style": "end answer with: Hope answer is correct!",
+  "chat_id": "president-id",
+  "llm_provider": "PERPLEXITY"
 }
 
 ### Create llmCompletion from internal LLM like ollama
-POST {{host}}/chat/llm?provider=OLLAMA
+POST {{host}}/chat/llm
 Content-Type: application/json
 
 {
   "prompt": "who am I",
   "style": "end answer with: Hope answer is correct!",
-  "chat_id": "president-id"
+  "chat_id": "president-id",
+  "llm_provider": "OLLAMA"
 }
 
 > {%
@@ -44,69 +57,76 @@ Content-Type: application/json
 %}
 
 ### Create llmCompletion from external LLM Anthropic
-POST {{host}}/chat/llm?provider=ANTHROPIC
+POST {{host}}/chat/llm
 Content-Type: application/json
 
 {
   "prompt": "Are Trump and Musk still BFF friends",
-  "style": "answer with max 10 word and end answer with Presently!"
+  "style": "answer with max 10 word and end answer with Presently!",
+  "llm_provider": "ANTHROPIC"
 }
 
 ### Create llmCompletion from external LLM OpenAi/chatGpt
-POST {{host}}/chat/llm?provider=OPENAI
+POST {{host}}/chat/llm
 Content-Type: application/json
 
 {
   "prompt": "Are Trump and Musk still best friends",
-  "style": "answer with max 10 word and end answer with Presently!"
+  "style": "answer with max 10 word and end answer with Presently!",
+  "llm_provider": "OPENAI"
 }
 
 ### Create llmCompletion using chat-id
-POST {{host}}/chat/llm?provider=OPENAI
+POST {{host}}/chat/llm
 Content-Type: application/json
 
 {
   "prompt": "My name is Max and I'm the brother of Måns",
   "style": "end answer with: Got it!",
-  "chat_id": "me-id"
+  "chat_id": "me-id",
+  "llm_provider": "OPENAI"
 }
 
 ### Create llmCompletion relating to previous question
-POST {{host}}/chat/llm?provider=OPENAI
+POST {{host}}/chat/llm
 Content-Type: application/json
 
 {
   "prompt": "Tell everything about Måns",
   "style": "end answer with: I recall!",
-  "chat_id": "me-id"
+  "chat_id": "me-id",
+  "llm_provider": "OPENAI"
 }
 
 ### Create llmCompletion relating to previous question with correction
-POST {{host}}/chat/llm?provider=OPENAI
+POST {{host}}/chat/llm
 Content-Type: application/json
 
 {
   "prompt": "You forgot to mention that Måns has a brother Max",
   "style": "end answer with: I recall!",
-  "chat_id": "me-id"
+  "chat_id": "me-id",
+  "llm_provider": "OPENAI"
 }
 
 ### Create llmCompletion with complex relations
-POST {{host}}/chat/llm?provider=OPENAI
+POST {{host}}/chat/llm
 Content-Type: application/json
 
 {
   "prompt": "I, Tom, have a half brother Rick that has a half brother named John. How many brothers does John have",
-  "style": "end answer with: Ok!"
+  "style": "end answer with: Ok!",
+  "llm_provider": "OPENAI"
 }
 
 ### Create llmCompletion with correction
-POST {{host}}/chat/llm?provider=OPENAI
+POST {{host}}/chat/llm
 Content-Type: application/json
 
 {
   "prompt": "Hope you understand the three different cases: 1. John and I have the same two parents. 2. John and I share one parent. 3. John and I have no parents in common.",
-  "style": "end answer with: I got it!"
+  "style": "end answer with: I got it!",
+  "llm_provider": "OPENAI"
 }
 
 > {%
@@ -116,12 +136,13 @@ Content-Type: application/json
 %}
 
 ### Create LLM llmCompletion from docker
-POST {{host}}/chat/llm?provider=DOCKER
+POST {{host}}/chat/llm
 Content-Type: application/json
 
 {
   "prompt": "who is president in France",
-  "style": "end answer with: Hope answer is ok!"
+  "style": "end answer with: Hope answer is ok!",
+  "llm_provider": "DOCKER"
 }
 
 > {%

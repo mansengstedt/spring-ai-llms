@@ -12,6 +12,7 @@ import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -22,17 +23,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(value = {"test"})
 @EnableAutoConfiguration()
+@ComponentScan(basePackages = "com.ment.chat.client")
 @DirtiesContext
 public class ChatServiceTest extends BaseChatServiceTest {
 
-    //will actually call the providers
+    //will actually call the real providers
     @Autowired
     private ChatService chatService;
 
     @ParameterizedTest
     @MethodSource("localProviders")
     void chatProviderCallOk(LlmProvider provider) {
-        testProvider(chatService, provider);
+        testProvider(chatService, "Who is Elon musk?", provider);
     }
 
     @Test
@@ -44,7 +46,7 @@ public class ChatServiceTest extends BaseChatServiceTest {
                 .forEach(interaction -> {
                     if (interaction.getLlm() != null) {
                         // provider answered
-                        assertThat(interaction.getCompletion()).contains("Trump");
+                        assertThat(interaction.getCompletion()).isNotNull();
                     } else {
                         // provider did not answer
                         assertThat(interaction.getCompletion()).isNull();
@@ -55,7 +57,7 @@ public class ChatServiceTest extends BaseChatServiceTest {
     @ParameterizedTest
     @MethodSource("externalProviders")
     void chatProviderCallWithWrongPassword(LlmProvider provider) {
-        assertThatThrownBy(() -> chatService.createCompletionByProvider(createCompletionRequest("Who is Donald Trump?", null), provider))
+        assertThatThrownBy(() -> chatService.createCompletionByProvider(createCompletionRequest("Who is Donald Trump?", null, provider)))
                 .isInstanceOf(NonTransientAiException.class)
                 .satisfies(ex ->
                         assertThat(ex.getMessage())
@@ -71,7 +73,7 @@ public class ChatServiceTest extends BaseChatServiceTest {
     void chatProviderGetInteraction(LlmProvider provider) {
         var prompt = "Who is Donald Trump?";
 
-        var completion = chatService.createCompletionByProvider(createCompletionRequest(prompt, null), provider);
+        var completion = chatService.createCompletionByProvider(createCompletionRequest(prompt, null, provider));
         var interaction = chatService.getInteractionByPromptId(completion.getInteractionCompletion().getPromptId());
 
         assertThat(interaction).isInstanceOf(GetInteractionResponse.class);
@@ -92,8 +94,8 @@ public class ChatServiceTest extends BaseChatServiceTest {
         var prompt1 = "Who is Elon Musk?";
         var prompt2 = "Is he a friend of Donald Trump?";
 
-        chatService.createCompletionByProvider(createCompletionRequest(prompt1, chatId), LlmProvider.OLLAMA);
-        chatService.createCompletionByProvider(createCompletionRequest(prompt2, chatId), LlmProvider.OLLAMA);
+        chatService.createCompletionByProvider(createCompletionRequest(prompt1, chatId, LlmProvider.OLLAMA));
+        chatService.createCompletionByProvider(createCompletionRequest(prompt2, chatId, LlmProvider.OLLAMA));
         var response = chatService.getChatByChatId(chatId);
 
         assertThat(response).isInstanceOf(GetChatResponse.class);

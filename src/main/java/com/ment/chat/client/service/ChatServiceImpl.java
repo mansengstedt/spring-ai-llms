@@ -10,6 +10,7 @@ import com.ment.chat.client.domain.repository.LlmCompletionRepository;
 import com.ment.chat.client.domain.repository.LlmPromptRepository;
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.enums.LlmStatus;
+import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
 import com.ment.chat.client.model.in.CreateCompletionRequest;
 import com.ment.chat.client.model.out.CreateCombinedCompletionResponse;
 import com.ment.chat.client.model.out.CreateCompletionResponse;
@@ -106,8 +107,8 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public CreateCompletionResponse createCompletionByProvider(CreateCompletionRequest completionRequest, LlmProvider llmProvider) {
-        return getCompletionResponse(createUniqueId(), completionRequest, llmProvider, chatClientMap.get(llmProvider));
+    public CreateCompletionResponse createCompletionByProvider(CreateCompletionByProviderRequest completionRequest) {
+        return getCompletionResponse(createUniqueId(), completionRequest, chatClientMap.get(completionRequest.getLlmProvider()));
     }
 
     @Override
@@ -234,7 +235,7 @@ public class ChatServiceImpl implements ChatService {
                 .toList();
     }
 
-    private CreateCompletionResponse getCompletionResponse(String id, CreateCompletionRequest completionRequest, LlmProvider llmProvider, ChatClient chatClient) {
+    private CreateCompletionResponse getCompletionResponse(String id, CreateCompletionByProviderRequest completionRequest, ChatClient chatClient) {
         try {
             /* simpler call, not using chat memory
             String llmAnswer = defaultChatClient
@@ -247,9 +248,9 @@ public class ChatServiceImpl implements ChatService {
 
             ChatClient.ChatClientRequestSpec reqSpec = createRequestSpec(completionRequest, chatClient, message);
 
-            ChatResponseTimer chatResponse = callProvider(llmProvider, reqSpec);
+            ChatResponseTimer chatResponse = callProvider(completionRequest.getLlmProvider(), reqSpec);
 
-            return createSavePublishResponse(id, OffsetDateTime.now(), llmProvider, chatResponse);
+            return createSavePublishResponse(id, OffsetDateTime.now(), completionRequest.getLlmProvider(), chatResponse);
 
         } catch (Exception e) {
             log.error("Error in flow from {}", chatClient, e);
@@ -349,6 +350,7 @@ public class ChatServiceImpl implements ChatService {
     private List<InteractionCompletion> transformCompletions(List<CreateCompletionResponse> savePublishResponses) {
         return savePublishResponses.stream()
                 .map(CreateCompletionResponse::getInteractionCompletion)
+                .sorted()
                 .toList();
     }
 

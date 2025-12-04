@@ -73,17 +73,16 @@ public class LocalIT {
 
     @ParameterizedTest
     @CsvSource({
-            "missing-prompt, payload/chat/create-completion/in/missing_prompt.json, DOCKER, payload/chat/create-completion/out/missing_prompt.json, 400",
-            "too-short-prompt, payload/chat/create-completion/in/too_short_prompt.json, DOCKER, payload/chat/create-completion/out/too_short_prompt.json, 400",
-            "invalid-provider, payload/chat/create-completion/in/valid_request.json, PERPLEXITY, payload/chat/create-completion/out/invalid_provider.json, 400",
+            "missing-prompt, payload/chat/create-completion/in/missing_prompt.json, payload/chat/create-completion/out/missing_prompt.json, 400",
+            "too-short-prompt, payload/chat/create-completion/in/too_short_prompt.json, payload/chat/create-completion/out/too_short_prompt.json, 400",
+            "invalid-provider, payload/chat/create-completion/in/invalid_provider.json, payload/chat/create-completion/out/invalid_provider.json, 400",
         })
     void testMissingPrompt_badRequest_createCompletion(String idpMatcher,
                                                        String requestFileName,
-                                                       String provider,
                                                        String responseFileName,
                                                        String httpStatus) throws Exception {
         String requestBody = readFileResource(requestFileName);
-        WebTestClient.ResponseSpec response = client.post().uri(BASE_PATH + LLM_PATH + "?provider=" + provider)
+        WebTestClient.ResponseSpec response = client.post().uri(BASE_PATH + LLM_PATH)
                 .headers(httpHeaders -> {
                     httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
                     httpHeaders.add("Correlation-Id", CORRELATION_ID);
