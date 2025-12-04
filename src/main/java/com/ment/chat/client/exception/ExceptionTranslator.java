@@ -4,39 +4,54 @@ import com.ment.chat.client.domain.exception.ChatNotFoundException;
 import com.ment.chat.client.domain.exception.PromptNotFoundException;
 import jakarta.validation.ValidationException;
 import org.springframework.ai.retry.NonTransientAiException;
+import org.springframework.core.NestedRuntimeException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.result.method.annotation.ResponseEntityExceptionHandler;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
 @RestControllerAdvice
 public class ExceptionTranslator extends ResponseEntityExceptionHandler {
-    public static final String CLIENT_RAISED_EXCEPTION = "Client raised exception";
-    public static final String GENERAL_ERROR = "General error";
-    public static final String CHAT_NOT_FOUND = "Chat not found";
-    public static final String REQUEST_NOT_FOUND = "Interaction prompt not found";
-    public static final String API_ERROR = "API error";
+    public static final String TITLE_CLIENT_RAISED_EXCEPTION = "Client raised exception";
+    public static final String TITLE_GENERAL_ERROR = "General error";
+    public static final String TITLE_VALIDATION_ERROR = "Validation error";
+    public static final String TITLE_CHAT_NOT_FOUND = "Chat not found";
+    public static final String TITLE_PROMPT_NOT_FOUND = "Prompt not found";
+    public static final String TITLE_API_ERROR = "API error";
+
+    public static final String TYPE_PROMPT = "prompt";
+    public static final String TYPE_CHAT = "chat";
+    public static final String TYPE_CLIENT_CALL = "client-call";
+    public static final String TYPE_VALIDATION = "validation";
+    public static final String TYPE_LLM_CALL = "llm-call";
+
+    public static final String PROPERTY_KEY_VIOLATIONS = "violations";
 
     @ExceptionHandler(PromptNotFoundException.class)
-    ProblemDetail handleRequestNotFoundException(PromptNotFoundException ex) {
+    ProblemDetail handlePromptNotFoundException(PromptNotFoundException ex) {
         HttpStatus status = HttpStatus.NOT_FOUND;
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
-        problemDetail.setTitle(REQUEST_NOT_FOUND);
-        problemDetail.setType(URI.create("request"));
+        problemDetail.setTitle(TITLE_PROMPT_NOT_FOUND);
+        problemDetail.setType(URI.create(TYPE_PROMPT));
         return problemDetail;
     }
 
     @ExceptionHandler(ChatNotFoundException.class)
-    ProblemDetail handleRequestNotFoundException(ChatNotFoundException ex) {
+    ProblemDetail handleChatNotFoundException(ChatNotFoundException ex) {
         HttpStatus status = HttpStatus.NOT_FOUND;
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
-        problemDetail.setTitle(CHAT_NOT_FOUND);
-        problemDetail.setType(URI.create("chat"));
+        problemDetail.setTitle(TITLE_CHAT_NOT_FOUND);
+        problemDetail.setType(URI.create(TYPE_CHAT));
         return problemDetail;
     }
 
@@ -44,7 +59,8 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
     ProblemDetail handleWebClientException(WebClientException ex) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
-        problemDetail.setTitle(GENERAL_ERROR);
+        problemDetail.setTitle(TITLE_GENERAL_ERROR);
+        problemDetail.setType(URI.create(TYPE_CLIENT_CALL));
         return problemDetail;
     }
 
@@ -52,7 +68,29 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
     ProblemDetail handleValidationException(ValidationException ex) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
-        problemDetail.setTitle(GENERAL_ERROR);
+        problemDetail.setTitle(TITLE_VALIDATION_ERROR);
+        problemDetail.setType(URI.create(TYPE_VALIDATION));
+        return problemDetail;
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    ProblemDetail handleException(MethodArgumentNotValidException ex, WebRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getBody().getDetail());
+        problemDetail.setTitle(TITLE_VALIDATION_ERROR);
+        problemDetail.setType(URI.create(TYPE_VALIDATION));
+        problemDetail.setInstance(parseURI(((ServletWebRequest) request).getRequest().getRequestURI()));
+        setViolations(problemDetail, ex.getBindingResult());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(NestedRuntimeException.class)
+    ProblemDetail handleException(NestedRuntimeException ex, WebRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
+        problemDetail.setTitle(TITLE_VALIDATION_ERROR);
+        problemDetail.setInstance(parseURI(((ServletWebRequest) request).getRequest().getRequestURI()));
+        problemDetail.setType(URI.create(TYPE_VALIDATION));
         return problemDetail;
     }
 
@@ -61,7 +99,8 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
     ProblemDetail handleRestClientException(RestClientException ex) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
-        problemDetail.setTitle(CLIENT_RAISED_EXCEPTION);
+        problemDetail.setTitle(TITLE_CLIENT_RAISED_EXCEPTION);
+        problemDetail.setType(URI.create(TYPE_LLM_CALL));
         return problemDetail;
     }
 
@@ -78,10 +117,31 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
     ProblemDetail handleNonTransientAiException(NonTransientAiException ex) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
-        problemDetail.setTitle(API_ERROR);
-        problemDetail.setType(URI.create("llm-call"));
+        problemDetail.setTitle(TITLE_API_ERROR);
+        problemDetail.setType(URI.create(TYPE_LLM_CALL));
         return problemDetail;
     }
 
+    private URI parseURI(String uri) {
+        try {
+            return new URI(uri);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void setViolations(ProblemDetail problemDetail, BindingResult bindingResult) {
+        var violations = bindingResult.getFieldErrors().stream()
+                .map(fieldError -> {
+                    var violation = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation error");
+                    violation.setType(URI.create(TYPE_VALIDATION));
+                    violation.setProperty("field", fieldError.getField());
+                    violation.setProperty("rejectedValue", fieldError.getRejectedValue());
+                    violation.setProperty("message", fieldError.getDefaultMessage());
+                    return violation;
+                })
+                .toList();
+        problemDetail.setProperty(PROPERTY_KEY_VIOLATIONS, violations);
+    }
 
 }

@@ -1,6 +1,6 @@
 {
-  "type": "request",
-  "title": "Interaction prompt not found",
+  "type": "prompt",
+  "title": "Prompt not found",
   "status": 404,
   "detail": "{{prompt_id}}",
   "instance": "/chat/prompt/{{prompt_id}}"

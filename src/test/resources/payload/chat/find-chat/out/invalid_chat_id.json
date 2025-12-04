@@ -1,6 +1,6 @@
 {
-  "type": "about:blank",
-  "title": "General error",
+  "type": "validation",
+  "title": "Validation error",
   "status": 400,
   "detail": "getChatByChatId.chatId: size must be between 0 and 36",
   "instance": "/chat/chat/{{chat_id}}"

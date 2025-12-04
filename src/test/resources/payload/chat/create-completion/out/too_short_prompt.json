@@ -1,0 +1,18 @@
+{
+  "type": "validation",
+  "title": "Validation error",
+  "status": 400,
+  "detail": "Invalid request content.",
+  "instance": "/chat/llm",
+  "violations": [
+    {
+      "type": "validation",
+      "title": "Bad Request",
+      "status": 400,
+      "detail": "Validation error",
+      "field": "prompt",
+      "rejectedValue": "X",
+      "message": "Size must be between 2 and 40000 characters"
+    }
+  ]
+}

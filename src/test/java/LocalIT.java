@@ -1,7 +1,6 @@
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ment.chat.client.ChatClientApplication;
 import com.ment.chat.client.config.CommonTestConfiguration;
 import com.ment.chat.client.domain.repository.LlmCompletionRepository;
@@ -74,9 +73,10 @@ public class LocalIT {
 
     @ParameterizedTest
     @CsvSource({
-            "missing-prompt, payload/chat/create-completion/in/missing_prompt.json, DOCKER, payload/chat/create-completion/out/bad_request.json, 400",
-            "too-short-prompt, payload/chat/create-completion/in/too_short_prompt.json, DOCKER, payload/chat/create-completion/out/bad_request.json, 400",
-            "invalid-provider, payload/chat/create-completion/in/valid_request.json, PERPLEXITY, payload/chat/create-completion/out/bad_request.json, 400",})
+            "missing-prompt, payload/chat/create-completion/in/missing_prompt.json, DOCKER, payload/chat/create-completion/out/missing_prompt.json, 400",
+            "too-short-prompt, payload/chat/create-completion/in/too_short_prompt.json, DOCKER, payload/chat/create-completion/out/too_short_prompt.json, 400",
+            "invalid-provider, payload/chat/create-completion/in/valid_request.json, PERPLEXITY, payload/chat/create-completion/out/invalid_provider.json, 400",
+        })
     void testMissingPrompt_badRequest_createCompletion(String idpMatcher,
                                                        String requestFileName,
                                                        String provider,
@@ -92,18 +92,16 @@ public class LocalIT {
                 .bodyValue(requestBody)
                 .exchange();
 
-        byte[] responseBody = response.expectStatus().isEqualTo(HttpStatus.valueOf(Integer.parseInt(httpStatus)))
+        byte[] actualResponseBody = response.expectStatus().isEqualTo(HttpStatus.valueOf(Integer.parseInt(httpStatus)))
                 .expectBody()
                 .returnResult()
                 .getResponseBody();
 
         String expectedJson = readFileResource(responseFileName);
-        String responseJson = new String(Objects.requireNonNull(responseBody), StandardCharsets.UTF_8);
+        String responseJson = new String(Objects.requireNonNull(actualResponseBody), StandardCharsets.UTF_8);
 
-// Remove timestamp or other dynamic fields before comparison
-
-        JsonNode expected = removeNodes(expectedJson, mapper, "timestamp");
-        JsonNode actual = removeNodes(responseJson, mapper, "timestamp");
+        JsonNode expected = mapper.readTree(expectedJson);
+        JsonNode actual = mapper.readTree(responseJson);
 
         JSONAssert.assertEquals(expected.toString(), actual.toString(), JSONCompareMode.LENIENT);
     }
@@ -116,8 +114,7 @@ public class LocalIT {
                                                        String promptId,
                                                        String responseFileName,
                                                        String httpStatus) throws Exception {
-        String responseBody = readFileResource(responseFileName);
-        String expectedJson = replaceTemplateValue(responseBody, "prompt_id", promptId);
+        String expectedJson = replaceTemplateValue(readFileResource(responseFileName), "prompt_id", promptId);
         String path = BASE_PATH + PROMPT_PATH + "/" + promptId;
 
         compareResults(path, idpMatcher, httpStatus, expectedJson);
@@ -131,8 +128,7 @@ public class LocalIT {
                                             String chatId,
                                             String responseFileName,
                                             String httpStatus) throws Exception {
-        String responseBody = readFileResource(responseFileName);
-        String expectedJson = replaceTemplateValue(responseBody, "chat_id", chatId);
+        String expectedJson = replaceTemplateValue(readFileResource(responseFileName), "chat_id", chatId);
         String path = BASE_PATH + CHAT_PATH + "/" + chatId;
 
         compareResults(path, idpMatcher, httpStatus, expectedJson);
@@ -156,16 +152,6 @@ public class LocalIT {
         JsonNode actual = mapper.readTree(responseJson);
 
         JSONAssert.assertEquals(expected.toString(), actual.toString(), JSONCompareMode.LENIENT);
-    }
-
-    private JsonNode removeNodes(String json, ObjectMapper myMapper, String... fieldNames) throws JsonProcessingException {
-        JsonNode node = myMapper.readTree(json);
-        for (String fieldName : fieldNames) {
-            if (node.has(fieldName)) {
-                ((ObjectNode) node).remove(fieldName);
-            }
-        }
-        return node;
     }
 
 }
