@@ -9,7 +9,6 @@ import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
 import com.ment.chat.client.model.out.CreateCompletionResponse;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
@@ -36,7 +35,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@Disabled
 @ExtendWith(MockitoExtension.class)
 class ChatServiceImplTest {
 
@@ -67,6 +65,7 @@ class ChatServiceImplTest {
     }
 
     @Test
+    @SuppressWarnings({"DataFlowIssue"})//Intentionally passing null in test verification with Mockito.isNull()
     void testChatResponse() {
         CreateCompletionByProviderRequest request = CreateCompletionByProviderRequest.builder()
                 .prompt("Test interactionPrompt")
@@ -96,6 +95,7 @@ class ChatServiceImplTest {
         verify(applicationEventPublisher, times(1)).publishEvent(any(LlmCompletion.class));
     }
 
+    @SuppressWarnings("SameParameterValue")
     private ChatResponse mockChatResponse(String model, Usage usage, String answer) {
         ChatResponseMetadata metadata = ChatResponseMetadata.builder()
                 .model(model)

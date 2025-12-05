@@ -16,7 +16,10 @@ public class ChatClientApplication {
 
     private final boolean showBeans = false;
 
-    static void main(String[] args) {
+    //public modifier not needed for Java25 but is needed for mvn install that builds jar file
+    //but fails when scanning for public main method
+    @SuppressWarnings({"WeakerAccess"})
+    public static void main(String[] args) {
 
         clearSslLogging(); //not needed since no cert is used
 

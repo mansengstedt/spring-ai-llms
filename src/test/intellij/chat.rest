@@ -28,15 +28,15 @@ Content-Type: application/json
   "llm_provider": "OLLAMA"
 }
 
-### invalid provider
+### invalid input
 POST {{host}}/chat/llm
 Content-Type: application/json
 
 {
-  "prompt": "I'm the president of France and my name is Macron",
-  "style": "end answer with: Hope answer is correct!",
+  "prompt": "I",
   "chat_id": "president-id",
-  "llm_provider": "PERPLEXITY"
+  "llm_provider": "DOCKER",
+  "style": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 }
 
 ### Create llmCompletion from internal LLM like ollama
