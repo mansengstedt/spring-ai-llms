@@ -43,7 +43,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  * but mocked tests can be added here later with added profile ,"wiremock".
  */
 @SpringBootTest(classes = {ChatClientApplication.class, LocalIT.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles(value = {"test"})
+@ActiveProfiles(value = {"test", "wiremock"})
 @AutoConfigureWireMock(port = 0)
 @Tag("target-local")
 @AutoConfigureWebTestClient(timeout = "10000")

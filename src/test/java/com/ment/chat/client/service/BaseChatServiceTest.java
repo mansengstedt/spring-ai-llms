@@ -41,6 +41,7 @@ public abstract class BaseChatServiceTest {
         );
     }
 
+    @SuppressWarnings("SameParameterValue")
     CreateCompletionRequest createCompletionRequest(String prompt, String chatId) {
         return CreateCompletionRequest.builder()
                 .prompt(prompt)
