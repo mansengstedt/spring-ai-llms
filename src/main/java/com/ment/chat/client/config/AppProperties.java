@@ -25,6 +25,6 @@ public record AppProperties(@NotNull @Valid Toggle toggle,
     }
 
     public record ApiConnection(@NotNull String url,
-                                @NotNull @Valid String key) {
+                                @NotNull String key) {
     }
 }

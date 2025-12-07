@@ -3,8 +3,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ment.chat.client.ChatClientApplication;
 import com.ment.chat.client.config.CommonTestConfiguration;
-import com.ment.chat.client.domain.repository.LlmCompletionRepository;
-import com.ment.chat.client.domain.repository.LlmPromptRepository;
+import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
+import com.ment.chat.client.model.out.CreateCompletionResponse;
 import org.json.JSONException;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,14 +26,16 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import java.util.UUID;
 
 import static com.ment.chat.client.controller.ChatController.BASE_PATH;
 import static com.ment.chat.client.controller.ChatController.CHAT_PATH;
 import static com.ment.chat.client.controller.ChatController.LLM_PATH;
 import static com.ment.chat.client.controller.ChatController.PROMPT_PATH;
+import static com.ment.chat.client.model.enums.LlmProvider.ANTHROPIC;
+import static com.ment.chat.client.utils.Utility.createObjectMapper;
 import static com.ment.chat.client.utils.Utility.readFileResource;
 import static com.ment.chat.client.utils.Utility.replaceTemplateValue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 
@@ -42,7 +44,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  * Initially no mocking is done of the LLM provider,
  * but mocked tests can be added here later with added profile ,"wiremock".
  */
-@SpringBootTest(classes = {ChatClientApplication.class, LocalIT.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = {ChatClientApplication.class, LocalIT.class},
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(value = {"test", "wiremock"})
 @AutoConfigureWireMock(port = 0)
 @Tag("target-local")
@@ -53,22 +56,15 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @DirtiesContext
 public class LocalIT {
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = createObjectMapper();
+
+    private static final String IDP_MATCHER_HEADER_KEY = "idp-matcher";
 
     @Autowired
     WebTestClient client;
 
     @Autowired
-    LlmPromptRepository llmPromptRepository;
-
-    @Autowired
-    LlmCompletionRepository llmCompletionRepository;
-
-    @Autowired
-    CommonTestConfiguration.WireMockAdminClient wireMockAdminClient;
-
-    private static final String CORRELATION_ID = UUID.randomUUID().toString();
-    private static final String IDP_MATCHER_HEADER_KEY = "idp-matcher";
+    private ObjectMapper objectMapper;
 
 
     @ParameterizedTest
@@ -85,13 +81,13 @@ public class LocalIT {
         WebTestClient.ResponseSpec response = client.post().uri(BASE_PATH + LLM_PATH)
                 .headers(httpHeaders -> {
                     httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
-                    httpHeaders.add("Correlation-Id", CORRELATION_ID);
                     httpHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_VALUE);
                 })
                 .bodyValue(requestBody)
                 .exchange();
 
-        byte[] actualResponseBody = response.expectStatus().isEqualTo(HttpStatus.valueOf(Integer.parseInt(httpStatus)))
+        byte[] actualResponseBody = response
+                .expectStatus().isEqualTo(HttpStatus.valueOf(Integer.parseInt(httpStatus)))
                 .expectBody()
                 .returnResult()
                 .getResponseBody();
@@ -103,6 +99,49 @@ public class LocalIT {
         JsonNode actual = mapper.readTree(responseJson);
 
         JSONAssert.assertEquals(expected.toString(), actual.toString(), JSONCompareMode.LENIENT);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "empty-ollama-response, payload/chat/create-completion/in/valid_request_ollama.json, 200",
+            "empty-docker-response, payload/chat/create-completion/in/valid_request_docker.json, 200",
+            "empty-openai-response, payload/chat/create-completion/in/valid_request_openai.json, 200",
+            "empty-anthropic-response, payload/chat/create-completion/in/valid_request_anthropic.json, 500",
+    })
+    void testEmptyLlmResponse_success(String idpMatcher,
+                                         String requestFileName,
+                                         String httpStatus) throws Exception {
+
+
+        String requestBody = readFileResource(requestFileName);
+        CreateCompletionByProviderRequest request = mapper.readValue(requestBody, CreateCompletionByProviderRequest.class);
+
+        WebTestClient.ResponseSpec responseSpec = client.post().uri(BASE_PATH + LLM_PATH)
+                .headers(httpHeaders -> {
+                    httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
+                    httpHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_VALUE);
+                })
+                .bodyValue(requestBody)
+                .exchange();
+
+        if (httpStatus.equals("500")) {
+            //Anthropic empty response currently gives 500 error
+            assertThat(request.getLlmProvider()).isEqualTo(ANTHROPIC);
+            responseSpec.expectStatus().is5xxServerError();
+            return;
+        }
+
+        CreateCompletionResponse response = responseSpec
+                .expectStatus().isEqualTo(HttpStatus.valueOf(Integer.parseInt(httpStatus)))
+                .expectBody(CreateCompletionResponse.class)
+                .returnResult()
+                .getResponseBody();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getInteractionCompletion().getPromptId()).isNotNull();
+        assertThat(response.getInteractionCompletion().getCompletionId()).isNotNull();
+        assertThat(response.getInteractionCompletion().getCompletion()).isNull();
+        assertThat(response.getInteractionCompletion().getLlmProvider()).isEqualTo(request.getLlmProvider());
     }
 
     @ParameterizedTest
@@ -137,7 +176,7 @@ public class LocalIT {
         byte[] actualResponseBody = client.get().uri(path)
                 .headers(httpHeaders -> {
                     httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
-                    httpHeaders.add("Correlation-Id", CORRELATION_ID);
+                    httpHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_VALUE);
                 })
                 .exchange()
                 .expectStatus().isEqualTo(HttpStatus.valueOf(Integer.parseInt(httpStatus)))

@@ -1,5 +1,7 @@
 package com.ment.chat.client.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.text.StringSubstitutor;
@@ -22,5 +24,10 @@ public class Utility {
         return StringSubstitutor.replace(input, Map.of(key, value), "{{", "}}");
     }
 
+    public static ObjectMapper createObjectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+        return mapper;
+    }
 
 }

@@ -79,7 +79,7 @@ public class ChatServiceConfig {
 
     private ChatClient mutateClient(OpenAiChatModel chatModel, LlmConfig llmConfig, AppProperties.ApiConnection apiConnection) {
         ChatMemory chatMemory = MessageWindowChatMemory.builder().build();
-        OpenAiApi api = configOpenAiApi(apiConnection);
+        OpenAiApi api = configOpenAiApi(apiConnection, llmConfig.getLlmProvider());
         OpenAiChatModel model = configChatModel(chatModel, api, llmConfig);
         return ChatClient.builder(model)
                 .defaultSystem(llmConfig.getSystem())
@@ -89,7 +89,7 @@ public class ChatServiceConfig {
 
     private ChatClient mutateClient(LlmConfig llmConfig, AppProperties.ApiConnection apiConnection) {
         ChatMemory chatMemory = MessageWindowChatMemory.builder().build();
-        AnthropicApi api = configAnthropicApi(apiConnection);
+        AnthropicApi api = configAnthropicApi(apiConnection, llmConfig.getLlmProvider());
         AnthropicChatModel model = configChatModel(api, llmConfig);
         return ChatClient.builder(model)
                 .defaultSystem(llmConfig.getSystem())
@@ -97,16 +97,16 @@ public class ChatServiceConfig {
                 .build();
     }
 
-    private OpenAiApi configOpenAiApi(AppProperties.ApiConnection apiConnection) {
-        log.info("Configuring OpenAiApi with apiConnection: {}", apiConnection);
+    private OpenAiApi configOpenAiApi(AppProperties.ApiConnection apiConnection, LlmProvider llmProvider) {
+        log.info("Configuring OpenAiApi for provider {} with apiConnection: {}", llmProvider, apiConnection);
         return baseOpenAiApi.mutate()
                 .baseUrl(apiConnection.url())
                 .apiKey(apiConnection.key())
                 .build();
     }
 
-    private AnthropicApi configAnthropicApi(AppProperties.ApiConnection apiConnection) {
-        log.info("Configuring AnthropicApi with apiConnection: {}", apiConnection);
+    private AnthropicApi configAnthropicApi(AppProperties.ApiConnection apiConnection, LlmProvider llmProvider) {
+        log.info("Configuring AnthropicApi for provider {} with apiConnection: {}", llmProvider, apiConnection);
         return AnthropicApi.builder()
                 .baseUrl(apiConnection.url())
                 .apiKey(apiConnection.key())

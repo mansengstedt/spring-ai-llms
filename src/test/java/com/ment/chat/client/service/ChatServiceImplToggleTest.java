@@ -26,13 +26,16 @@ import org.springframework.ai.chat.metadata.DefaultUsage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -51,6 +54,7 @@ class ChatServiceImplToggleTest {
     @Mock
     private ApplicationEventPublisher applicationEventPublisher;
 
+
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private AppProperties appProperties;
 
@@ -67,6 +71,12 @@ class ChatServiceImplToggleTest {
             method.setAccessible(true);
             method.invoke(service);
         }
+
+        // Mock repository behavior to avoid NPE
+        when(llmPromptRepository.save(any())).thenReturn(null);
+        when(llmPromptRepository.findById(any())).thenReturn(Optional.empty());
+        when(llmCompletionRepository.save(any())).thenReturn(null);
+        doNothing().when(applicationEventPublisher).publishEvent(any(ApplicationEvent.class));
     }
 
     @ParameterizedTest

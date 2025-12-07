@@ -45,6 +45,23 @@ spring:
     activate:
       on-profile: wiremock
 
+app:
+  models:
+    ollama:
+      api-connection:
+        url: http://localhost:${wiremock.server.port}
+    docker:
+      llm-model-name: unknown
+      api-connection:
+        url: http://localhost:${wiremock.server.port}
+    openai:
+      api-connection:
+        url: http://localhost:${wiremock.server.port}
+    anthropic:
+      api-connection:
+        url: http://localhost:${wiremock.server.port}
+
+
 wiremock:
   server:
     stubs: classpath:/wiremock/mappings

@@ -124,12 +124,12 @@
         </dependency>
 
         <!-- add later when mockito agent needed, mockito-core, not mockito-javaagent, should be used -->
-        <!--dependency>
+        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>${mockito.version}</version>
             <scope>test</scope>
-        </dependency-->
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -212,7 +212,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <!--argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine-->
+                    <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
                 </configuration>
             </plugin>
         </plugins>

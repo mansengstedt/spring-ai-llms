@@ -259,14 +259,19 @@ public class ChatServiceImpl implements ChatService {
     }
 
     private ChatResponseTimer callProvider(LlmProvider llmProvider, ChatClient.ChatClientRequestSpec reqSpec) {
-        long start = System.currentTimeMillis();
-        log.info("Calling provider {}", llmProvider);
-        ChatResponse chatResponse = reqSpec
-                .call()
-                .chatResponse();
-        Long executionTime = System.currentTimeMillis() - start;
-        log.info("Called provider {} answered after {} ms", llmProvider, executionTime);
-        return new ChatResponseTimer(chatResponse, executionTime);
+        try {
+            long start = System.currentTimeMillis();
+            log.info("Calling provider {}", llmProvider);
+            ChatResponse chatResponse = reqSpec
+                    .call()
+                    .chatResponse();
+            Long executionTime = System.currentTimeMillis() - start;
+            log.info("Called provider {} answered after {} ms", llmProvider, executionTime);
+            return new ChatResponseTimer(chatResponse, executionTime);
+        } catch (Exception e) {
+            log.error("Error calling provider {}", llmProvider, e);
+            throw e;
+        }
     }
 
     private CreateCombinedCompletionResponse getCompletionResponses(String id, CreateCompletionRequest completionRequest, Map<LlmProvider, ChatClient> chatClients) {
