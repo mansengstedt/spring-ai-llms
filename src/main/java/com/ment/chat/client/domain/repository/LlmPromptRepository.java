@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 @Repository
 public interface LlmPromptRepository extends JpaRepository<LlmPrompt, String> {
 
