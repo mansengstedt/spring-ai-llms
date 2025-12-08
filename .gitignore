@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+**/.DS_Store
+
+### exclude jenv
+.java-version
+
+### exclude passwords
+connection_keys.txt

@@ -31,6 +31,9 @@ import static com.ment.chat.client.utils.Utility.replaceTemplateValue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+/**
+ * Integration tests for local profile using WireMock to mock external LLMs done here.
+ */
 @SpringBootTest(classes = {ChatClientApplication.class, LocalWiremockServerIT.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(value = {"test", "wiremock"})
