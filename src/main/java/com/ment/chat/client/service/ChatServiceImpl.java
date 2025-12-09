@@ -42,10 +42,12 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.OffsetDateTime;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Aspect
@@ -108,12 +110,12 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public CreateCompletionResponse createCompletionByProvider(CreateCompletionByProviderRequest completionRequest) {
-        return getCompletionResponse(createUniqueId(), completionRequest, chatClientMap.get(completionRequest.getLlmProvider()));
+        return getCompletionResponse(createUniqueId(), completionRequest);
     }
 
     @Override
     public CreateCombinedCompletionResponse createCompletionsByAllProviders(CreateCompletionRequest completionRequest) {
-        return getCompletionResponses(createUniqueId(), completionRequest, chatClientMap);
+        return getCompletionResponses(createUniqueId(), completionRequest, EnumSet.allOf(LlmProvider.class));
     }
 
     @Override
@@ -235,7 +237,7 @@ public class ChatServiceImpl implements ChatService {
                 .toList();
     }
 
-    private CreateCompletionResponse getCompletionResponse(String id, CreateCompletionByProviderRequest completionRequest, ChatClient chatClient) {
+    private CreateCompletionResponse getCompletionResponse(String id, CreateCompletionByProviderRequest completionRequest) {
         try {
             /* simpler call, not using chat memory
             String llmAnswer = defaultChatClient
@@ -244,16 +246,14 @@ public class ChatServiceImpl implements ChatService {
                     .content();
             String model = getModelFromChatClient(defaultChatClient);
             */
-            Message message = createSavePublishRequest(id, completionRequest);
+            createSavePublishRequest(id, completionRequest);
 
-            ChatClient.ChatClientRequestSpec reqSpec = createRequestSpec(completionRequest, chatClient, message);
-
-            ChatResponseTimer chatResponse = callProvider(completionRequest.getLlmProvider(), reqSpec);
+            ChatResponseTimer chatResponse = callProvider(completionRequest, completionRequest.getLlmProvider());
 
             return createSavePublishResponse(id, OffsetDateTime.now(), completionRequest.getLlmProvider(), chatResponse);
 
         } catch (Exception e) {
-            log.error("Error in flow from {}", chatClient, e);
+            log.error("Error in flow from {}", completionRequest.getLlmProvider(), e);
             throw e;
         }
     }
@@ -274,13 +274,15 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    private CreateCombinedCompletionResponse getCompletionResponses(String id, CreateCompletionRequest completionRequest, Map<LlmProvider, ChatClient> chatClients) {
+    private CreateCombinedCompletionResponse getCompletionResponses(String id, CreateCompletionRequest completionRequest, Set<LlmProvider> providers) {
         try {
             long start = System.currentTimeMillis();
             log.info("Start combined calling");
 
+            createSavePublishRequest(id, completionRequest);
+
             Map<LlmProvider, ChatResponseTimer> chatResponses =
-                    getChatResponsesInParallel(id, completionRequest, chatClients)
+                    getChatResponsesInParallel(completionRequest, providers)
                             .block();
 
             CreateCombinedCompletionResponse response = combineResponses(id, Objects.requireNonNull(chatResponses));
@@ -294,29 +296,40 @@ public class ChatServiceImpl implements ChatService {
     }
 
     // Parallel execution with Mono
-    public Mono<Map<LlmProvider, ChatResponseTimer>> getChatResponsesInParallel(String id,
-                                                                                CreateCompletionRequest completionRequest,
-                                                                                Map<LlmProvider, ChatClient> chatClients) {
-        Message message = createSavePublishRequest(id, completionRequest);
+    public Mono<Map<LlmProvider, ChatResponseTimer>> getChatResponsesInParallel(CreateCompletionRequest completionRequest,
+                                                                                Set<LlmProvider> providers) {
 
-        return Flux.fromIterable(chatClients.values())
-                .zipWith(Flux.fromIterable(chatClients.keySet()))
+        return Flux.fromIterable(providers)
+                .zipWith(Flux.fromIterable(providers))
                 .flatMap(tupleClientProvider -> {
-                    ChatClient client = tupleClientProvider.getT1();
-                    LlmProvider llmProvider = tupleClientProvider.getT2();
+                    LlmProvider llmProvider = tupleClientProvider.getT1();
 
                     return Mono.fromCallable(() -> {
-                                ChatClient.ChatClientRequestSpec input = createRequestSpec(completionRequest, client, message);
-                                ChatResponseTimer result = callProvider(llmProvider, input);
+                                ChatResponseTimer result = callProvider(completionRequest, llmProvider);
                                 return Map.entry(llmProvider, result);
                             })
                             .subscribeOn(scheduler)
                             .onErrorResume(ex -> {
-                                log.error("Error calling provider {} with client {}, error: {}", llmProvider, client, ex.getMessage());
+                                log.error("Error calling provider {} with client {}, error: {}", llmProvider, chatClientMap.get(llmProvider), ex.getMessage());
                                 return errorResponse(llmProvider);
                             });
                 }, MAX_NO_PROVIDERS)
                 .collectMap(Map.Entry::getKey, Map.Entry::getValue);
+    }
+
+    /**
+     * This is the interface function that can be put in another class/bean.
+     * In that case the class is instantiated with the configured clients in a map and handles all provider related stuff.
+     * This service will only handle storage of prompts, completions and internal messages.
+     *
+     * @param completionRequest the llm request
+     * @param llmProvider the llm provider
+     * @return the answer from the provider with response time
+     */
+    private ChatResponseTimer callProvider(CreateCompletionRequest completionRequest, LlmProvider llmProvider) {
+        Message message = createMessageAndToggleMessageType(completionRequest.createPrompt());
+        ChatClient.ChatClientRequestSpec input = createRequestSpec(completionRequest, chatClientMap.get(llmProvider), message);
+        return callProvider(llmProvider, input);
     }
 
     /**
@@ -359,14 +372,13 @@ public class ChatServiceImpl implements ChatService {
                 .toList();
     }
 
-    private Message createSavePublishRequest(String promptId, CreateCompletionRequest completionRequest) {
+    private void createSavePublishRequest(String promptId, CreateCompletionRequest completionRequest) {
         String prompt = completionRequest.createPrompt();
         log.info("Save and publish prompt to be sent: {}", prompt);
         LlmPrompt llmPrompt = createLlmPrompt(promptId, prompt, completionRequest.getChatId());
         llmPromptRepository.save(llmPrompt);
         LlmPrompt savedPrompt = llmPromptRepository.findByPromptId(llmPrompt.getPromptId()); //should be present as just saved (not really needed)
         applicationEventPublisher.publishEvent(savedPrompt);
-        return createMessageAndToggleMessageType(prompt);
     }
 
     @SuppressWarnings("ConstantConditions")
