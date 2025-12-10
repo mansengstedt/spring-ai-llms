@@ -134,7 +134,7 @@ class LocalWiremockServerIT {
     }
 
     void stubOpenai() throws Exception {
-        // Mock the llm API endpoint with same answer
+        // Mock the llm API endpoint with the same answer
         String llmResponse = replaceTemplateValue(readFileResource("payload/chat/create-completion/valid_llm_response_openai.json"),
                 "content", CONTENT );
         llmResponse = replaceTemplateValue(llmResponse, "model", OPENAI_MODEL);
@@ -148,7 +148,7 @@ class LocalWiremockServerIT {
     }
 
     void stubAnthropic() throws Exception {
-        // Mock the llm API endpoint with same answer
+        // Mock the llm API endpoint with the same answer
         String llmResponse = replaceTemplateValue(readFileResource("payload/chat/create-completion/valid_llm_response_anthropic.json"),
                 "content", CONTENT );
         llmResponse = replaceTemplateValue(llmResponse, "model", ANTHROPIC_MODEL);

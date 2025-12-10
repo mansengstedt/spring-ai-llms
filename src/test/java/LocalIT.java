@@ -41,7 +41,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * Integration tests for local profile using WireMock to mock external services.
- * Initially no stubbing is done of the LLM provider but wiremock profile is still needed for .
+ * Initially no stubbing is done of the LLM provider but wiremock profile is still needed.
  */
 @SpringBootTest(classes = {ChatClientApplication.class, LocalIT.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

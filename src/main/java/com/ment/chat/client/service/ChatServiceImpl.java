@@ -1,5 +1,6 @@
 package com.ment.chat.client.service;
 
+import com.ment.chat.client.client.ProviderClient;
 import com.ment.chat.client.config.AppProperties;
 import com.ment.chat.client.domain.ChatResponseTimer;
 import com.ment.chat.client.domain.LlmCompletion;
@@ -25,17 +26,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.messages.AssistantMessage;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.MessageType;
-import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
@@ -60,6 +54,8 @@ public class ChatServiceImpl implements ChatService {
     private static final String PING_STATUS_PROMPT = "ping LLM to check status";
     private static final Integer MAX_NO_PROVIDERS = 10;
 
+    private final AppProperties appProperties;
+
     private static Scheduler scheduler;
 
     private final LlmPromptRepository llmPromptRepository;
@@ -68,7 +64,6 @@ public class ChatServiceImpl implements ChatService {
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    private MessageType messageType = MessageType.USER;
 
     @Qualifier("ollamaChatClient")
     private final ChatClient ollamaChatClient;
@@ -82,17 +77,15 @@ public class ChatServiceImpl implements ChatService {
     @Qualifier("dockerChatClient")
     private final ChatClient dockerChatClient;
 
-    private final AppProperties appProperties;
-
-    private Map<LlmProvider, ChatClient> chatClientMap;
+    private Map<LlmProvider, ProviderClient> chatClientMap;
 
     @PostConstruct
     private void chatClientMap() {
         chatClientMap = new HashMap<>();
-        chatClientMap.put(LlmProvider.OLLAMA, ollamaChatClient);
-        chatClientMap.put(LlmProvider.DOCKER, dockerChatClient);
-        chatClientMap.put(LlmProvider.OPENAI, openAiChatClient);
-        chatClientMap.put(LlmProvider.ANTHROPIC, anthropicChatClient);
+        chatClientMap.put(LlmProvider.OLLAMA, new ProviderClient(appProperties, ollamaChatClient));
+        chatClientMap.put(LlmProvider.DOCKER, new ProviderClient(appProperties, dockerChatClient));
+        chatClientMap.put(LlmProvider.OPENAI, new ProviderClient(appProperties, openAiChatClient));
+        chatClientMap.put(LlmProvider.ANTHROPIC, new ProviderClient(appProperties, anthropicChatClient));
         checkProviders();
     }
 
@@ -258,22 +251,6 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    private ChatResponseTimer callProvider(LlmProvider llmProvider, ChatClient.ChatClientRequestSpec reqSpec) {
-        try {
-            long start = System.currentTimeMillis();
-            log.info("Calling provider {}", llmProvider);
-            ChatResponse chatResponse = reqSpec
-                    .call()
-                    .chatResponse();
-            Long executionTime = System.currentTimeMillis() - start;
-            log.info("Called provider {} answered after {} ms", llmProvider, executionTime);
-            return new ChatResponseTimer(chatResponse, executionTime);
-        } catch (Exception e) {
-            log.error("Error calling provider {}", llmProvider, e);
-            throw e;
-        }
-    }
-
     private CreateCombinedCompletionResponse getCompletionResponses(String id, CreateCompletionRequest completionRequest, Set<LlmProvider> providers) {
         try {
             long start = System.currentTimeMillis();
@@ -318,23 +295,20 @@ public class ChatServiceImpl implements ChatService {
     }
 
     /**
-     * This is the interface function that can be put in another class/bean.
-     * In that case the class is instantiated with the configured clients in a map and handles all provider related stuff.
-     * This service will only handle storage of prompts, completions and internal messages.
+     * This is the interface function calling the class handling the provider functionlaity.
      *
      * @param completionRequest the llm request
      * @param llmProvider the llm provider
      * @return the answer from the provider with response time
      */
     private ChatResponseTimer callProvider(CreateCompletionRequest completionRequest, LlmProvider llmProvider) {
-        Message message = createMessageAndToggleMessageType(completionRequest.createPrompt());
-        ChatClient.ChatClientRequestSpec input = createRequestSpec(completionRequest, chatClientMap.get(llmProvider), message);
-        return callProvider(llmProvider, input);
+        return chatClientMap.get(llmProvider).callProvider(completionRequest, llmProvider);
     }
 
     /**
      * When the call to the provider fails, we still return an answer with the LlmProvider and an empty ChatResponse.
-     * The alternative is to return Mono.empty() to skip failed calls but then the provider info is lost which is needed further up in call chain.
+     * The alternative is to return Mono.empty() to skip failed calls
+     * but then the provider info is lost which is needed further up in the call chain.
      *
      * @param llmProvider the used provider
      * @return an entry with the provider and the resulting ChatResponseTimer
@@ -343,16 +317,6 @@ public class ChatServiceImpl implements ChatService {
         return Mono.just(Map.entry(llmProvider, new ChatResponseTimer(new ChatResponse(List.of()), 0L)));
     }
 
-    private ChatClient.ChatClientRequestSpec createRequestSpec(CreateCompletionRequest completionRequest, ChatClient chatClient, Message message) {
-        ChatClient.ChatClientRequestSpec reqSpec = chatClient
-                .prompt(Prompt.builder()
-                        .messages(message)
-                        .build());
-        if (StringUtils.hasText(completionRequest.getChatId())) {
-            reqSpec.advisors(a -> a.param(ChatMemory.CONVERSATION_ID, completionRequest.getChatId()));
-        }
-        return reqSpec;
-    }
 
     private CreateCombinedCompletionResponse combineResponses(String promptId, Map<LlmProvider, ChatResponseTimer> responses) {
         List<CreateCompletionResponse> completionResponses = responses.entrySet().stream()
@@ -384,7 +348,7 @@ public class ChatServiceImpl implements ChatService {
     @SuppressWarnings("ConstantConditions")
     private CreateCompletionResponse createSavePublishResponse(String promptId, OffsetDateTime dateTime, LlmProvider llmProvider, ChatResponseTimer response) {
         if (Objects.isNull(response.chatResponse().getResult())) {
-            // No answer received which might happen if LLM is not available
+            // No answer received that might happen if LLM is not available
             return CreateCompletionResponse.builder()
                     .interactionCompletion(
                             InteractionCompletion.builder()
@@ -416,25 +380,6 @@ public class ChatServiceImpl implements ChatService {
         llmCompletionRepository.save(llmCompletion);
         applicationEventPublisher.publishEvent(llmCompletion);
     }
-
-    private Message createMessageAndToggleMessageType(String prompt) {
-        if (messageType == MessageType.USER) {
-            if (Boolean.TRUE == appProperties.toggle().messageType()) {
-                messageType = MessageType.ASSISTANT;
-            }
-            log.info("Sending user message to LLMs: {}", prompt);
-            return new UserMessage(prompt);
-        } else if (messageType == MessageType.ASSISTANT) {
-            if (Boolean.TRUE == appProperties.toggle().messageType()) {
-                messageType = MessageType.USER;
-            }
-            log.info("Sending assistant message to LLMs: {}", prompt);
-            return new AssistantMessage(prompt);
-        } else {
-            throw new IllegalStateException("Unknown message type: " + messageType);
-        }
-    }
-
 
     private LlmPrompt createLlmPrompt(String id, String prompt, String chatId) {
         return LlmPrompt.builder()
