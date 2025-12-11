@@ -36,5 +36,7 @@ build/
 ### exclude jenv
 .java-version
 
-### exclude passwords
+### exclude password files
 connection_keys.txt
+**/application-test-external.yml
+**/application_default_credentials.json
