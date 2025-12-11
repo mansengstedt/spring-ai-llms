@@ -304,7 +304,7 @@ public class ChatServiceImpl implements ChatService {
      * This is the interface function calling the class handling the provider functionlaity.
      *
      * @param completionRequest the llm request
-     * @param llmProvider the llm provider
+     * @param llmProvider       the llm provider
      * @return the answer from the provider with response time
      */
     private ChatResponseTimer callProvider(CreateCompletionRequest completionRequest, LlmProvider llmProvider) {
@@ -364,9 +364,8 @@ public class ChatServiceImpl implements ChatService {
                                     .build())
                     .build();
         }
-        //vertex sometimes answers with an empty model value which is not accepted by db constraints, set to UNKNOWN_MODEL_NAME instead
-        String llm = StringUtils.hasText(response.chatResponse().getMetadata().getModel()) ?
-                response.chatResponse().getMetadata().getModel() : UNKNOWN_MODEL_NAME;
+        //vertex sometimes answers with an empty model value which is not accepted by db constraints
+        String llm = lookupModel(llmProvider, response);
         CreateCompletionResponse createCompletionResponse = CreateCompletionResponse.builder()
                 .interactionCompletion(
                         InteractionCompletion.builder()
@@ -382,6 +381,18 @@ public class ChatServiceImpl implements ChatService {
                 .build();
         savePublishResponse(promptId, createCompletionResponse);
         return createCompletionResponse;
+    }
+
+    private String lookupModel(LlmProvider llmProvider, ChatResponseTimer response) {
+        if (StringUtils.hasText(response.chatResponse().getMetadata().getModel())) {
+            //prefer real-time provided name
+            return response.chatResponse().getMetadata().getModel();
+        } else if (StringUtils.hasText(appProperties.models().get(llmProvider).llmModelName())) {
+            //use non-null configured name (GEMINI case)
+            return appProperties.models().get(llmProvider).llmModelName();
+        }
+        //else unknown
+        return UNKNOWN_MODEL_NAME;
     }
 
     private void savePublishResponse(String promptId, CreateCompletionResponse createCompletionResponse) {

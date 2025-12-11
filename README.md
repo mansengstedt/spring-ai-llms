@@ -73,18 +73,15 @@ Steps to install and use Gemini/Vertex:
 - Download gcloud CLI and run: gcloud auth application-default login --impersonate-service-account ment-chat@lithe-breaker-480809-c9.iam.gserviceaccount.com
 - Now the credentials file is saved in `~/.config/gcloud/application_default_credentials.json`.
 - Set the environment variable `GOOGLE_APPLICATION_CREDENTIALS` to the path of the credentials file.
-- in application.yaml, set spring.ai.vertex.ai.gemini.location to "europe-north1" and spring.ai.vertex.ai.gemini.project-id to "lithe-breaker-480809-c9"
+- in application.yaml, set `spring.ai.vertex.ai.gemini.location` to `europe-north1` and `spring.ai.vertex.ai.gemini.project-id` to `lithe-breaker-480809-c9`.
 
 
 There are problems running vertex with other values of location and model than `europe-north1/GEMINI_2_0_FLASH`.
 
-Location and projectId are fetched from `spring.ai.vertex.ai.gemini`. The model name is fetched from `LlmConfig.name`.
+Location and projectId are fetched from `spring.ai.vertex.ai.gemini`. 
+The model name is fetched from `app.gemini.llm-model.name`, but defaults to value in `LlmConfig.name`.
 
-For example `global/GEMINI_2_5_PRO` result in errors from netty-shaded 1.70.0. Upgrade to 1.77.0 does not help.
-`WARNING: A restricted method in java.lang.System has been called`.
-
-However, the model returned by vertex is empty, hence in code it is set to "unknown" to avoid db errors.
-
+However, the model returned by gemini is empty, hence in code it is set to "Unknown" to avoid db errors.
 
 - Gemini example parameters: https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro
 - Available foundation models: https://console.cloud.google.com/vertex-ai/model-garden
@@ -98,14 +95,13 @@ Example Projects
 
 ## Service End points
 
-* POST /chat/haiku?provider=ANTHROPIC create a haiku from Anthropic with given parameters from Docker LLMs
-* POST /chat/llm?provider=OLLAMA chat with internal LLMs using Ollama
-* POST /chat/llm?provider=DOCKER chat with docker LLMs using Docker
-* POST /chat/llm?provider=OPENAI chat with external LLMs using OpenAI
-* POST /chat/llm?provider=ANTHROPIC chat with external LLMs using Anthropic
+* POST /chat/haiku?provider={provider} create a haiku from provider, for example Anthropic, with given parameters
+* POST /chat/llm chat with an LLM given in the request object, either OLLAMA, DOCKER, OPENAI, ANTHROPIC or GEMINI
 * POST /chat/llm/all chat with all LLMs and return all answers
 * GET /chat/prompt/{prompt-id} get llmPrompt and completions from given llmPromptId
 * GET /chat/chat/{chat-id} get chat by chatId
+* GET /chat/chat/prompt/contains/{part-of-prompt} get chats containing the given part of the prompt
+* GET /chat/chat/completion/contains/{part-of-completion} get chats containing the given part of the completion
 * GET /chat/status get chat service status for all LLMs
 
 
@@ -120,8 +116,8 @@ The main domain objects are:
 To test, you can use the IntelliJ HTTP client with the provided `.rest` files in the `src/test/intellij` directory.
 
 ## Todo
-* upgrade spring-ai to latest 1.1.2 (fixed)
 * choose which provider to use: collapse 'llm/all' endpoint and single provider to one endpoint
+* upgrade spring-ai to the latest version 1.1.2 (fixed)
 * add Gemini (fixed)
 * remove 2 transitive vulnerabilities (fixed)
 * add security (later)
