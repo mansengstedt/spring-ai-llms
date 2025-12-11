@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 import static com.ment.chat.client.model.enums.LlmProvider.ANTHROPIC;
 import static com.ment.chat.client.model.enums.LlmProvider.DOCKER;
+import static com.ment.chat.client.model.enums.LlmProvider.GEMINI;
 import static com.ment.chat.client.model.enums.LlmProvider.OLLAMA;
 import static com.ment.chat.client.model.enums.LlmProvider.OPENAI;
 import static com.ment.chat.client.config.Systems.HELPFUL_SYSTEM_NO_LIMIT;
@@ -26,6 +27,8 @@ public enum LlmConfig {
 
     LLM_ANTHROPIC_CLAUDE_4(ANTHROPIC,"claude-sonnet-4-20250514", 64000, 0.7d, HELPFUL_SYSTEM_NO_LIMIT, false),
     LLM_ANTHROPIC_CLAUDE_4_5(ANTHROPIC,"claude-sonnet-4-5-20250929", 64000, 0.8d, HELPFUL_SYSTEM_NO_LIMIT, false),
+
+    LLM_GEMINI_2_0(GEMINI, "GEMINI_2_0_FLASH", 64000, 1.0d, HELPFUL_SYSTEM_NO_LIMIT, false),
 
     //Gemma 3 causes exception: Conversation roles must alternate user/assistant/user/assistant/
     LLM_DOCKER_GEMMA_3(DOCKER, "ai/gemma3", null,0.7d, HELPFUL_SYSTEM_NO_LIMIT, true),

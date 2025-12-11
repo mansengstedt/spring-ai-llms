@@ -4,6 +4,7 @@ import com.ment.chat.client.ChatClientApplication;
 import com.ment.chat.client.config.CommonTestConfiguration;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
 import com.ment.chat.client.model.out.CreateCompletionResponse;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -52,7 +53,7 @@ class LocalWiremockServerIT {
     private static final String CONTENT = "This is mocked llm content!";
     private static final String OPENAI_MODEL = "gpt-5.1-turbo";
     private static final String ANTHROPIC_MODEL = "claude-4.5";
-    public static final String TOKEN_USAGE   = "promptTokens=10, completionTokens=20, totalTokens=30";
+    public static final String TOKEN_USAGE = "promptTokens=10, completionTokens=20, totalTokens=30";
 
     @Autowired
     WebTestClient client;
@@ -68,8 +69,8 @@ class LocalWiremockServerIT {
             "openai-llm-response, payload/chat/create-completion/in/valid_request_openai.json, 200",
     })
     void testLlmResponse_success(String idpMatcher,
-                                      String requestFileName,
-                                      String httpStatus) throws Exception {
+                                 String requestFileName,
+                                 String httpStatus) throws Exception {
         stubOpenai();
 
         String requestBody = readFileResource(requestFileName);
@@ -103,8 +104,8 @@ class LocalWiremockServerIT {
             "anthropic-llm-response, payload/chat/create-completion/in/valid_request_anthropic.json, 200",
     })
     void testAnthropicResponse_success(String idpMatcher,
-                                 String requestFileName,
-                                 String httpStatus) throws Exception {
+                                       String requestFileName,
+                                       String httpStatus) throws Exception {
         stubAnthropic();
 
         String requestBody = readFileResource(requestFileName);
@@ -133,10 +134,45 @@ class LocalWiremockServerIT {
         assertThat(response.getInteractionCompletion().getLlmProvider()).isEqualTo(request.getLlmProvider());
     }
 
+    @Disabled("Gemini stubbing is not working, real Gemini call is done since wiremock port can't be set in 1.0.3")
+    @ParameterizedTest
+    @CsvSource({
+            "gemini-llm-response, payload/chat/create-completion/in/valid_request_gemini.json, 200",
+    })
+    void testGeminiResponse_success(String idpMatcher,
+                                       String requestFileName,
+                                       String httpStatus) throws Exception {
+        stubGemini();
+
+        String requestBody = readFileResource(requestFileName);
+        CreateCompletionByProviderRequest request = mapper.readValue(requestBody, CreateCompletionByProviderRequest.class);
+
+        WebTestClient.ResponseSpec responseSpec = client.post().uri(BASE_PATH + LLM_PATH)
+                .headers(httpHeaders -> {
+                    httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
+                    httpHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_VALUE);
+                })
+                .bodyValue(requestBody)
+                .exchange();
+
+        CreateCompletionResponse response = responseSpec
+                .expectStatus().isEqualTo(HttpStatus.valueOf(Integer.parseInt(httpStatus)))
+                .expectBody(CreateCompletionResponse.class)
+                .returnResult()
+                .getResponseBody();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getInteractionCompletion().getPromptId()).isNotNull();
+        assertThat(response.getInteractionCompletion().getCompletionId()).isNotNull();
+        //shows that stubbing is not working since real content is returned
+        assertThat(response.getInteractionCompletion().getCompletion()).isNotEqualTo(CONTENT);
+        assertThat(response.getInteractionCompletion().getLlmProvider()).isEqualTo(request.getLlmProvider());
+    }
+
     void stubOpenai() throws Exception {
         // Mock the llm API endpoint with the same answer
         String llmResponse = replaceTemplateValue(readFileResource("payload/chat/create-completion/valid_llm_response_openai.json"),
-                "content", CONTENT );
+                "content", CONTENT);
         llmResponse = replaceTemplateValue(llmResponse, "model", OPENAI_MODEL);
 
         wireMockServer.stubFor(post(anyUrl())
@@ -150,7 +186,7 @@ class LocalWiremockServerIT {
     void stubAnthropic() throws Exception {
         // Mock the llm API endpoint with the same answer
         String llmResponse = replaceTemplateValue(readFileResource("payload/chat/create-completion/valid_llm_response_anthropic.json"),
-                "content", CONTENT );
+                "content", CONTENT);
         llmResponse = replaceTemplateValue(llmResponse, "model", ANTHROPIC_MODEL);
 
         wireMockServer.stubFor(post(anyUrl())
@@ -159,6 +195,16 @@ class LocalWiremockServerIT {
                         .withHeader("Content-Type", "application/json")
                         .withBody(llmResponse)));
 
+    }
+
+    void stubGemini() throws Exception {
+        String llmResponse = replaceTemplateValue(readFileResource("payload/chat/create-completion/valid_llm_response_gemini.json"),
+                "content", CONTENT);
+        wireMockServer.stubFor(post(anyUrl())
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(llmResponse)));
     }
 
 }

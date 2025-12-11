@@ -38,12 +38,21 @@ app:
         url: http://localhost:12434/engines
         key: NOT_NEEDED
 
+
 ---
 
 spring:
   config:
     activate:
       on-profile: wiremock
+  ai:
+    vertex:
+      ai:
+        gemini:
+          api-endpoint: http://localhost:${wiremock:server:port} #never set so wiremock does not work
+          api-key: test-key
+          project-id: lithe-breaker-480809-c9
+          location: europe-north1
 
 app:
   models:

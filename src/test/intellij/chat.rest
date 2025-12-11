@@ -76,6 +76,25 @@ Content-Type: application/json
   "llm_provider": "OPENAI"
 }
 
+### Create llmCompletion from Gemini
+POST {{host}}/chat/llm
+Content-Type: application/json
+
+{
+  "prompt": "What is the relation between Hassabis, Hinton and LeCun",
+  "style": "answer with max 200 words",
+  "llm_provider": "GEMINI"
+}
+
+### Create llmCompletion from all including Gemini
+POST {{host}}/chat/llm/all
+Content-Type: application/json
+
+{
+  "prompt": "What is the relation between Hassabis, Hinton, Jumper and Nobel prize",
+  "style": "answer with max 100 words"
+}
+
 ### Create llmCompletion using chat-id
 POST {{host}}/chat/llm
 Content-Type: application/json

@@ -32,6 +32,7 @@ import static com.ment.chat.client.controller.ChatController.CHAT_PATH;
 import static com.ment.chat.client.controller.ChatController.LLM_PATH;
 import static com.ment.chat.client.controller.ChatController.PROMPT_PATH;
 import static com.ment.chat.client.model.enums.LlmProvider.ANTHROPIC;
+import static com.ment.chat.client.model.enums.LlmProvider.GEMINI;
 import static com.ment.chat.client.utils.Utility.createObjectMapper;
 import static com.ment.chat.client.utils.Utility.readFileResource;
 import static com.ment.chat.client.utils.Utility.replaceTemplateValue;
@@ -103,6 +104,7 @@ public class LocalIT {
             "empty-docker-response, payload/chat/create-completion/in/valid_request_docker.json, 200",
             "empty-openai-response, payload/chat/create-completion/in/valid_request_openai.json, 200",
             "empty-anthropic-response, payload/chat/create-completion/in/valid_request_anthropic.json, 500",
+            "empty-gemini-response, payload/chat/create-completion/in/valid_request_gemini.json, 200",
     })
     void testEmptyLlmResponse_success(String idpMatcher,
                                          String requestFileName,
@@ -122,7 +124,7 @@ public class LocalIT {
 
         if (httpStatus.equals("500")) {
             //Anthropic empty response currently gives 500 error
-            assertThat(request.getLlmProvider()).isEqualTo(ANTHROPIC);
+            assertThat(request.getLlmProvider()).isIn(ANTHROPIC, GEMINI);
             responseSpec.expectStatus().is5xxServerError();
             return;
         }
@@ -134,10 +136,15 @@ public class LocalIT {
                 .getResponseBody();
 
         assertThat(response).isNotNull();
+        assertThat(response.getInteractionCompletion().getLlmProvider()).isEqualTo(request.getLlmProvider());
         assertThat(response.getInteractionCompletion().getPromptId()).isNotNull();
         assertThat(response.getInteractionCompletion().getCompletionId()).isNotNull();
-        assertThat(response.getInteractionCompletion().getCompletion()).isNull();
-        assertThat(response.getInteractionCompletion().getLlmProvider()).isEqualTo(request.getLlmProvider());
+        if (request.getLlmProvider().equals(GEMINI)) {
+            //GEMINI gives an answer
+            assertThat(response.getInteractionCompletion().getCompletion()).isNotNull();
+        } else {
+            assertThat(response.getInteractionCompletion().getCompletion()).isNull();
+        }
     }
 
     @ParameterizedTest

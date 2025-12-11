@@ -54,6 +54,47 @@ The generated key is read outside the app in env variable `ANTHROPIC_CONNECTION_
 
 To see OpenApi account usage, goto https://console.anthropic.com/settings/billing or https://console.anthropic.com/usage
 
+### Google Gemini
+LLM using Google Gemini
+
+Steps to install and use Gemini/Vertex:
+
+- Create a project in Google Cloud Platform.
+- Create a service account (here name: `ment-chat`, project: `lithe-breaker-480809-c9`).
+
+- Create a role as below to avoid permission problems
+- Go to the IAM & Admin Console: Navigate to the Service Accounts page in your GCP project.
+- Select the Target Service Account: Find and click on the Service Account specified in the URL: `ment-chat@lithe-breaker-480809-c9.iam.gserviceaccount.com`.
+- Add a Principal: On the Service Account details page, look for the Permissions tab and click Grant Access (or ADD PRINCIPAL).
+- Specify the Principal (The Caller, in this case `mans.engstedt@gmail.com`): 
+- In the New principals field, enter the email address of the Caller (the entity that is currently experiencing the 403 error).
+- Select the Role: In the Select a role dropdown, choose: Service Account Token Creator.
+
+- Download gcloud CLI and run: gcloud auth application-default login --impersonate-service-account ment-chat@lithe-breaker-480809-c9.iam.gserviceaccount.com
+- Now the credentials file is saved in `~/.config/gcloud/application_default_credentials.json`.
+- Set the environment variable `GOOGLE_APPLICATION_CREDENTIALS` to the path of the credentials file.
+- in application.yaml, set spring.ai.vertex.ai.gemini.location to "europe-north1" and spring.ai.vertex.ai.gemini.project-id to "lithe-breaker-480809-c9"
+
+
+There are problems running vertex with other values of location and model than `europe-north1/GEMINI_2_0_FLASH`.
+
+Location and projectId are fetched from `spring.ai.vertex.ai.gemini`. The model name is fetched from `LlmConfig.name`.
+
+For example `global/GEMINI_2_5_PRO` result in errors from netty-shaded 1.70.0. Upgrade to 1.77.0 does not help.
+`WARNING: A restricted method in java.lang.System has been called`.
+
+However, the model returned by vertex is empty, hence in code it is set to "unknown" to avoid db errors.
+
+
+- Gemini example parameters: https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro
+- Avaiable foundation models: https://console.cloud.google.com/vertex-ai/model-garden
+- Service accounts: https://console.cloud.google.com/projectselector2/iam-admin/serviceaccounts?supportedpurview=project
+- See/create Api key: https://console.cloud.google.com/api-sandbox/api-keys?project=curious-crow-jmvrn
+
+Example Projects
+- Josh Long: https://cloud.google.com/blog/topics/developers-practitioners/google-cloud-and-spring-ai-10
+- google: https://console.cloud.google.com/welcome/new?project=lithe-breaker-480809-c9&walkthrough_id=vertex-ai--prompt_design
+
 
 ## Service End points
 
@@ -79,8 +120,11 @@ The main domain objects are:
 To test, you can use the IntelliJ HTTP client with the provided `.rest` files in the `src/test/intellij` directory.
 
 ## Todo
-* remove 2 transitive vulnerabilities:
-* add security
+* upgrade spring-ai to latest 1.1.2
+* choose which provider to use: collapse all endpoint and single provider to one endpoint
+* add Gemini (fixed)
+* remove 2 transitive vulnerabilities (fixed)
+* add security (later)
 * proper parallelization in ChatService (fixed)
 * add tests (fixed)
 * rename objects and methods (fixed)
@@ -96,3 +140,4 @@ To test, you can use the IntelliJ HTTP client with the provided `.rest` files in
 - Docker installed and running with some models
 - OpenApi account, quota and key for external LLMs to use
 - Anthropic account, quota and key for external LLMs to use
+- Gemini account, project, role, quota and key for external LLMs to use

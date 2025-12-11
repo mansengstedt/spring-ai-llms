@@ -1,0 +1,11 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [{"text": "{{content}}"}],
+        "role": "model"
+      },
+      "finishReason": "STOP"
+    }
+  ]
+}

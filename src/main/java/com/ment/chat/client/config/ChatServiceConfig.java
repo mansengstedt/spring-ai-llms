@@ -1,5 +1,6 @@
 package com.ment.chat.client.config;
 
+import com.google.cloud.vertexai.VertexAI;
 import com.ment.chat.client.model.enums.LlmProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.anthropic.AnthropicChatModel;
@@ -12,13 +13,17 @@ import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.ai.vertexai.gemini.VertexAiGeminiChatModel;
+import org.springframework.ai.vertexai.gemini.VertexAiGeminiChatOptions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import static com.ment.chat.client.config.LlmConfig.LLM_ANTHROPIC_CLAUDE_4_5;
 import static com.ment.chat.client.config.LlmConfig.LLM_DOCKER_DEEPSEEK_R1;
+import static com.ment.chat.client.config.LlmConfig.LLM_GEMINI_2_0;
 import static com.ment.chat.client.config.LlmConfig.LLM_OLLAMA_QWEN_3;
 import static com.ment.chat.client.config.LlmConfig.LLM_OPEN_AI_GPT_5;
 
@@ -38,6 +43,13 @@ public class ChatServiceConfig {
     }
 
     @Bean
+    public ChatClient dockerChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
+        return mutateClient(baseChatModel,
+                nameToLlm(appProperties.models().get(LlmProvider.DOCKER).llmModelName(), LLM_DOCKER_DEEPSEEK_R1),
+                appProperties.models().get(LlmProvider.DOCKER).apiConnection());
+    }
+
+    @Bean
     public ChatClient openAiChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
         return mutateClient(baseChatModel,
                 nameToLlm(appProperties.models().get(LlmProvider.OPENAI).llmModelName(), LLM_OPEN_AI_GPT_5),
@@ -49,25 +61,25 @@ public class ChatServiceConfig {
      * Creates an Anthropic ChatClient bean configured based on application properties.
      * <p>
      * The anthropicChatClient could be mutated from OpenAi classes exactly like Ollama and Docker.
-     * If done like this some params must be set explicitly, like 'max_tokens', to avoid errors like:
+     * If done like this, some params must be set explicitly, like 'max_tokens', to avoid errors like:
      * "invalid_request_error","message":"max_tokens: Field required"
-     * since AnthropicChatModel can not be mutated from a base Anthropic Model.
+     * since AnthropicChatModel cannot be mutated from a base Anthropic Model.
      *
      * @param appProperties the application properties containing model and API connection details
      * @return a configured ChatClient for Anthropic
      */
     @Bean
     public ChatClient anthropicChatClient(AppProperties appProperties) {
-        return mutateClient(
+        return mutateAnthropicClient(
                 nameToLlm(appProperties.models().get(LlmProvider.ANTHROPIC).llmModelName(), LLM_ANTHROPIC_CLAUDE_4_5),
                 appProperties.models().get(LlmProvider.ANTHROPIC).apiConnection());
     }
 
     @Bean
-    public ChatClient dockerChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
-        return mutateClient(baseChatModel,
-                nameToLlm(appProperties.models().get(LlmProvider.DOCKER).llmModelName(), LLM_DOCKER_DEEPSEEK_R1),
-                appProperties.models().get(LlmProvider.DOCKER).apiConnection());
+    public ChatClient geminiChatClient(AppProperties appProperties, GeminiProperties geminiProperties) throws IOException {
+        return mutateGeminiClient(
+                nameToLlm(appProperties.models().get(LlmProvider.GEMINI).llmModelName(), LLM_GEMINI_2_0),
+                geminiProperties);
     }
 
     private LlmConfig nameToLlm(String name, LlmConfig defaultModel) {
@@ -87,7 +99,7 @@ public class ChatServiceConfig {
                 .build();
     }
 
-    private ChatClient mutateClient(LlmConfig llmConfig, AppProperties.ApiConnection apiConnection) {
+    private ChatClient mutateAnthropicClient(LlmConfig llmConfig, AppProperties.ApiConnection apiConnection) {
         ChatMemory chatMemory = MessageWindowChatMemory.builder().build();
         AnthropicApi api = configAnthropicApi(apiConnection, llmConfig.getLlmProvider());
         AnthropicChatModel model = configChatModel(api, llmConfig);
@@ -95,6 +107,37 @@ public class ChatServiceConfig {
                 .defaultSystem(llmConfig.getSystem())
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
                 .build();
+    }
+
+    private ChatClient mutateGeminiClient(LlmConfig llmConfig, GeminiProperties geminiProperties) throws IOException {
+        ChatMemory chatMemory = MessageWindowChatMemory.builder().build();
+        VertexAiGeminiChatModel model = configVertexAiGeminiChatModel(llmConfig, geminiProperties);
+        return ChatClient.builder(model)
+                .defaultSystem(llmConfig.getSystem())
+                .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
+                .build();
+    }
+
+    private VertexAiGeminiChatModel configVertexAiGeminiChatModel(LlmConfig llmConfig, GeminiProperties geminiProperties) throws IOException {
+        //should contain credentials from downloaded file in GOOGLE_APPLICATION_CREDENTIALS env variable
+        VertexAI vertexAI = configVertex(geminiProperties);
+        log.info("vertex credentials: {}", vertexAI.getCredentials());
+
+        //model name from LlmConfig must be valid
+        VertexAiGeminiChatModel.ChatModel chatModel = VertexAiGeminiChatModel.ChatModel.valueOf(llmConfig.getName());
+        return VertexAiGeminiChatModel.builder()
+                .defaultOptions(
+                        VertexAiGeminiChatOptions.builder()
+                                .temperature(llmConfig.getTemperature())
+                                .topP((double)1.0F)
+                                .model(chatModel)
+                                .build())
+                .vertexAI(vertexAI)
+                .build();
+    }
+
+    private VertexAI configVertex(GeminiProperties geminiProperties) {
+        return new VertexAI(geminiProperties.projectId(), geminiProperties.location());
     }
 
     private OpenAiApi configOpenAiApi(AppProperties.ApiConnection apiConnection, LlmProvider llmProvider) {

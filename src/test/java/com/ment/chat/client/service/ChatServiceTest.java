@@ -41,7 +41,7 @@ public class ChatServiceTest extends BaseChatServiceTest {
     void chatProviderCombinedCallOk() {
         var completions = chatService.createCompletionsByAllProviders(createCompletionRequest("Who is Donald Trump?", null));
 
-        assertThat(completions.getInteractionCompletions().size()).isEqualTo(4); //number of providers
+        assertThat(completions.getInteractionCompletions().size()).isEqualTo(LlmProvider.values().length); //number of providers
         completions.getInteractionCompletions()
                 .forEach(interaction -> {
                     if (interaction.getLlm() != null) {

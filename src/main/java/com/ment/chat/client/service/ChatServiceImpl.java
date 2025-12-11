@@ -30,6 +30,7 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
@@ -50,6 +51,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
 
+    public static final String UNKNOWN_MODEL_NAME = "Unknown";
     private static final String PING_STATUS_CHAT_ID = "ping-chat-service-status";
     private static final String PING_STATUS_PROMPT = "ping LLM to check status";
     private static final Integer MAX_NO_PROVIDERS = 10;
@@ -68,14 +70,17 @@ public class ChatServiceImpl implements ChatService {
     @Qualifier("ollamaChatClient")
     private final ChatClient ollamaChatClient;
 
+    @Qualifier("dockerChatClient")
+    private final ChatClient dockerChatClient;
+
     @Qualifier("openAiChatClient")
     private final ChatClient openAiChatClient;
 
     @Qualifier("anthropicChatClient")
     private final ChatClient anthropicChatClient;
 
-    @Qualifier("dockerChatClient")
-    private final ChatClient dockerChatClient;
+    @Qualifier("geminiChatClient")
+    private final ChatClient geminiChatClient;
 
     private Map<LlmProvider, ProviderClient> chatClientMap;
 
@@ -86,6 +91,7 @@ public class ChatServiceImpl implements ChatService {
         chatClientMap.put(LlmProvider.DOCKER, new ProviderClient(appProperties, dockerChatClient));
         chatClientMap.put(LlmProvider.OPENAI, new ProviderClient(appProperties, openAiChatClient));
         chatClientMap.put(LlmProvider.ANTHROPIC, new ProviderClient(appProperties, anthropicChatClient));
+        chatClientMap.put(LlmProvider.GEMINI, new ProviderClient(appProperties, geminiChatClient));
         checkProviders();
     }
 
@@ -94,7 +100,7 @@ public class ChatServiceImpl implements ChatService {
             //config error
             System.exit(3);
         }
-        if (chatClientMap.size() > 4) {
+        if (chatClientMap.size() > LlmProvider.values().length) {
             scheduler = Schedulers.boundedElastic();
         } else {
             scheduler = Schedulers.parallel();
@@ -204,7 +210,7 @@ public class ChatServiceImpl implements ChatService {
         List<GetLlmProviderStatusResponse.ChatServiceStatus> statusList = combinedChatResponse.getInteractionCompletions().stream()
                 .map(response -> GetLlmProviderStatusResponse.ChatServiceStatus.builder()
                         .status(response.getLlm() == null ? LlmStatus.UNAVAILABLE : LlmStatus.AVAILABLE)
-                        .llm(response.getLlm() == null ? "Unknown" : response.getLlm())
+                        .llm(response.getLlm() == null ? UNKNOWN_MODEL_NAME : response.getLlm())
                         .provider(response.getLlmProvider())
                         .build())
                 .toList();
@@ -307,8 +313,8 @@ public class ChatServiceImpl implements ChatService {
 
     /**
      * When the call to the provider fails, we still return an answer with the LlmProvider and an empty ChatResponse.
-     * The alternative is to return Mono.empty() to skip failed calls
-     * but then the provider info is lost which is needed further up in the call chain.
+     * The alternative is to return Mono.empty() to skip failed calls,
+     * but then the provider info is lost, which is needed further up in the call chain.
      *
      * @param llmProvider the used provider
      * @return an entry with the provider and the resulting ChatResponseTimer
@@ -358,13 +364,16 @@ public class ChatServiceImpl implements ChatService {
                                     .build())
                     .build();
         }
+        //vertex sometimes answers with an empty model value which is not accepted by db constraints, set to UNKNOWN_MODEL_NAME instead
+        String llm = StringUtils.hasText(response.chatResponse().getMetadata().getModel()) ?
+                response.chatResponse().getMetadata().getModel() : UNKNOWN_MODEL_NAME;
         CreateCompletionResponse createCompletionResponse = CreateCompletionResponse.builder()
                 .interactionCompletion(
                         InteractionCompletion.builder()
                                 .completionId(createUniqueId())
                                 .promptId(promptId)
                                 .completion(response.chatResponse().getResults().getFirst().getOutput().getText())
-                                .llm(response.chatResponse().getMetadata().getModel())
+                                .llm(llm)
                                 .llmProvider(llmProvider)
                                 .tokenUsage(response.chatResponse().getMetadata().getUsage().toString())
                                 .executionTimeMs(response.executionTimeMs())

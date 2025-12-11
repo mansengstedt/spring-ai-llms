@@ -2,6 +2,6 @@
   "type": "validation",
   "title": "Validation error",
   "status": 400,
-  "detail": "JSON parse error: Cannot deserialize value of type `com.ment.chat.client.model.enums.LlmProvider` from String \"PERPLEXITY\": not one of the values accepted for Enum class: [DOCKER, OPENAI, ANTHROPIC, OLLAMA]",
+  "detail": "JSON parse error: Cannot deserialize value of type `com.ment.chat.client.model.enums.LlmProvider` from String \"PERPLEXITY\": not one of the values accepted for Enum class: [DOCKER, OPENAI, ANTHROPIC, GEMINI, OLLAMA]",
   "instance": "/chat/llm"
 }

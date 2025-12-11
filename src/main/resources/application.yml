@@ -34,7 +34,7 @@ spring:
   #springAi params
   ai:
     anthropic:
-      #must be set to dummy value even if not used to avoid errors at start up
+      #must be set to dummy value even if not used to avoid errors at startup
       api-key: ${ANTHROPIC_CONNECTION_KEY:NOT_NEEDED}
     openai:
       api-key: ${OPEN_AI_CONNECTION_KEY:NOT_NEEDED}
@@ -42,6 +42,11 @@ spring:
       base-url: ${DOCKER_CONNECTION_URL:http://localhost:12434/engines}
       options:
         model: ${DOCKER_LLM_MODEL_NAME:ai/llama3.2}
+    vertex:
+      ai:
+        gemini:
+          project-id: lithe-breaker-480809-c9 #mandatory at startup
+          location: europe-north1
 
 app:
   toggle:
@@ -67,7 +72,11 @@ app:
       api-connection:
         url: ${DOCKER_CONNECTION_URL:http://localhost:12434/engines}
         key: ${DOCKER_CONNECTION_KEY:NOT_NEEDED}
-
+    gemini:
+      llm-model-name: ${GEMINI_LLM_MODEL_NAME:gemini-latest}
+      api-connection:
+        url: ${GEMINI_CONNECTION_URL:https://generativelanguage.googleapis.com/v1beta} #not needed, set in the credential file
+        key: ${GEMINI_CONNECTION_KEY:NOT_NEEDED} #not needed
 
 management:
   endpoints:
@@ -88,7 +97,7 @@ management:
         liveness:
           include: livenessState
         readiness:
-          # This service can not work without a DB
+          # This service cannot work without a DB
           include: readinessState
 
 springdoc:
