@@ -87,7 +87,7 @@ However, the model returned by vertex is empty, hence in code it is set to "unkn
 
 
 - Gemini example parameters: https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro
-- Avaiable foundation models: https://console.cloud.google.com/vertex-ai/model-garden
+- Available foundation models: https://console.cloud.google.com/vertex-ai/model-garden
 - Service accounts: https://console.cloud.google.com/projectselector2/iam-admin/serviceaccounts?supportedpurview=project
 - See/create Api key: https://console.cloud.google.com/api-sandbox/api-keys?project=curious-crow-jmvrn
 
@@ -120,8 +120,8 @@ The main domain objects are:
 To test, you can use the IntelliJ HTTP client with the provided `.rest` files in the `src/test/intellij` directory.
 
 ## Todo
-* upgrade spring-ai to latest 1.1.2
-* choose which provider to use: collapse all endpoint and single provider to one endpoint
+* upgrade spring-ai to latest 1.1.2 (fixed)
+* choose which provider to use: collapse 'llm/all' endpoint and single provider to one endpoint
 * add Gemini (fixed)
 * remove 2 transitive vulnerabilities (fixed)
 * add security (later)

@@ -23,7 +23,7 @@ import java.util.Arrays;
 
 import static com.ment.chat.client.config.LlmConfig.LLM_ANTHROPIC_CLAUDE_4_5;
 import static com.ment.chat.client.config.LlmConfig.LLM_DOCKER_DEEPSEEK_R1;
-import static com.ment.chat.client.config.LlmConfig.LLM_GEMINI_2_0;
+import static com.ment.chat.client.config.LlmConfig.LLM_GEMINI_2_5_PRO;
 import static com.ment.chat.client.config.LlmConfig.LLM_OLLAMA_QWEN_3;
 import static com.ment.chat.client.config.LlmConfig.LLM_OPEN_AI_GPT_5;
 
@@ -78,7 +78,8 @@ public class ChatServiceConfig {
     @Bean
     public ChatClient geminiChatClient(AppProperties appProperties, GeminiProperties geminiProperties) throws IOException {
         return mutateGeminiClient(
-                nameToLlm(appProperties.models().get(LlmProvider.GEMINI).llmModelName(), LLM_GEMINI_2_0),
+                //the accessability of models like 'gemini-3.0-pro-preview' in a location, like 'europe-north1' might change
+                nameToLlm(appProperties.models().get(LlmProvider.GEMINI).llmModelName(), LLM_GEMINI_2_5_PRO),
                 geminiProperties);
     }
 
@@ -123,14 +124,13 @@ public class ChatServiceConfig {
         VertexAI vertexAI = configVertex(geminiProperties);
         log.info("vertex credentials: {}", vertexAI.getCredentials());
 
-        //model name from LlmConfig must be valid
-        VertexAiGeminiChatModel.ChatModel chatModel = VertexAiGeminiChatModel.ChatModel.valueOf(llmConfig.getName());
+        //model name from LlmConfig must be valid, don't use enum that have invalid names except GEMINI_2_0_FLASH
         return VertexAiGeminiChatModel.builder()
                 .defaultOptions(
                         VertexAiGeminiChatOptions.builder()
                                 .temperature(llmConfig.getTemperature())
                                 .topP((double)1.0F)
-                                .model(chatModel)
+                                .model(llmConfig.getName())
                                 .build())
                 .vertexAI(vertexAI)
                 .build();

@@ -73,7 +73,7 @@ app:
         url: ${DOCKER_CONNECTION_URL:http://localhost:12434/engines}
         key: ${DOCKER_CONNECTION_KEY:NOT_NEEDED}
     gemini:
-      llm-model-name: ${GEMINI_LLM_MODEL_NAME:gemini-latest}
+      llm-model-name: ${GEMINI_LLM_MODEL_NAME:gemini-2.5-pro}
       api-connection:
         url: ${GEMINI_CONNECTION_URL:https://generativelanguage.googleapis.com/v1beta} #not needed, set in the credential file
         key: ${GEMINI_CONNECTION_KEY:NOT_NEEDED} #not needed

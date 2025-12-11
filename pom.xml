@@ -6,7 +6,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.5.8</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/> <!-- lookup parent from the repository -->
     </parent>
     <groupId>com.ment</groupId>
     <artifactId>spring-ai-llms</artifactId>
@@ -28,9 +28,10 @@
     </scm>
     <properties>
         <java.version>25</java.version>
-        <spring-ai.version>1.0.3</spring-ai.version>
-        <mockito.version>5.20.0</mockito.version>
+        <spring-ai.version>1.1.2</spring-ai.version>
+        <mockito.version>5.21.0</mockito.version>
         <spring-doc.version>2.8.9</spring-doc.version>
+        <spring-cloud-contract-wiremock.version>4.3.0</spring-cloud-contract-wiremock.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
     </properties>
     <dependencies>
@@ -69,7 +70,7 @@
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
-        <!--swagger ui, later version than 2.8.9 causes different problems-->
+        <!--swagger ui, a later version than 2.8.9 causes different problems-->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -124,7 +125,7 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-contract-wiremock</artifactId>
             <!-- version must be added or Intellij freaks out-->
-            <version>4.3.0</version>
+            <version>${spring-cloud-contract-wiremock.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -146,7 +147,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <!-- needed for vertex lib 1.0.3 using 1.70.0 causing crash in vertex call response -->
+            <!-- needed for vertex lib 1.0.3 using 1.70.0 causing a crash in vertex call response -->
             <!--dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-netty-shaded</artifactId>
