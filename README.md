@@ -1,6 +1,6 @@
 # Chatbot client 
 
-This service as a client, uses many different tools for chatting with different LLMs like
+The service acting as a client, uses many different tools for chatting with different LLMs like
 Ollama, Docker, Anthropic and OpenAI.
 
 ### Ollama
@@ -29,13 +29,13 @@ LLMs using OpenAI API.
 Available models are: gpt-4o, gpt-4o-mini, gpt-4.1-nano, o4-mini, gpt-5, gpt-5-nano, ...
 see https://platform.openai.com/docs/models
 
-OpenApi account with quota must be opened and a key is generated for external clients to use, see https://platform.openai.com/signup,
+OpenApi account with quota must be opened, a key is generated for external clients to use, see https://platform.openai.com/signup,
 If quota is exceeded/unavailable, the service will return a 429 error code.
 
 The OpenAI API key can be generated on the following page: https://platform.openai.com/api-keys
 The generated key is read outside the app in env variable `OPEN_AI_CONNECTION_KEY`.
 
-To see OpenApi account usage, goto https://platform.openai.com/usage
+To see OpenApi account usage, go to https://platform.openai.com/usage
 
 Client certificate is not used for external LLMs, but it can be configured in the application.yml file.
 
@@ -45,14 +45,14 @@ LLMs using Anthropic API.
 Available models are: claude-sonnet-4-20250514, claude-sonnet-4-5-20250929, ...
 see https://www.anthropic.com/claude/sonnet
 
-Anthropic account with quota must be opened and a key is generated for external clients to use, 
+Anthropic account with quota must be opened, a key is generated for external clients to use, 
 see https://console.anthropic.com/docs/en/home or https://console.anthropic.com/settings/organization.
 If quota is exceeded/unavailable, the service will return a 429 error code.
 
 The Anthropic API key can be generated on the following page: https://console.anthropic.com/settings/keys
 The generated key is read outside the app in env variable `ANTHROPIC_CONNECTION_KEY`.
 
-To see OpenApi account usage, goto https://console.anthropic.com/settings/billing or https://console.anthropic.com/usage
+To see OpenApi account usage, go to https://console.anthropic.com/settings/billing or https://console.anthropic.com/usage
 
 ### Google Gemini
 LLM using Google Gemini
@@ -81,7 +81,7 @@ There are problems running vertex with other values of location and model than `
 Location and projectId are fetched from `spring.ai.vertex.ai.gemini`. 
 The model name is fetched from `app.gemini.llm-model.name`, but defaults to value in `LlmConfig.name`.
 
-However, the model returned by gemini is empty, hence in code it is set to "Unknown" to avoid db errors.
+However, the model returned by gemini is empty. In the code it is set to "Unknown" to avoid db errors.
 
 - Gemini example parameters: https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro
 - Available foundation models: https://console.cloud.google.com/vertex-ai/model-garden

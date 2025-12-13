@@ -1,27 +1,30 @@
 package com.ment.chat.client.model.in;
 
 
+import com.ment.chat.client.model.annotation.ValidProviderSize;
 import com.ment.chat.client.model.enums.LlmProvider;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
-@Schema(description = "Interaction prompt specification using style and chatId for memory for a given provider")
+import java.util.EnumSet;
+
+@Schema(description = "Interaction prompt specification specifying which providers to call")
 @Value
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Jacksonized
-public class CreateCompletionByProviderRequest extends CreateCompletionsByAllProvidersRequest {
+public class CreateCompletionsByProvidersRequest extends CreateCompletionsByAllProvidersRequest {
 
     @NotNull
-    @Schema(description = "Llm provider", example = "OPENAI", requiredMode = Schema.RequiredMode.REQUIRED)
-    LlmProvider llmProvider;
+    @ValidProviderSize
+    @Schema(description = "Llm providers", example = "OPENAI, GEMINI", requiredMode = Schema.RequiredMode.REQUIRED)
+    EnumSet<LlmProvider> llmProviders;
 
 }

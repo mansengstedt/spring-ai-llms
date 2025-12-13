@@ -7,7 +7,7 @@ import com.ment.chat.client.domain.repository.LlmCompletionRepository;
 import com.ment.chat.client.domain.repository.LlmPromptRepository;
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
-import com.ment.chat.client.model.out.CreateCompletionResponse;
+import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,10 +27,10 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,7 +57,7 @@ class ChatServiceImplTest {
     @Mock
     private AppProperties appProperties;
 
-    @BeforeEach //to handle post construct annotation in test
+    @BeforeEach //to handle post-construct annotation in the test
     void setUp() throws Exception {
         var method = ChatServiceImpl.class.getDeclaredMethod("chatClientMap");
         method.setAccessible(true);
@@ -77,8 +77,9 @@ class ChatServiceImplTest {
 
         when(appProperties.toggle()).thenReturn(new AppProperties.Toggle(Boolean.FALSE, null, null));
         when(chatClient.prompt(any(Prompt.class)).call().chatResponse()).thenReturn(chatResponse);
+        when(llmPromptRepository.findById(any())).thenReturn(Optional.of(LlmPrompt.builder().build()));
 
-        CreateCompletionResponse response = chatService.createCompletionByProvider(request);
+        CreateCompletionByProviderResponse response = chatService.createCompletionByProvider(request);
 
         assertThat(response.getInteractionCompletion().getLlmProvider()).isEqualTo(LlmProvider.OPENAI);
         assertThat(response.getInteractionCompletion().getCompletion()).isEqualTo("Test answer");
@@ -91,7 +92,7 @@ class ChatServiceImplTest {
         verify(chatClient, times(1)).prompt(any(Prompt.class));
         verify(llmPromptRepository, times(1)).save(any());
         verify(llmCompletionRepository, times(1)).save(any());
-        verify(applicationEventPublisher, times(1)).publishEvent(isNull(LlmPrompt.class));
+        verify(applicationEventPublisher, times(1)).publishEvent(any(LlmPrompt.class));
         verify(applicationEventPublisher, times(1)).publishEvent(any(LlmCompletion.class));
     }
 

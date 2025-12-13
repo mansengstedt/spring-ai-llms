@@ -2,10 +2,11 @@ package com.ment.chat.client.controller;
 
 import com.ment.chat.client.aop.LogExecutionTime;
 import com.ment.chat.client.model.enums.LlmProvider;
+import com.ment.chat.client.model.in.CreateCompletionsByProvidersRequest;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
-import com.ment.chat.client.model.in.CreateCompletionRequest;
-import com.ment.chat.client.model.out.CreateCombinedCompletionResponse;
-import com.ment.chat.client.model.out.CreateCompletionResponse;
+import com.ment.chat.client.model.in.CreateCompletionsByAllProvidersRequest;
+import com.ment.chat.client.model.out.CreateCompletionsByProvidersResponse;
+import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
 import com.ment.chat.client.model.out.GetInteractionResponse;
 import com.ment.chat.client.model.out.GetInteractionsResponse;
@@ -47,6 +48,7 @@ public class ChatController {
     public static final String BASE_PATH = "/chat";
     public static final String LLM_PATH = "/llm";
     public static final String LLM_ALL_PATH = LLM_PATH + "/all";
+    public static final String LLM_PROVIDERS_PATH = LLM_PATH + "/providers";
     public static final String LLM_HAIKU_PATH = LLM_PATH + "/haiku";
     public static final String PROMPT_PATH = "/prompt";
     public static final String PROMPT_CONTAINS_PATH = PROMPT_PATH + "/contains";
@@ -71,7 +73,7 @@ public class ChatController {
                     description = "A haiku was created",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CreateCompletionResponse.class)
+                            schema = @Schema(implementation = CreateCompletionByProviderResponse.class)
                     )
             ),
             @ApiResponse(
@@ -84,7 +86,7 @@ public class ChatController {
             )
     })
     @PostMapping(value = LLM_HAIKU_PATH)
-    public ResponseEntity<CreateCompletionResponse> createHaiku(
+    public ResponseEntity<CreateCompletionByProviderResponse> createHaiku(
             @RequestParam LlmProvider provider,
             @Parameter(
                     description = "style of Haiku",
@@ -114,7 +116,7 @@ public class ChatController {
                     description = "Successful answer to interaction prompt",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CreateCompletionResponse.class)
+                            schema = @Schema(implementation = CreateCompletionByProviderResponse.class)
                     )
             ),
             @ApiResponse(
@@ -136,9 +138,45 @@ public class ChatController {
     })
     @PostMapping(value = LLM_PATH, consumes = {APPLICATION_JSON_VALUE})
     @LogExecutionTime
-    public ResponseEntity<CreateCompletionResponse> createCompletionByProvider(
-            @RequestBody @Valid CreateCompletionByProviderRequest completionRequest) {
-        return ResponseEntity.ok(chatService.createCompletionByProvider(completionRequest));
+    public ResponseEntity<CreateCompletionByProviderResponse> createCompletionByProvider(
+            @RequestBody @Valid CreateCompletionByProviderRequest createCompletionByProviderRequest) {
+        return ResponseEntity.ok(chatService.createCompletionByProvider(createCompletionByProviderRequest));
+    }
+
+    @Operation(
+            summary = "Create completions for a specified prompt for given LLM providers",
+            description = "Retrieves the completions from all LLM providers based on the given prompt."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successful completions of prompt",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CreateCompletionsByProvidersResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid prompt",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            )
+    })
+    @PostMapping(value = LLM_PROVIDERS_PATH, consumes = {APPLICATION_JSON_VALUE})
+    @LogExecutionTime
+    public ResponseEntity<CreateCompletionsByProvidersResponse> createCompletionsByProviders(@RequestBody @Valid CreateCompletionsByProvidersRequest createCompletionsByProvidersRequest) {
+        return ResponseEntity.ok(chatService.createCompletionsByProviders(createCompletionsByProvidersRequest));
     }
 
     @Operation(
@@ -151,7 +189,7 @@ public class ChatController {
                     description = "Successful completions of prompt",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CreateCombinedCompletionResponse.class)
+                            schema = @Schema(implementation = CreateCompletionsByProvidersResponse.class)
                     )
             ),
             @ApiResponse(
@@ -173,12 +211,12 @@ public class ChatController {
     })
     @PostMapping(value = LLM_ALL_PATH, consumes = {APPLICATION_JSON_VALUE})
     @LogExecutionTime
-    public ResponseEntity<CreateCombinedCompletionResponse> createCompletionsByAllProviders(@RequestBody @Valid CreateCompletionRequest completionRequest) {
-        return ResponseEntity.ok(chatService.createCompletionsByAllProviders(completionRequest));
+    public ResponseEntity<CreateCompletionsByProvidersResponse> createCompletionsByAllProviders(@RequestBody @Valid CreateCompletionsByAllProvidersRequest createCompletionsByAllProvidersRequest) {
+        return ResponseEntity.ok(chatService.createCompletionsByAllProviders(createCompletionsByAllProvidersRequest));
     }
 
     @Operation(
-            summary = "Get the completions of an earlier prompt with given id",
+            summary = "Get the completions of an earlier prompt with given prompt id",
             description = "Retrieves the completions from the LLM providers based on the given interaction prompt id."
     )
     @ApiResponses(value = {
@@ -276,6 +314,61 @@ public class ChatController {
             )
             @PathVariable("part-of-prompt") @NotNull @Size(min = 5, max = 1000) String partOfPrompt) {
         return ResponseEntity.ok(chatService.getChatByPrompt(partOfPrompt));
+    }
+
+    @Operation(
+            summary = "Get the completion of an earlier prompt with given completion id",
+            description = "Retrieves the completions from the LLM providers based on the given interaction prompt id."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successful Interaction to completion id was found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GetInteractionResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid completion id",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Unknown completion id",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            )
+    })
+    @GetMapping(value =COMPLETION_PATH + "/{completion-id}")
+    public ResponseEntity<GetInteractionResponse> getInteractionByCompletionId(
+            @Parameter(
+                    description = "completion ID (UUID format)",
+                    required = true,
+                    example = "550e8400-e29b-41d4-a716-446655440000",
+                    schema = @Schema(
+                            type = "string",
+                            maxLength = 36,
+                            minLength = 36,  // UUIDs are exactly 36 chars
+                            pattern = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                    )
+            )
+            @PathVariable("completion-id") @NotNull @Size(min = 36, max = 36) String completion) {
+        return ResponseEntity.ok(chatService.getInteractionByCompletionId(completion));
     }
 
     @Operation(

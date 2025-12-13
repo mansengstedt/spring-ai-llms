@@ -6,15 +6,17 @@ import com.ment.chat.client.domain.ChatResponseTimer;
 import com.ment.chat.client.domain.LlmCompletion;
 import com.ment.chat.client.domain.LlmPrompt;
 import com.ment.chat.client.domain.exception.ChatNotFoundException;
+import com.ment.chat.client.domain.exception.CompletionNotFoundException;
 import com.ment.chat.client.domain.exception.PromptNotFoundException;
 import com.ment.chat.client.domain.repository.LlmCompletionRepository;
 import com.ment.chat.client.domain.repository.LlmPromptRepository;
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.enums.LlmStatus;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
-import com.ment.chat.client.model.in.CreateCompletionRequest;
-import com.ment.chat.client.model.out.CreateCombinedCompletionResponse;
-import com.ment.chat.client.model.out.CreateCompletionResponse;
+import com.ment.chat.client.model.in.CreateCompletionsByAllProvidersRequest;
+import com.ment.chat.client.model.in.CreateCompletionsByProvidersRequest;
+import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
+import com.ment.chat.client.model.out.CreateCompletionsByProvidersResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
 import com.ment.chat.client.model.out.GetInteractionResponse;
 import com.ment.chat.client.model.out.GetInteractionsResponse;
@@ -108,28 +110,39 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public CreateCompletionResponse createCompletionByProvider(CreateCompletionByProviderRequest completionRequest) {
-        return getCompletionResponse(createUniqueId(), completionRequest);
+    public CreateCompletionByProviderResponse createCompletionByProvider(CreateCompletionByProviderRequest createCompletionByProviderRequest) {
+        return getCompletionResponse(createUniqueId(), createCompletionByProviderRequest);
     }
 
     @Override
-    public CreateCombinedCompletionResponse createCompletionsByAllProviders(CreateCompletionRequest completionRequest) {
-        return getCompletionResponses(createUniqueId(), completionRequest, EnumSet.allOf(LlmProvider.class));
+    public CreateCompletionsByProvidersResponse createCompletionsByProviders(CreateCompletionsByProvidersRequest createCompletionsByProvidersRequest) {
+        return getCompletionsResponse(createUniqueId(), createCompletionsByProvidersRequest, createCompletionsByProvidersRequest.getLlmProviders());
+    }
+
+    @Override
+    public CreateCompletionsByProvidersResponse createCompletionsByAllProviders(CreateCompletionsByAllProvidersRequest createCompletionsByAllProvidersRequest) {
+        return getCompletionsResponse(createUniqueId(), createCompletionsByAllProvidersRequest, EnumSet.allOf(LlmProvider.class));
     }
 
     @Override
     public GetInteractionResponse getInteractionByPromptId(String promptId) {
         return llmPromptRepository.findById(promptId)
                 .map(llmPrompt -> GetInteractionResponse.builder()
-                        .interactionPrompt(InteractionPrompt.builder()
-                                .promptId(llmPrompt.getPromptId())
-                                .prompt(llmPrompt.getPrompt())
-                                .chatId(llmPrompt.getChatId())
-                                .promptedAt(llmPrompt.getPromptedAt())
-                                .build())
+                        .interactionPrompt(transform(llmPrompt))
                         .interactionCompletions(transform(llmPrompt.getCompletions()))
                         .build())
                 .orElseThrow(() -> new PromptNotFoundException(promptId));
+    }
+
+    @Override
+    public GetInteractionResponse getInteractionByCompletionId(String completionId) {
+        return llmCompletionRepository.findById(completionId)
+                .map(llmCompletion ->
+                        GetInteractionResponse.builder()
+                                .interactionPrompt(transform(llmCompletion.getLlmPrompt()))
+                                .interactionCompletions(List.of(transform(llmCompletion)))
+                                .build())
+                .orElseThrow(() -> new CompletionNotFoundException(completionId));
     }
 
     @Override
@@ -175,7 +188,7 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public GetLlmProviderStatusResponse getAllProviderStatus() {
-        return extractStatusFrom(createCompletionsByAllProviders(CreateCompletionRequest.builder()
+        return extractStatusFrom(createCompletionsByAllProviders(CreateCompletionsByAllProvidersRequest.builder()
                 .prompt(PING_STATUS_PROMPT)
                 .chatId(PING_STATUS_CHAT_ID)
                 .build()));
@@ -185,12 +198,7 @@ public class ChatServiceImpl implements ChatService {
         List<GetInteractionResponse> responses = llmPrompts
                 .stream()
                 .map(llmPrompt -> GetInteractionResponse.builder()
-                        .interactionPrompt(InteractionPrompt.builder()
-                                .promptId(llmPrompt.getPromptId())
-                                .prompt(llmPrompt.getPrompt())
-                                .chatId(llmPrompt.getChatId())
-                                .promptedAt(llmPrompt.getPromptedAt())
-                                .build())
+                        .interactionPrompt(transform(llmPrompt))
                         .interactionCompletions(transform(llmPrompt.getCompletions()))
                         .build())
                 .sorted()
@@ -201,7 +209,16 @@ public class ChatServiceImpl implements ChatService {
                 .build();
     }
 
-    private GetLlmProviderStatusResponse extractStatusFrom(CreateCombinedCompletionResponse combinedChatResponse) {
+    private InteractionPrompt transform(LlmPrompt llmPrompt) {
+        return InteractionPrompt.builder()
+                        .promptId(llmPrompt.getPromptId())
+                        .prompt(llmPrompt.getPrompt())
+                        .chatId(llmPrompt.getChatId())
+                        .promptedAt(llmPrompt.getPromptedAt())
+                        .build();
+    }
+
+    private GetLlmProviderStatusResponse extractStatusFrom(CreateCompletionsByProvidersResponse combinedChatResponse) {
         if (combinedChatResponse == null) {
             return GetLlmProviderStatusResponse.builder()
                     .statusList(List.of())
@@ -220,23 +237,27 @@ public class ChatServiceImpl implements ChatService {
 
     }
 
+    private InteractionCompletion transform(LlmCompletion completion) {
+        return InteractionCompletion.builder()
+                .completionId(completion.getCompletionId())
+                .promptId(completion.getPromptId())
+                .completion(completion.getCompletion())
+                .llm(completion.getLlm())
+                .llmProvider(completion.getLlmProvider())
+                .tokenUsage(completion.getTokenUsage())
+                .executionTimeMs(completion.getExecutionTimeMs())
+                .completedAt(completion.getCompletedAt())
+                .build();
+    }
+
     private List<InteractionCompletion> transform(List<LlmCompletion> completions) {
         return completions.stream()
-                .map(resp -> InteractionCompletion.builder()
-                        .completionId(resp.getCompletionId())
-                        .promptId(resp.getPromptId())
-                        .completion(resp.getCompletion())
-                        .llm(resp.getLlm())
-                        .llmProvider(resp.getLlmProvider())
-                        .tokenUsage(resp.getTokenUsage())
-                        .executionTimeMs(resp.getExecutionTimeMs())
-                        .completedAt(resp.getCompletedAt())
-                        .build())
+                .map(this::transform)
                 .sorted()
                 .toList();
     }
 
-    private CreateCompletionResponse getCompletionResponse(String id, CreateCompletionByProviderRequest completionRequest) {
+    private CreateCompletionByProviderResponse getCompletionResponse(String id, CreateCompletionByProviderRequest completionRequest) {
         try {
             /* simpler call, not using chat memory
             String llmAnswer = defaultChatClient
@@ -257,7 +278,7 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    private CreateCombinedCompletionResponse getCompletionResponses(String id, CreateCompletionRequest completionRequest, Set<LlmProvider> providers) {
+    private CreateCompletionsByProvidersResponse getCompletionsResponse(String id, CreateCompletionsByAllProvidersRequest completionRequest, Set<LlmProvider> providers) {
         try {
             long start = System.currentTimeMillis();
             log.info("Start combined calling");
@@ -268,7 +289,7 @@ public class ChatServiceImpl implements ChatService {
                     getChatResponsesInParallel(completionRequest, providers)
                             .block();
 
-            CreateCombinedCompletionResponse response = combineResponses(id, Objects.requireNonNull(chatResponses));
+            CreateCompletionsByProvidersResponse response = combineResponses(id, Objects.requireNonNull(chatResponses));
 
             log.info("Created combined completion response after {} ms", System.currentTimeMillis() - start);
             return response;
@@ -279,7 +300,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     // Parallel execution with Mono
-    public Mono<Map<LlmProvider, ChatResponseTimer>> getChatResponsesInParallel(CreateCompletionRequest completionRequest,
+    public Mono<Map<LlmProvider, ChatResponseTimer>> getChatResponsesInParallel(CreateCompletionsByAllProvidersRequest completionRequest,
                                                                                 Set<LlmProvider> providers) {
 
         return Flux.fromIterable(providers)
@@ -301,13 +322,13 @@ public class ChatServiceImpl implements ChatService {
     }
 
     /**
-     * This is the interface function calling the class handling the provider functionlaity.
+     * This is the interface function calling the class handling the provider functionality.
      *
      * @param completionRequest the llm request
      * @param llmProvider       the llm provider
      * @return the answer from the provider with response time
      */
-    private ChatResponseTimer callProvider(CreateCompletionRequest completionRequest, LlmProvider llmProvider) {
+    private ChatResponseTimer callProvider(CreateCompletionsByAllProvidersRequest completionRequest, LlmProvider llmProvider) {
         return chatClientMap.get(llmProvider).callProvider(completionRequest, llmProvider);
     }
 
@@ -324,38 +345,39 @@ public class ChatServiceImpl implements ChatService {
     }
 
 
-    private CreateCombinedCompletionResponse combineResponses(String promptId, Map<LlmProvider, ChatResponseTimer> responses) {
-        List<CreateCompletionResponse> completionResponses = responses.entrySet().stream()
+    private CreateCompletionsByProvidersResponse combineResponses(String promptId, Map<LlmProvider, ChatResponseTimer> responses) {
+        List<CreateCompletionByProviderResponse> completionResponses = responses.entrySet().stream()
                 .map(entry -> createSavePublishResponse(promptId, OffsetDateTime.now(), entry.getKey(), entry.getValue()))
                 .toList();
 
-        return CreateCombinedCompletionResponse.builder()
+        return CreateCompletionsByProvidersResponse.builder()
                 .interactionCompletions(transformCompletions(completionResponses))
                 .build();
     }
 
 
-    private List<InteractionCompletion> transformCompletions(List<CreateCompletionResponse> savePublishResponses) {
+    private List<InteractionCompletion> transformCompletions(List<CreateCompletionByProviderResponse> savePublishResponses) {
         return savePublishResponses.stream()
-                .map(CreateCompletionResponse::getInteractionCompletion)
+                .map(CreateCompletionByProviderResponse::getInteractionCompletion)
                 .sorted()
                 .toList();
     }
 
-    private void createSavePublishRequest(String promptId, CreateCompletionRequest completionRequest) {
+    private void createSavePublishRequest(String promptId, CreateCompletionsByAllProvidersRequest completionRequest) {
         String prompt = completionRequest.createPrompt();
         log.info("Save and publish prompt to be sent: {}", prompt);
         LlmPrompt llmPrompt = createLlmPrompt(promptId, prompt, completionRequest.getChatId());
         llmPromptRepository.save(llmPrompt);
-        LlmPrompt savedPrompt = llmPromptRepository.findByPromptId(llmPrompt.getPromptId()); //should be present as just saved (not really needed)
+        LlmPrompt savedPrompt = llmPromptRepository.findById(llmPrompt.getPromptId())
+                .orElseThrow(() -> new PromptNotFoundException(llmPrompt.getPromptId())); //should be present as just saved (not really needed)
         applicationEventPublisher.publishEvent(savedPrompt);
     }
 
     @SuppressWarnings("ConstantConditions")
-    private CreateCompletionResponse createSavePublishResponse(String promptId, OffsetDateTime dateTime, LlmProvider llmProvider, ChatResponseTimer response) {
+    private CreateCompletionByProviderResponse createSavePublishResponse(String promptId, OffsetDateTime dateTime, LlmProvider llmProvider, ChatResponseTimer response) {
         if (Objects.isNull(response.chatResponse().getResult())) {
             // No answer received that might happen if LLM is not available
-            return CreateCompletionResponse.builder()
+            return CreateCompletionByProviderResponse.builder()
                     .interactionCompletion(
                             InteractionCompletion.builder()
                                     .completionId(createUniqueId())
@@ -366,7 +388,7 @@ public class ChatServiceImpl implements ChatService {
         }
         //vertex sometimes answers with an empty model value which is not accepted by db constraints
         String llm = lookupModel(llmProvider, response);
-        CreateCompletionResponse createCompletionResponse = CreateCompletionResponse.builder()
+        CreateCompletionByProviderResponse createCompletionByProviderResponse = CreateCompletionByProviderResponse.builder()
                 .interactionCompletion(
                         InteractionCompletion.builder()
                                 .completionId(createUniqueId())
@@ -379,13 +401,13 @@ public class ChatServiceImpl implements ChatService {
                                 .completedAt(dateTime)
                                 .build())
                 .build();
-        savePublishResponse(promptId, createCompletionResponse);
-        return createCompletionResponse;
+        savePublishResponse(promptId, createCompletionByProviderResponse);
+        return createCompletionByProviderResponse;
     }
 
     private String lookupModel(LlmProvider llmProvider, ChatResponseTimer response) {
         if (StringUtils.hasText(response.chatResponse().getMetadata().getModel())) {
-            //prefer real-time provided name
+            //prefer the real-time provided name
             return response.chatResponse().getMetadata().getModel();
         } else if (StringUtils.hasText(appProperties.models().get(llmProvider).llmModelName())) {
             //use non-null configured name (GEMINI case)
@@ -395,8 +417,8 @@ public class ChatServiceImpl implements ChatService {
         return UNKNOWN_MODEL_NAME;
     }
 
-    private void savePublishResponse(String promptId, CreateCompletionResponse createCompletionResponse) {
-        LlmCompletion llmCompletion = createLlmCompletion(promptId, createCompletionResponse);
+    private void savePublishResponse(String promptId, CreateCompletionByProviderResponse createCompletionByProviderResponse) {
+        LlmCompletion llmCompletion = createLlmCompletion(promptId, createCompletionByProviderResponse);
         llmCompletionRepository.save(llmCompletion);
         applicationEventPublisher.publishEvent(llmCompletion);
     }
@@ -410,7 +432,7 @@ public class ChatServiceImpl implements ChatService {
                 .build();
     }
 
-    private LlmCompletion createLlmCompletion(String promptId, CreateCompletionResponse response) {
+    private LlmCompletion createLlmCompletion(String promptId, CreateCompletionByProviderResponse response) {
         return LlmCompletion.builder()
                 .completionId(response.getInteractionCompletion().getCompletionId())
                 .promptId(promptId)

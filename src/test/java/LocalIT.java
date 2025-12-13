@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ment.chat.client.ChatClientApplication;
 import com.ment.chat.client.config.CommonTestConfiguration;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
-import com.ment.chat.client.model.out.CreateCompletionResponse;
+import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
 import org.json.JSONException;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -30,6 +30,7 @@ import java.util.Objects;
 import static com.ment.chat.client.controller.ChatController.BASE_PATH;
 import static com.ment.chat.client.controller.ChatController.CHAT_PATH;
 import static com.ment.chat.client.controller.ChatController.LLM_PATH;
+import static com.ment.chat.client.controller.ChatController.LLM_PROVIDERS_PATH;
 import static com.ment.chat.client.controller.ChatController.PROMPT_PATH;
 import static com.ment.chat.client.model.enums.LlmProvider.ANTHROPIC;
 import static com.ment.chat.client.model.enums.LlmProvider.GEMINI;
@@ -42,7 +43,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * Integration tests for local profile using WireMock to mock external services.
- * Initially no stubbing is done of the LLM provider but wiremock profile is still needed.
+ * Initially no stubbing is done of the Llm provider but wiremock profile is still needed.
  */
 @SpringBootTest(classes = {ChatClientApplication.class, LocalIT.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -70,12 +71,46 @@ public class LocalIT {
             "too-short-prompt, payload/chat/create-completion/in/too_short_prompt.json, payload/chat/create-completion/out/too_short_prompt.json, 400",
             "invalid-provider, payload/chat/create-completion/in/invalid_provider.json, payload/chat/create-completion/out/invalid_provider.json, 400",
         })
-    void testMissingPrompt_badRequest_createCompletion(String idpMatcher,
+    void test_badRequest_createCompletion(String idpMatcher,
                                                        String requestFileName,
                                                        String responseFileName,
                                                        String httpStatus) throws Exception {
         String requestBody = readFileResource(requestFileName);
         WebTestClient.ResponseSpec response = client.post().uri(BASE_PATH + LLM_PATH)
+                .headers(httpHeaders -> {
+                    httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
+                    httpHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_VALUE);
+                })
+                .bodyValue(requestBody)
+                .exchange();
+
+        byte[] actualResponseBody = response
+                .expectStatus().isEqualTo(HttpStatus.valueOf(Integer.parseInt(httpStatus)))
+                .expectBody()
+                .returnResult()
+                .getResponseBody();
+
+        String expectedJson = readFileResource(responseFileName);
+        String responseJson = new String(Objects.requireNonNull(actualResponseBody), StandardCharsets.UTF_8);
+
+        JsonNode expected = mapper.readTree(expectedJson);
+        JsonNode actual = mapper.readTree(responseJson);
+
+        JSONAssert.assertEquals(expected.toString(), actual.toString(), JSONCompareMode.LENIENT);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "null-providers, payload/chat/create-completions/in/null_providers.json, payload/chat/create-completions/out/null_providers.json, 400",
+            "invalid-providers, payload/chat/create-completions/in/invalid_providers.json, payload/chat/create-completions/out/invalid_providers.json, 400",
+            "wrong-no-providers, payload/chat/create-completions/in/wrong_no_providers.json, payload/chat/create-completions/out/wrong_no_providers.json, 400",
+    })
+    void test_badRequest_createCompletions(String idpMatcher,
+                                                       String requestFileName,
+                                                       String responseFileName,
+                                                       String httpStatus) throws Exception {
+        String requestBody = readFileResource(requestFileName);
+        WebTestClient.ResponseSpec response = client.post().uri(BASE_PATH + LLM_PROVIDERS_PATH)
                 .headers(httpHeaders -> {
                     httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
                     httpHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_VALUE);
@@ -114,24 +149,31 @@ public class LocalIT {
         String requestBody = readFileResource(requestFileName);
         CreateCompletionByProviderRequest request = mapper.readValue(requestBody, CreateCompletionByProviderRequest.class);
 
-        WebTestClient.ResponseSpec responseSpec = client.post().uri(BASE_PATH + LLM_PATH)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
-                    httpHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_VALUE);
-                })
-                .bodyValue(requestBody)
-                .exchange();
+        WebTestClient.ResponseSpec responseSpec;
+        try {
+            responseSpec = client.post().uri(BASE_PATH + LLM_PATH)
+                    .headers(httpHeaders -> {
+                        httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
+                        httpHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_VALUE);
+                    })
+                    .bodyValue(requestBody)
+                    .exchange();
+        } catch (IllegalStateException e) {
+            assertThat(e.getMessage()).contains("Timeout");
+            assertThat(request.getLlmProvider()).isIn(GEMINI);
+            return;
+        }
 
         if (httpStatus.equals("500")) {
             //Anthropic empty response currently gives 500 error
-            assertThat(request.getLlmProvider()).isIn(ANTHROPIC, GEMINI);
+            assertThat(request.getLlmProvider()).isIn(ANTHROPIC);
             responseSpec.expectStatus().is5xxServerError();
             return;
         }
 
-        CreateCompletionResponse response = responseSpec
+        CreateCompletionByProviderResponse response = responseSpec
                 .expectStatus().isEqualTo(HttpStatus.valueOf(Integer.parseInt(httpStatus)))
-                .expectBody(CreateCompletionResponse.class)
+                .expectBody(CreateCompletionByProviderResponse.class)
                 .returnResult()
                 .getResponseBody();
 

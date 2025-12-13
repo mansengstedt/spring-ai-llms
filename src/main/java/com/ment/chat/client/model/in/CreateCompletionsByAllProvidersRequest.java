@@ -12,12 +12,12 @@ import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
 @Schema(description = "Interaction prompt specification using style and chatId for memory")
-@Data //Value not possible since makes class final which stops inheritance
+@Data //Value not possible since it makes the class final which stops inheritance of the subclasses needed
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Jacksonized
-public class CreateCompletionRequest {
+public class CreateCompletionsByAllProvidersRequest {
 
     @NotBlank
     @Size(min = 2, max = 40000, message = "Size must be between 2 and 40000 characters")

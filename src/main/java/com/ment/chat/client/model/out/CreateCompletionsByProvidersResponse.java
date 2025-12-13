@@ -14,7 +14,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Jacksonized
-public class CreateCombinedCompletionResponse {
+public class CreateCompletionsByProvidersResponse {
 
     @Schema(description = "List of completions in the interaction", requiredMode = Schema.RequiredMode.REQUIRED)
     List<InteractionCompletion> interactionCompletions;

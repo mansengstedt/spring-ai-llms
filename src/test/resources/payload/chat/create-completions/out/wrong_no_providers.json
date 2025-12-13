@@ -1,0 +1,20 @@
+{
+  "type": "validation",
+  "title": "Validation error",
+  "status": 400,
+  "detail": "Invalid request content.",
+  "instance": "/chat/llm/providers",
+  "violations": [
+    {
+      "type": "validation",
+      "title": "Bad Request",
+      "status": 400,
+      "detail": "Validation error",
+      "field": "llmProviders",
+      "rejectedValue": [
+        "GEMINI"
+      ],
+      "message": "Number of providers must be greater or equal to 2 or less or equal than the number of valid providers"
+    }
+  ]
+}

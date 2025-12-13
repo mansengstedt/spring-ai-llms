@@ -12,7 +12,7 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Jacksonized
-public class CreateCompletionResponse {
+public class CreateCompletionByProviderResponse {
 
     @Schema(description = "The created interaction completion", requiredMode = Schema.RequiredMode.REQUIRED)
     InteractionCompletion interactionCompletion;

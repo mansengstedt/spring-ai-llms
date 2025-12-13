@@ -1,0 +1,17 @@
+{
+  "type": "validation",
+  "title": "Validation error",
+  "status": 400,
+  "detail": "Invalid request content.",
+  "instance": "/chat/llm/providers",
+  "violations": [
+    {
+      "type": "validation",
+      "title": "Bad Request",
+      "status": 400,
+      "detail": "Validation error",
+      "field": "llmProviders",
+      "message": "must not be null"
+    }
+  ]
+}

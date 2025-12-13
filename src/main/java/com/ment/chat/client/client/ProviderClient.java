@@ -3,7 +3,7 @@ package com.ment.chat.client.client;
 import com.ment.chat.client.config.AppProperties;
 import com.ment.chat.client.domain.ChatResponseTimer;
 import com.ment.chat.client.model.enums.LlmProvider;
-import com.ment.chat.client.model.in.CreateCompletionRequest;
+import com.ment.chat.client.model.in.CreateCompletionsByAllProvidersRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -36,13 +36,13 @@ public class ProviderClient {
      * @param llmProvider       the llm provider, only used for logging
      * @return the answer from the provider with response time
      */
-    public ChatResponseTimer callProvider(CreateCompletionRequest completionRequest, LlmProvider llmProvider) {
+    public ChatResponseTimer callProvider(CreateCompletionsByAllProvidersRequest completionRequest, LlmProvider llmProvider) {
         Message message = createMessageAndToggleMessageType(completionRequest.createPrompt());
         ChatClient.ChatClientRequestSpec input = createRequestSpec(completionRequest, chatClient, message);
         return callProvider(llmProvider, input);
     }
 
-    private ChatClient.ChatClientRequestSpec createRequestSpec(CreateCompletionRequest completionRequest, ChatClient chatClient, Message message) {
+    private ChatClient.ChatClientRequestSpec createRequestSpec(CreateCompletionsByAllProvidersRequest completionRequest, ChatClient chatClient, Message message) {
         ChatClient.ChatClientRequestSpec reqSpec = chatClient
                 .prompt(Prompt.builder()
                         .messages(message)

@@ -78,7 +78,7 @@ public class ChatServiceConfig {
     @Bean
     public ChatClient geminiChatClient(AppProperties appProperties, GeminiProperties geminiProperties) throws IOException {
         return mutateGeminiClient(
-                //the accessability of models like 'gemini-3.0-pro-preview' in a location, like 'europe-north1' might change
+                //the accessibility of models like 'gemini-3.0-pro-preview' in a location, like 'europe-north1' might change
                 nameToLlm(appProperties.models().get(LlmProvider.GEMINI).llmModelName(), LLM_GEMINI_2_5_PRO),
                 geminiProperties);
     }
@@ -120,7 +120,7 @@ public class ChatServiceConfig {
     }
 
     private VertexAiGeminiChatModel configVertexAiGeminiChatModel(LlmConfig llmConfig, GeminiProperties geminiProperties) throws IOException {
-        //should contain credentials from downloaded file in GOOGLE_APPLICATION_CREDENTIALS env variable
+        //should contain credentials from the downloaded file in GOOGLE_APPLICATION_CREDENTIALS env variable
         VertexAI vertexAI = configVertex(geminiProperties);
         log.info("vertex credentials: {}", vertexAI.getCredentials());
 

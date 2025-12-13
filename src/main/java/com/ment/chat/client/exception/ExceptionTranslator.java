@@ -1,6 +1,7 @@
 package com.ment.chat.client.exception;
 
 import com.ment.chat.client.domain.exception.ChatNotFoundException;
+import com.ment.chat.client.domain.exception.CompletionNotFoundException;
 import com.ment.chat.client.domain.exception.PromptNotFoundException;
 import jakarta.validation.ValidationException;
 import org.springframework.ai.retry.NonTransientAiException;
@@ -27,9 +28,11 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
     public static final String TITLE_VALIDATION_ERROR = "Validation error";
     public static final String TITLE_CHAT_NOT_FOUND = "Chat not found";
     public static final String TITLE_PROMPT_NOT_FOUND = "Prompt not found";
+    public static final String TITLE_COMPLETION_NOT_FOUND = "Completion not found";
     public static final String TITLE_API_ERROR = "API error";
 
     public static final String TYPE_PROMPT = "prompt";
+    public static final String TYPE_COMPLETION = "completion";
     public static final String TYPE_CHAT = "chat";
     public static final String TYPE_CLIENT_CALL = "client-call";
     public static final String TYPE_VALIDATION = "validation";
@@ -43,6 +46,15 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
         problemDetail.setTitle(TITLE_PROMPT_NOT_FOUND);
         problemDetail.setType(URI.create(TYPE_PROMPT));
+        return problemDetail;
+    }
+
+    @ExceptionHandler(CompletionNotFoundException.class)
+    ProblemDetail handlePromptNotFoundException(CompletionNotFoundException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
+        problemDetail.setTitle(TITLE_COMPLETION_NOT_FOUND);
+        problemDetail.setType(URI.create(TYPE_COMPLETION));
         return problemDetail;
     }
 

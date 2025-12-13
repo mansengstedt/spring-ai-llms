@@ -2,11 +2,13 @@ package com.ment.chat.client.service;
 
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
-import com.ment.chat.client.model.in.CreateCompletionRequest;
-import com.ment.chat.client.model.out.CreateCompletionResponse;
+import com.ment.chat.client.model.in.CreateCompletionsByAllProvidersRequest;
+import com.ment.chat.client.model.in.CreateCompletionsByProvidersRequest;
+import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
 import org.junit.jupiter.params.provider.Arguments;
 
 import java.time.OffsetDateTime;
+import java.util.EnumSet;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -17,7 +19,7 @@ public abstract class BaseChatServiceTest {
     void testProvider(ChatService chatService, String prompt, LlmProvider provider) {
         var completion = chatService.createCompletionByProvider(createCompletionRequest(prompt, null, provider));
 
-        assertThat(completion).isInstanceOf(CreateCompletionResponse.class);
+        assertThat(completion).isInstanceOf(CreateCompletionByProviderResponse.class);
         assertThat(completion.getInteractionCompletion().getCompletion()).isNotNull(); //provider dependent
         assertThat(completion.getInteractionCompletion().getLlm()).isNotEmpty(); //provider dependent
         assertThat(completion.getInteractionCompletion().getTokenUsage()).isNotEmpty(); //provider dependent
@@ -42,8 +44,8 @@ public abstract class BaseChatServiceTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    CreateCompletionRequest createCompletionRequest(String prompt, String chatId) {
-        return CreateCompletionRequest.builder()
+    CreateCompletionsByAllProvidersRequest createCompletionRequest(String prompt, String chatId) {
+        return CreateCompletionsByAllProvidersRequest.builder()
                 .prompt(prompt)
                 .chatId(chatId)
                 .build();
@@ -54,6 +56,14 @@ public abstract class BaseChatServiceTest {
                 .prompt(prompt)
                 .chatId(chatId)
                 .llmProvider(provider)
+                .build();
+    }
+
+    CreateCompletionsByProvidersRequest createCompletionsByProvidersRequest(String prompt, String chatId, EnumSet<LlmProvider> providers) {
+        return CreateCompletionsByProvidersRequest.builder()
+                .prompt(prompt)
+                .chatId(chatId)
+                .llmProviders(providers)
                 .build();
     }
 }

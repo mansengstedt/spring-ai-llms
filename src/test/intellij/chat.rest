@@ -86,7 +86,16 @@ Content-Type: application/json
   "llm_provider": "GEMINI"
 }
 
-### Create llmCompletion from all including Gemini
+### Create llmCompletion from given providers
+POST {{host}}/chat/llm/providers
+Content-Type: application/json
+
+{
+  "prompt": "What is the relation between Hassabis, Hinton, Jumper and Nobel prize",
+  "style": "answer with max 100 words"
+}
+
+### Create llmCompletion from all providers
 POST {{host}}/chat/llm/all
 Content-Type: application/json
 
@@ -95,7 +104,7 @@ Content-Type: application/json
   "style": "answer with max 100 words"
 }
 
-### Create llmCompletion using chat-id
+### Create llmCompletion using chat-id for a given provider
 POST {{host}}/chat/llm
 Content-Type: application/json
 
@@ -181,7 +190,10 @@ Content-Type: application/json
 
 
 ### GET one or several completions from a given llmPrompt id
-GET {{host}}/chat/prompt/1f3fa64a-295e-4085-9e4e-524583aeaa3f
+GET {{host}}/chat/prompt/52e7c62c-68d7-4edf-b1a8-a964aee3b447
+
+### GET one completion from a given llmCompletion id
+GET {{host}}/chat/completion/27e957a9-4a6b-4126-815a-6d06d043ef92
 
 ### GET one or several completions from a given text in a previous prompt (case sensitive)
 GET {{host}}/chat/prompt/contains/Epstein

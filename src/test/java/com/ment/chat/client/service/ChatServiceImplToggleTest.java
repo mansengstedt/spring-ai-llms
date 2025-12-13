@@ -1,11 +1,13 @@
 package com.ment.chat.client.service;
 
 import com.ment.chat.client.config.AppProperties;
+import com.ment.chat.client.domain.LlmCompletion;
+import com.ment.chat.client.domain.LlmPrompt;
 import com.ment.chat.client.domain.repository.LlmCompletionRepository;
 import com.ment.chat.client.domain.repository.LlmPromptRepository;
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
-import com.ment.chat.client.model.out.CreateCompletionResponse;
+import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -73,9 +75,9 @@ class ChatServiceImplToggleTest {
         }
 
         // Mock repository behavior to avoid NPE
-        when(llmPromptRepository.save(any())).thenReturn(null);
-        when(llmPromptRepository.findById(any())).thenReturn(Optional.empty());
-        when(llmCompletionRepository.save(any())).thenReturn(null);
+        when(llmPromptRepository.save(any())).thenReturn(LlmPrompt.builder().build());
+        when(llmPromptRepository.findById(any())).thenReturn(Optional.of(LlmPrompt.builder().build()));
+        when(llmCompletionRepository.save(any())).thenReturn(LlmCompletion.builder().build());
         doNothing().when(applicationEventPublisher).publishEvent(any(ApplicationEvent.class));
     }
 
@@ -105,8 +107,8 @@ class ChatServiceImplToggleTest {
                 .llmProvider(llmProvider)
                 .build();
 
-        CreateCompletionResponse r1 = service.createCompletionByProvider(req1);
-        CreateCompletionResponse r2 = service.createCompletionByProvider(req2);
+        CreateCompletionByProviderResponse r1 = service.createCompletionByProvider(req1);
+        CreateCompletionByProviderResponse r2 = service.createCompletionByProvider(req2);
 
         verify(chatClient, times(3)).prompt(promptCaptor.capture());
 

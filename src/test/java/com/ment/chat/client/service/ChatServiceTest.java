@@ -16,6 +16,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.EnumSet;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -48,7 +50,7 @@ public class ChatServiceTest extends BaseChatServiceTest {
                         // provider answered
                         assertThat(interaction.getCompletion()).isNotNull();
                     } else {
-                        // provider did not answer
+                        // the provider did not answer
                         assertThat(interaction.getCompletion()).isNull();
                     }
                 });
@@ -89,7 +91,32 @@ public class ChatServiceTest extends BaseChatServiceTest {
     }
 
     @Test
-    void chatProviderGetChat() {
+    void chatProviderGetCompletionsByProviders() {
+        var prompt1 = "Who is Elon Musk?";
+        var providerSet = EnumSet.of(LlmProvider.OLLAMA, LlmProvider.DOCKER);
+
+        var completionByProvider = chatService.createCompletionsByProviders(createCompletionsByProvidersRequest(prompt1, null, providerSet));
+        var response1 = chatService.getInteractionByPromptId(completionByProvider.getInteractionCompletions().getFirst().getPromptId());
+        var response2 = chatService.getInteractionByCompletionId(completionByProvider.getInteractionCompletions().getFirst().getCompletionId());
+
+        assertThat(completionByProvider.getInteractionCompletions().size()).isEqualTo(providerSet.size());
+        assertThat(completionByProvider.getInteractionCompletions().getFirst().getPromptId()).isEqualTo(completionByProvider.getInteractionCompletions().get(1).getPromptId());
+        assertThat(completionByProvider.getInteractionCompletions().getFirst().getCompletionId()).isNotEqualTo(completionByProvider.getInteractionCompletions().get(1).getCompletionId());
+
+        assertThat(response1.getInteractionPrompt()).isEqualTo(response2.getInteractionPrompt());
+        assertThat(response1.getInteractionPrompt().getPrompt()).isEqualTo(prompt1);
+        assertThat(response1.getInteractionPrompt().getChatId()).isNull();
+        assertThat(response1.getInteractionCompletions().size()).isEqualTo(providerSet.size());
+        assertThat(response2.getInteractionCompletions().size()).isEqualTo(1);
+
+        assertThat(completionByProvider.getInteractionCompletions()).containsExactlyInAnyOrderElementsOf(response1.getInteractionCompletions());
+        response1.getInteractionCompletions()
+                .forEach(completion ->
+                    assertThat(completion.getCompletion()).isNotNull());
+    }
+
+    @Test
+    void chatProviderGetPromptById() {
         var chatId = "test-chat-id";
         var prompt1 = "Who is Elon Musk?";
         var prompt2 = "Is he a friend of Donald Trump?";

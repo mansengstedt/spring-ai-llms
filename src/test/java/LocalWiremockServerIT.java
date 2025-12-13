@@ -3,7 +3,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.ment.chat.client.ChatClientApplication;
 import com.ment.chat.client.config.CommonTestConfiguration;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
-import com.ment.chat.client.model.out.CreateCompletionResponse;
+import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -84,9 +84,9 @@ class LocalWiremockServerIT {
                 .bodyValue(requestBody)
                 .exchange();
 
-        CreateCompletionResponse response = responseSpec
+        CreateCompletionByProviderResponse response = responseSpec
                 .expectStatus().isEqualTo(HttpStatus.valueOf(Integer.parseInt(httpStatus)))
-                .expectBody(CreateCompletionResponse.class)
+                .expectBody(CreateCompletionByProviderResponse.class)
                 .returnResult()
                 .getResponseBody();
 
@@ -119,9 +119,9 @@ class LocalWiremockServerIT {
                 .bodyValue(requestBody)
                 .exchange();
 
-        CreateCompletionResponse response = responseSpec
+        CreateCompletionByProviderResponse response = responseSpec
                 .expectStatus().isEqualTo(HttpStatus.valueOf(Integer.parseInt(httpStatus)))
-                .expectBody(CreateCompletionResponse.class)
+                .expectBody(CreateCompletionByProviderResponse.class)
                 .returnResult()
                 .getResponseBody();
 
@@ -155,9 +155,9 @@ class LocalWiremockServerIT {
                 .bodyValue(requestBody)
                 .exchange();
 
-        CreateCompletionResponse response = responseSpec
+        CreateCompletionByProviderResponse response = responseSpec
                 .expectStatus().isEqualTo(HttpStatus.valueOf(Integer.parseInt(httpStatus)))
-                .expectBody(CreateCompletionResponse.class)
+                .expectBody(CreateCompletionByProviderResponse.class)
                 .returnResult()
                 .getResponseBody();
 
