@@ -92,7 +92,8 @@ Content-Type: application/json
 
 {
   "prompt": "What is the relation between Hassabis, Hinton, Jumper and Nobel prize",
-  "style": "answer with max 100 words"
+  "style": "answer with max 100 words",
+    "llm_providers": ["GEMINI", "ANTHROPIC"]
 }
 
 ### Create llmCompletion from all providers

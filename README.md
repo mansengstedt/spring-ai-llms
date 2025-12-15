@@ -1,6 +1,6 @@
 # Chatbot client 
 
-The service acting as a client, uses many different tools for chatting with different LLMs like
+The service, acting as a client, uses many different tools for chatting with different LLMs like
 Ollama, Docker, Anthropic and OpenAI.
 
 ### Ollama
@@ -75,13 +75,15 @@ Steps to install and use Gemini/Vertex:
 - Set the environment variable `GOOGLE_APPLICATION_CREDENTIALS` to the path of the credentials file.
 - in application.yaml, set `spring.ai.vertex.ai.gemini.location` to `europe-north1` and `spring.ai.vertex.ai.gemini.project-id` to `lithe-breaker-480809-c9`.
 
+Location and projectId are fetched from properties in `spring.ai.vertex.ai.gemini`. 
 
-There are problems running vertex with other values of location and model than `europe-north1/GEMINI_2_0_FLASH`.
-
-Location and projectId are fetched from `spring.ai.vertex.ai.gemini`. 
 The model name is fetched from `app.gemini.llm-model.name`, but defaults to value in `LlmConfig.name`.
 
-However, the model returned by gemini is empty. In the code it is set to "Unknown" to avoid db errors.
+Do not use the model name values in `org.springframework.ai.vertexai.gemini.VertexAiGeminiChatModel.ChatModel`, like `GEMINI_2_5_PRO`,
+when setting the model name in configuring the VertexAiGeminiChatModel, since the corresponding names are outdated.
+Working example values are `gemini-2-5-pro`, `gemini-2-5-flash` (mukltimodal), `gemini-3-pro-preview` and `gemini-3-pro`.
+
+However, the model returned by gemini is empty. In the code it is set to the configured value.
 
 - Gemini example parameters: https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro
 - Available foundation models: https://console.cloud.google.com/vertex-ai/model-garden

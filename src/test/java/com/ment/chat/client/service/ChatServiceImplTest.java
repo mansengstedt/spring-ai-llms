@@ -65,7 +65,6 @@ class ChatServiceImplTest {
     }
 
     @Test
-    @SuppressWarnings({"DataFlowIssue"})//Intentionally passing null in test verification with Mockito.isNull()
     void testChatResponse() {
         CreateCompletionByProviderRequest request = CreateCompletionByProviderRequest.builder()
                 .prompt("Test interactionPrompt")

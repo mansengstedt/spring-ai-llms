@@ -24,7 +24,11 @@ public class CreateCompletionsByProvidersRequest extends CreateCompletionsByAllP
 
     @NotNull
     @ValidProviderSize
-    @Schema(description = "Llm providers", example = "OPENAI, GEMINI", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Llm providers", example =
+    """
+    ["ANTHROPIC","OPENAI","GEMINI"]
+    """,
+    requiredMode = Schema.RequiredMode.REQUIRED)
     EnumSet<LlmProvider> llmProviders;
 
 }
