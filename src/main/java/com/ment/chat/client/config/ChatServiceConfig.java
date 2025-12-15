@@ -124,7 +124,7 @@ public class ChatServiceConfig {
         VertexAI vertexAI = configVertex(geminiProperties);
         log.info("vertex credentials: {}", vertexAI.getCredentials());
 
-        //model name from LlmConfig must be valid, don't use enum that have invalid names except GEMINI_2_0_FLASH
+        //model name from LlmConfig must be valid, don't use enum that have invalid names
         return VertexAiGeminiChatModel.builder()
                 .defaultOptions(
                         VertexAiGeminiChatOptions.builder()
