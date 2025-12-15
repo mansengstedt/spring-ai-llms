@@ -25,7 +25,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.ment.chat.client.controller.ChatController.BASE_PATH;
-import static com.ment.chat.client.controller.ChatController.LLM_PATH;
+import static com.ment.chat.client.controller.ChatController.PROVIDER_PROMPT_PATH;
 import static com.ment.chat.client.utils.Utility.createObjectMapper;
 import static com.ment.chat.client.utils.Utility.readFileResource;
 import static com.ment.chat.client.utils.Utility.replaceTemplateValue;
@@ -76,7 +76,7 @@ class LocalWiremockServerIT {
         String requestBody = readFileResource(requestFileName);
         CreateCompletionByProviderRequest request = mapper.readValue(requestBody, CreateCompletionByProviderRequest.class);
 
-        WebTestClient.ResponseSpec responseSpec = client.post().uri(BASE_PATH + LLM_PATH)
+        WebTestClient.ResponseSpec responseSpec = client.post().uri(BASE_PATH + PROVIDER_PROMPT_PATH)
                 .headers(httpHeaders -> {
                     httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
                     httpHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_VALUE);
@@ -111,7 +111,7 @@ class LocalWiremockServerIT {
         String requestBody = readFileResource(requestFileName);
         CreateCompletionByProviderRequest request = mapper.readValue(requestBody, CreateCompletionByProviderRequest.class);
 
-        WebTestClient.ResponseSpec responseSpec = client.post().uri(BASE_PATH + LLM_PATH)
+        WebTestClient.ResponseSpec responseSpec = client.post().uri(BASE_PATH + PROVIDER_PROMPT_PATH)
                 .headers(httpHeaders -> {
                     httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
                     httpHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_VALUE);
@@ -147,7 +147,7 @@ class LocalWiremockServerIT {
         String requestBody = readFileResource(requestFileName);
         CreateCompletionByProviderRequest request = mapper.readValue(requestBody, CreateCompletionByProviderRequest.class);
 
-        WebTestClient.ResponseSpec responseSpec = client.post().uri(BASE_PATH + LLM_PATH)
+        WebTestClient.ResponseSpec responseSpec = client.post().uri(BASE_PATH + PROVIDER_PROMPT_PATH)
                 .headers(httpHeaders -> {
                     httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
                     httpHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_VALUE);

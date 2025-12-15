@@ -3,7 +3,7 @@
   "title": "Validation error",
   "status": 400,
   "detail": "Invalid request content.",
-  "instance": "/chat/llm/providers",
+  "instance": "/chat/providers/prompt",
   "violations": [
     {
       "type": "validation",

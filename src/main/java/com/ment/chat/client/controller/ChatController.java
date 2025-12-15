@@ -4,13 +4,12 @@ import com.ment.chat.client.aop.LogExecutionTime;
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.in.CreateCompletionsByProvidersRequest;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
-import com.ment.chat.client.model.in.CreateCompletionsByAllProvidersRequest;
 import com.ment.chat.client.model.out.CreateCompletionsByProvidersResponse;
 import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
 import com.ment.chat.client.model.out.GetInteractionResponse;
 import com.ment.chat.client.model.out.GetInteractionsResponse;
-import com.ment.chat.client.model.out.GetLlmProviderStatusResponse;
+import com.ment.chat.client.model.out.GetLlmProvidersStatusResponse;
 import com.ment.chat.client.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -46,16 +45,17 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 public class ChatController {
 
     public static final String BASE_PATH = "/chat";
-    public static final String LLM_PATH = "/llm";
-    public static final String LLM_ALL_PATH = LLM_PATH + "/all";
-    public static final String LLM_PROVIDERS_PATH = LLM_PATH + "/providers";
-    public static final String LLM_HAIKU_PATH = LLM_PATH + "/haiku";
+    public static final String PROVIDER_PATH = "/provider";
+    public static final String PROVIDERS_PATH = "/providers";
     public static final String PROMPT_PATH = "/prompt";
+    public static final String PROVIDER_PROMPT_PATH = PROVIDER_PATH + PROMPT_PATH;
+    public static final String PROVIDERS_PROMPT_PATH = PROVIDERS_PATH + PROMPT_PATH;
+    public static final String PROVIDER_HAIKU_PATH = PROVIDER_PATH + "/haiku";
     public static final String PROMPT_CONTAINS_PATH = PROMPT_PATH + "/contains";
     public static final String COMPLETION_PATH = "/completion";
     public static final String COMPLETION_CONTAINS_PATH = COMPLETION_PATH + "/contains";
     public static final String CHAT_PATH = "/chat";
-    public static final String STATUS_PATH = "/status";
+    public static final String PROVIDERS_STATUS_PATH = PROVIDERS_PATH + "/status";
 
     private final ChatService chatService;
 
@@ -64,7 +64,7 @@ public class ChatController {
     }
 
     @Operation(
-            summary = "Create a haiku for given parameters",
+            summary = "Create a haiku for with a given style for a given topic and from a given provider.",
             description = "A haiku with specific style and topic."
     )
     @ApiResponses(value = {
@@ -85,7 +85,7 @@ public class ChatController {
                     )
             )
     })
-    @PostMapping(value = LLM_HAIKU_PATH)
+    @PostMapping(value = PROVIDER_HAIKU_PATH)
     public ResponseEntity<CreateCompletionByProviderResponse> createHaiku(
             @RequestParam LlmProvider provider,
             @Parameter(
@@ -107,7 +107,7 @@ public class ChatController {
     }
 
     @Operation(
-            summary = "Create a completion for a specified prompt and given LLM provider",
+            summary = "Create a completion for a specified prompt and given LLM provider.",
             description = "Retrieves a interaction completion from the specified LLM provider based on the given interaction prompt."
     )
     @ApiResponses(value = {
@@ -136,7 +136,7 @@ public class ChatController {
                     )
             )
     })
-    @PostMapping(value = LLM_PATH, consumes = {APPLICATION_JSON_VALUE})
+    @PostMapping(value = PROVIDER_PROMPT_PATH, consumes = {APPLICATION_JSON_VALUE})
     @LogExecutionTime
     public ResponseEntity<CreateCompletionByProviderResponse> createCompletionByProvider(
             @RequestBody @Valid CreateCompletionByProviderRequest createCompletionByProviderRequest) {
@@ -144,7 +144,7 @@ public class ChatController {
     }
 
     @Operation(
-            summary = "Create completions for a specified prompt for given LLM providers",
+            summary = "Create completions for a specified prompt for given LLM providers.",
             description = "Retrieves the completions from all LLM providers based on the given prompt."
     )
     @ApiResponses(value = {
@@ -173,50 +173,14 @@ public class ChatController {
                     )
             )
     })
-    @PostMapping(value = LLM_PROVIDERS_PATH, consumes = {APPLICATION_JSON_VALUE})
+    @PostMapping(value = PROVIDERS_PROMPT_PATH, consumes = {APPLICATION_JSON_VALUE})
     @LogExecutionTime
     public ResponseEntity<CreateCompletionsByProvidersResponse> createCompletionsByProviders(@RequestBody @Valid CreateCompletionsByProvidersRequest createCompletionsByProvidersRequest) {
         return ResponseEntity.ok(chatService.createCompletionsByProviders(createCompletionsByProvidersRequest));
     }
 
     @Operation(
-            summary = "Create completions for a specified prompt for all LLM providers",
-            description = "Retrieves the completions from all LLM providers based on the given prompt."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Successful completions of prompt",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = CreateCompletionsByProvidersResponse.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Invalid prompt",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = ProblemDetail.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Internal server error",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = ProblemDetail.class)
-                    )
-            )
-    })
-    @PostMapping(value = LLM_ALL_PATH, consumes = {APPLICATION_JSON_VALUE})
-    @LogExecutionTime
-    public ResponseEntity<CreateCompletionsByProvidersResponse> createCompletionsByAllProviders(@RequestBody @Valid CreateCompletionsByAllProvidersRequest createCompletionsByAllProvidersRequest) {
-        return ResponseEntity.ok(chatService.createCompletionsByAllProviders(createCompletionsByAllProvidersRequest));
-    }
-
-    @Operation(
-            summary = "Get the completions of an earlier prompt with given prompt id",
+            summary = "Get the completions of an earlier prompt with given prompt id.",
             description = "Retrieves the completions from the LLM providers based on the given interaction prompt id."
     )
     @ApiResponses(value = {
@@ -271,8 +235,8 @@ public class ChatController {
     }
 
     @Operation(
-            summary = "Get the completions of an earlier prompt containing the sub-prompt",
-            description = "Retrieves the completions from the LLM providers based on the given sub-prompt. If no match an empty list is returned"
+            summary = "Get the completions of an earlier prompt containing the sub-prompt.",
+            description = "Retrieves the completions from the LLM providers based on the given sub-prompt. If no match an empty list is returned."
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -317,7 +281,7 @@ public class ChatController {
     }
 
     @Operation(
-            summary = "Get the completion of an earlier prompt with given completion id",
+            summary = "Get the completion of an earlier prompt with given completion id.",
             description = "Retrieves the completions from the LLM providers based on the given interaction prompt id."
     )
     @ApiResponses(value = {
@@ -372,8 +336,8 @@ public class ChatController {
     }
 
     @Operation(
-            summary = "Get the interactions of earlier interactions containing the sub-completion",
-            description = "Retrieves the interactions from the LLM providers based on the given sub-completions. If no match an empty list is returned"
+            summary = "Get the interactions of earlier interactions containing the sub-completion.",
+            description = "Retrieves the interactions from the LLM providers based on the given sub-completions. If no match an empty list is returned."
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -418,7 +382,7 @@ public class ChatController {
     }
 
     @Operation(
-            summary = "Get the completions of earlier prompts with a given chat id",
+            summary = "Get the completions of earlier prompts with a given chat id.",
             description = "Retrieves all the completions in the chat from the LLM providers based on the given chat id."
     )
     @ApiResponses(value = {
@@ -471,7 +435,7 @@ public class ChatController {
     }
 
     @Operation(
-            summary = "Get the status of all LLM providers",
+            summary = "Get the status of all LLM providers.",
             description = "The present status of all LLM providers."
     )
     @ApiResponses(value = {
@@ -480,7 +444,7 @@ public class ChatController {
                     description = "Status was found for all LLM providers",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = GetLlmProviderStatusResponse.class)
+                            schema = @Schema(implementation = GetLlmProvidersStatusResponse.class)
                     )
             ),
             @ApiResponse(
@@ -492,8 +456,8 @@ public class ChatController {
                     )
             )
     })
-    @GetMapping(value = STATUS_PATH)
-    public ResponseEntity<GetLlmProviderStatusResponse> getAllStatuses() {
+    @GetMapping(value = PROVIDERS_STATUS_PATH)
+    public ResponseEntity<GetLlmProvidersStatusResponse> getAllStatuses() {
         return ResponseEntity.ok(chatService.getAllProviderStatus());
     }
 }

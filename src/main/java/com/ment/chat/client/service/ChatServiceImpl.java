@@ -13,14 +13,14 @@ import com.ment.chat.client.domain.repository.LlmPromptRepository;
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.enums.LlmStatus;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
-import com.ment.chat.client.model.in.CreateCompletionsByAllProvidersRequest;
+import com.ment.chat.client.model.in.CreateCompletionsRequest;
 import com.ment.chat.client.model.in.CreateCompletionsByProvidersRequest;
 import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
 import com.ment.chat.client.model.out.CreateCompletionsByProvidersResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
 import com.ment.chat.client.model.out.GetInteractionResponse;
 import com.ment.chat.client.model.out.GetInteractionsResponse;
-import com.ment.chat.client.model.out.GetLlmProviderStatusResponse;
+import com.ment.chat.client.model.out.GetLlmProvidersStatusResponse;
 import com.ment.chat.client.model.out.InteractionCompletion;
 import com.ment.chat.client.model.out.InteractionPrompt;
 import jakarta.annotation.PostConstruct;
@@ -120,8 +120,8 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public CreateCompletionsByProvidersResponse createCompletionsByAllProviders(CreateCompletionsByAllProvidersRequest createCompletionsByAllProvidersRequest) {
-        return getCompletionsResponse(createUniqueId(), createCompletionsByAllProvidersRequest, EnumSet.allOf(LlmProvider.class));
+    public CreateCompletionsByProvidersResponse createCompletionsByAllProviders(CreateCompletionsRequest createCompletionsRequest) {
+        return getCompletionsResponse(createUniqueId(), createCompletionsRequest, EnumSet.allOf(LlmProvider.class));
     }
 
     @Override
@@ -187,8 +187,8 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public GetLlmProviderStatusResponse getAllProviderStatus() {
-        return extractStatusFrom(createCompletionsByAllProviders(CreateCompletionsByAllProvidersRequest.builder()
+    public GetLlmProvidersStatusResponse getAllProviderStatus() {
+        return extractStatusFrom(createCompletionsByAllProviders(CreateCompletionsRequest.builder()
                 .prompt(PING_STATUS_PROMPT)
                 .chatId(PING_STATUS_CHAT_ID)
                 .build()));
@@ -218,21 +218,21 @@ public class ChatServiceImpl implements ChatService {
                         .build();
     }
 
-    private GetLlmProviderStatusResponse extractStatusFrom(CreateCompletionsByProvidersResponse combinedChatResponse) {
+    private GetLlmProvidersStatusResponse extractStatusFrom(CreateCompletionsByProvidersResponse combinedChatResponse) {
         if (combinedChatResponse == null) {
-            return GetLlmProviderStatusResponse.builder()
-                    .statusList(List.of())
+            return GetLlmProvidersStatusResponse.builder()
+                    .llmProviderStatusList(List.of())
                     .build();
         }
-        List<GetLlmProviderStatusResponse.ChatServiceStatus> statusList = combinedChatResponse.getInteractionCompletions().stream()
-                .map(response -> GetLlmProviderStatusResponse.ChatServiceStatus.builder()
+        List<GetLlmProvidersStatusResponse.LlmProviderStatus> statusList = combinedChatResponse.getInteractionCompletions().stream()
+                .map(response -> GetLlmProvidersStatusResponse.LlmProviderStatus.builder()
                         .status(response.getLlm() == null ? LlmStatus.UNAVAILABLE : LlmStatus.AVAILABLE)
                         .llm(response.getLlm() == null ? UNKNOWN_MODEL_NAME : response.getLlm())
                         .provider(response.getLlmProvider())
                         .build())
                 .toList();
-        return GetLlmProviderStatusResponse.builder()
-                .statusList(statusList)
+        return GetLlmProvidersStatusResponse.builder()
+                .llmProviderStatusList(statusList)
                 .build();
 
     }
@@ -278,7 +278,7 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    private CreateCompletionsByProvidersResponse getCompletionsResponse(String id, CreateCompletionsByAllProvidersRequest completionRequest, Set<LlmProvider> providers) {
+    private CreateCompletionsByProvidersResponse getCompletionsResponse(String id, CreateCompletionsRequest completionRequest, Set<LlmProvider> providers) {
         try {
             long start = System.currentTimeMillis();
             log.info("Start combined calling");
@@ -300,7 +300,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     // Parallel execution with Mono
-    public Mono<Map<LlmProvider, ChatResponseTimer>> getChatResponsesInParallel(CreateCompletionsByAllProvidersRequest completionRequest,
+    public Mono<Map<LlmProvider, ChatResponseTimer>> getChatResponsesInParallel(CreateCompletionsRequest completionRequest,
                                                                                 Set<LlmProvider> providers) {
 
         return Flux.fromIterable(providers)
@@ -328,7 +328,7 @@ public class ChatServiceImpl implements ChatService {
      * @param llmProvider       the llm provider
      * @return the answer from the provider with response time
      */
-    private ChatResponseTimer callProvider(CreateCompletionsByAllProvidersRequest completionRequest, LlmProvider llmProvider) {
+    private ChatResponseTimer callProvider(CreateCompletionsRequest completionRequest, LlmProvider llmProvider) {
         return chatClientMap.get(llmProvider).callProvider(completionRequest, llmProvider);
     }
 
@@ -363,7 +363,7 @@ public class ChatServiceImpl implements ChatService {
                 .toList();
     }
 
-    private void createSavePublishRequest(String promptId, CreateCompletionsByAllProvidersRequest completionRequest) {
+    private void createSavePublishRequest(String promptId, CreateCompletionsRequest completionRequest) {
         String prompt = completionRequest.createPrompt();
         log.info("Save and publish prompt to be sent: {}", prompt);
         LlmPrompt llmPrompt = createLlmPrompt(promptId, prompt, completionRequest.getChatId());

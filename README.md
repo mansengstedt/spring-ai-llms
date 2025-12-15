@@ -97,19 +97,22 @@ Example Projects
 
 ## Service End points
 
-* POST /chat/haiku?provider={provider} create a haiku from provider, for example Anthropic, with given parameters
-* POST /chat/llm chat with an LLM given in the request object, either OLLAMA, DOCKER, OPENAI, ANTHROPIC or GEMINI
-* POST /chat/llm/all chat with all LLMs and return all answers
-* GET /chat/prompt/{prompt-id} get llmPrompt and completions from given llmPromptId
+* POST /chat/provider/haiku?provider={provider} create a haiku from provider, for example Anthropic, with given parameters
+* POST /chat/provider/prompt chat with a given LLM in the request object, one of OLLAMA, DOCKER, OPENAI, ANTHROPIC or GEMINI
+* POST /chat/providers/prompt chat with given LLMs in the request object, in set OLLAMA, DOCKER, OPENAI, ANTHROPIC, GEMINI
 * GET /chat/chat/{chat-id} get chat by chatId
-* GET /chat/chat/prompt/contains/{part-of-prompt} get chats containing the given part of the prompt
-* GET /chat/chat/completion/contains/{part-of-completion} get chats containing the given part of the completion
-* GET /chat/status get chat service status for all LLMs
+* GET /chat/prompt/{prompt-id} get llmPrompt and completions from given promptId
+* GET /chat/prompt/contains/{part-of-prompt} get chats containing the given part of the prompt
+* GET /chat/completion/{completion-id} get chats containing the given completionId
+* GET /chat/completion/contains/{part-of-completion} get chats containing the given part of the completion
+* GET /chat/provider/status get chat service status for all LLMs
+
+See http://localhost:8999/swagger-ui/index.html for swagger documentation.
 
 
 ## Model
 The main domain objects are:
-* Prompt - the prompt to send to the LLM stored with a unique prompt id
+* Prompt - the prompt to send to the LLM stored with a unique prompt id, having a set of completions
 * Completion - the completion returned from the LLM with a unique completion id and a unique prompt id
 * Interaction - the interaction containing a prompt and N completions sharing a prompt id
 * Chat - the chat containing a list of N interactions having the same chat id
@@ -118,7 +121,7 @@ The main domain objects are:
 To test, you can use the IntelliJ HTTP client with the provided `.rest` files in the `src/test/intellij` directory.
 
 ## Todo
-* choose which provider to use: collapse 'llm/all' endpoint and single provider to one endpoint
+* choose which provider to use: replace 'llm/all' endpoint with chosen providers (fixed)
 * upgrade spring-ai to the latest version 1.1.2 (fixed)
 * add Gemini (fixed)
 * remove 2 transitive vulnerabilities (fixed)

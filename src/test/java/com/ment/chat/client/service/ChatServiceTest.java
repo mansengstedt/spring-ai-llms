@@ -139,7 +139,7 @@ public class ChatServiceTest extends BaseChatServiceTest {
 
     @Test
     void statusOfProviders() {
-        chatService.getAllProviderStatus().getStatusList()
+        chatService.getAllProviderStatus().getLlmProviderStatusList()
                 .forEach(status -> {
                     switch (status.getProvider()) {
                         case OLLAMA, DOCKER -> assertThat(status.getStatus()).isEqualTo(LlmStatus.AVAILABLE);

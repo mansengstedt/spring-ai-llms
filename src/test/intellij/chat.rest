@@ -1,6 +1,6 @@
 
 ### Create haiku with default params
-POST {{host}}/chat/llm/haiku?provider=DOCKER
+POST {{host}}/chat/provider/haiku?provider=DOCKER
 
 > {%
     client.test("Status", function () {
@@ -9,7 +9,7 @@ POST {{host}}/chat/llm/haiku?provider=DOCKER
 %}
 
 ### Create haiku with params
-POST {{host}}/chat/llm/haiku?provider=DOCKER&style=crazy&topic=Trump
+POST {{host}}/chat/provider/haiku?provider=DOCKER&style=crazy&topic=Trump
 
 > {%
     client.test("Status", function () {
@@ -18,7 +18,7 @@ POST {{host}}/chat/llm/haiku?provider=DOCKER&style=crazy&topic=Trump
 %}
 
 ### Create llmCompletion from internal LLM like ollama with a fact
-POST {{host}}/chat/llm
+POST {{host}}/chat/provider/prompt
 Content-Type: application/json
 
 {
@@ -29,7 +29,7 @@ Content-Type: application/json
 }
 
 ### invalid input
-POST {{host}}/chat/llm
+POST {{host}}/chat/provider/prompt
 Content-Type: application/json
 
 {
@@ -40,7 +40,7 @@ Content-Type: application/json
 }
 
 ### Create llmCompletion from internal LLM like ollama
-POST {{host}}/chat/llm
+POST {{host}}/chat/provider/prompt
 Content-Type: application/json
 
 {
@@ -57,7 +57,7 @@ Content-Type: application/json
 %}
 
 ### Create llmCompletion from external LLM Anthropic
-POST {{host}}/chat/llm
+POST {{host}}/chat/provider/prompt
 Content-Type: application/json
 
 {
@@ -67,7 +67,7 @@ Content-Type: application/json
 }
 
 ### Create llmCompletion from external LLM OpenAi/chatGpt
-POST {{host}}/chat/llm
+POST {{host}}/chat/provider/prompt
 Content-Type: application/json
 
 {
@@ -77,7 +77,7 @@ Content-Type: application/json
 }
 
 ### Create llmCompletion from Gemini
-POST {{host}}/chat/llm
+POST {{host}}/chat/provider/prompt
 Content-Type: application/json
 
 {
@@ -86,27 +86,8 @@ Content-Type: application/json
   "llm_provider": "GEMINI"
 }
 
-### Create llmCompletion from given providers
-POST {{host}}/chat/llm/providers
-Content-Type: application/json
-
-{
-  "prompt": "What is the relation between Hassabis, Hinton, Jumper and Nobel prize",
-  "style": "answer with max 100 words",
-    "llm_providers": ["GEMINI", "ANTHROPIC"]
-}
-
-### Create llmCompletion from all providers
-POST {{host}}/chat/llm/all
-Content-Type: application/json
-
-{
-  "prompt": "What is the relation between Hassabis, Hinton, Jumper and Nobel prize",
-  "style": "answer with max 100 words"
-}
-
 ### Create llmCompletion using chat-id for a given provider
-POST {{host}}/chat/llm
+POST {{host}}/chat/provider/prompt
 Content-Type: application/json
 
 {
@@ -117,7 +98,7 @@ Content-Type: application/json
 }
 
 ### Create llmCompletion relating to previous question
-POST {{host}}/chat/llm
+POST {{host}}/chat/provider/prompt
 Content-Type: application/json
 
 {
@@ -128,7 +109,7 @@ Content-Type: application/json
 }
 
 ### Create llmCompletion relating to previous question with correction
-POST {{host}}/chat/llm
+POST {{host}}/chat/provider/prompt
 Content-Type: application/json
 
 {
@@ -139,7 +120,7 @@ Content-Type: application/json
 }
 
 ### Create llmCompletion with complex relations
-POST {{host}}/chat/llm
+POST {{host}}/chat/provider/prompt
 Content-Type: application/json
 
 {
@@ -149,7 +130,7 @@ Content-Type: application/json
 }
 
 ### Create llmCompletion with correction
-POST {{host}}/chat/llm
+POST {{host}}/chat/provider/prompt
 Content-Type: application/json
 
 {
@@ -165,7 +146,7 @@ Content-Type: application/json
 %}
 
 ### Create LLM llmCompletion from docker
-POST {{host}}/chat/llm
+POST {{host}}/chat/provider/prompt
 Content-Type: application/json
 
 {
@@ -180,21 +161,30 @@ Content-Type: application/json
     });
 %}
 
+### Create llmCompletion from given providers
+POST {{host}}/chat/providers/prompt
+Content-Type: application/json
+
+{
+  "prompt": "What is the relation between Hassabis, Hinton, Jumper and Nobel prize",
+  "style": "answer with max 100 words",
+  "llm_providers": ["GEMINI", "ANTHROPIC"]
+}
+
+
 ### Create llmCompletion from all LLMs like ollama, docker, openai, anthropic
-POST {{host}}/chat/llm/all
+POST {{host}}/chat/providers/prompt
 Content-Type: application/json
 
 {
   "prompt": "Are Trump and Musk in the Epstein files",
-  "style": "answer with max 10 word and end answer with Presently!"
+  "style": "answer with max 10 word and end answer with Presently!",
+  "llm_providers": ["OLLAMA", "DOCKER", "OPENAI", "ANTHROPIC","GEMINI"]
 }
 
 
 ### GET one or several completions from a given llmPrompt id
 GET {{host}}/chat/prompt/52e7c62c-68d7-4edf-b1a8-a964aee3b447
-
-### GET one completion from a given llmCompletion id
-GET {{host}}/chat/completion/27e957a9-4a6b-4126-815a-6d06d043ef92
 
 ### GET one or several completions from a given text in a previous prompt (case sensitive)
 GET {{host}}/chat/prompt/contains/Epstein
@@ -202,11 +192,17 @@ GET {{host}}/chat/prompt/contains/Epstein
 ### GET one or several interactions from a given text in a previous completion (case sensitive)
 GET {{host}}/chat/completion/contains/Trump
 
+### GET one completion from a given llmCompletion id
+GET {{host}}/chat/completion/27e957a9-4a6b-4126-815a-6d06d043ef92
+
 ### GET several completions from several llmPrompt with same chatId
 GET {{host}}/chat/chat/ping-chat-service-status
 
+### GET several completions from several llmPrompt with same chatId
+GET {{host}}/chat/chat/myId
+
 ### GET status of all LLMs
-GET {{host}}/chat/status
+GET {{host}}/chat/providers/status
 
 
 ### Info

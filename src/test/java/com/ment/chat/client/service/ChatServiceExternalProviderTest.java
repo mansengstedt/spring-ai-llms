@@ -32,7 +32,7 @@ public class ChatServiceExternalProviderTest extends BaseChatServiceTest {
 
     @Test
     void statusOfProviders() {
-        chatService.getAllProviderStatus().getStatusList()
+        chatService.getAllProviderStatus().getLlmProviderStatusList()
                 .forEach(status ->
                     assertThat(status.getStatus()).isEqualTo(LlmStatus.AVAILABLE)
                 );

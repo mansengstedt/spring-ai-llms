@@ -2,7 +2,7 @@ package com.ment.chat.client.service;
 
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
-import com.ment.chat.client.model.in.CreateCompletionsByAllProvidersRequest;
+import com.ment.chat.client.model.in.CreateCompletionsRequest;
 import com.ment.chat.client.model.in.CreateCompletionsByProvidersRequest;
 import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
 import org.junit.jupiter.params.provider.Arguments;
@@ -44,8 +44,8 @@ public abstract class BaseChatServiceTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    CreateCompletionsByAllProvidersRequest createCompletionRequest(String prompt, String chatId) {
-        return CreateCompletionsByAllProvidersRequest.builder()
+    CreateCompletionsRequest createCompletionRequest(String prompt, String chatId) {
+        return CreateCompletionsRequest.builder()
                 .prompt(prompt)
                 .chatId(chatId)
                 .build();

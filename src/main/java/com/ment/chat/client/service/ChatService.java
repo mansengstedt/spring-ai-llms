@@ -2,13 +2,13 @@ package com.ment.chat.client.service;
 
 import com.ment.chat.client.model.in.CreateCompletionsByProvidersRequest;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
-import com.ment.chat.client.model.in.CreateCompletionsByAllProvidersRequest;
+import com.ment.chat.client.model.in.CreateCompletionsRequest;
 import com.ment.chat.client.model.out.CreateCompletionsByProvidersResponse;
 import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
 import com.ment.chat.client.model.out.GetInteractionResponse;
 import com.ment.chat.client.model.out.GetInteractionsResponse;
-import com.ment.chat.client.model.out.GetLlmProviderStatusResponse;
+import com.ment.chat.client.model.out.GetLlmProvidersStatusResponse;
 
 public interface ChatService {
 
@@ -16,7 +16,7 @@ public interface ChatService {
 
     CreateCompletionsByProvidersResponse createCompletionsByProviders(CreateCompletionsByProvidersRequest createCompletionsByProvidersRequest);
 
-    CreateCompletionsByProvidersResponse createCompletionsByAllProviders(CreateCompletionsByAllProvidersRequest createCompletionsByAllProvidersRequest);
+    CreateCompletionsByProvidersResponse createCompletionsByAllProviders(CreateCompletionsRequest createCompletionsRequest);
 
     GetInteractionResponse getInteractionByPromptId(String promptId);
 
@@ -28,5 +28,5 @@ public interface ChatService {
 
     GetChatResponse getChatByPrompt(String partOfPrompt);
 
-    GetLlmProviderStatusResponse getAllProviderStatus();
+    GetLlmProvidersStatusResponse getAllProviderStatus();
 }

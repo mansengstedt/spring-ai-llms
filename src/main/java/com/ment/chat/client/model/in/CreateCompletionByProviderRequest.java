@@ -18,7 +18,7 @@ import lombok.extern.jackson.Jacksonized;
 @SuperBuilder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Jacksonized
-public class CreateCompletionByProviderRequest extends CreateCompletionsByAllProvidersRequest {
+public class CreateCompletionByProviderRequest extends CreateCompletionsRequest {
 
     @NotNull
     @Schema(description = "Llm provider", example = "OPENAI", requiredMode = Schema.RequiredMode.REQUIRED)

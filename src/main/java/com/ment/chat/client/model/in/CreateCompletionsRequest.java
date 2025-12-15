@@ -17,7 +17,7 @@ import lombok.extern.jackson.Jacksonized;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Jacksonized
-public class CreateCompletionsByAllProvidersRequest {
+public class CreateCompletionsRequest {
 
     @NotBlank
     @Size(min = 2, max = 40000, message = "Size must be between 2 and 40000 characters")

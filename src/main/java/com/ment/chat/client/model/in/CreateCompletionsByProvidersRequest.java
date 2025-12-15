@@ -20,7 +20,7 @@ import java.util.EnumSet;
 @SuperBuilder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Jacksonized
-public class CreateCompletionsByProvidersRequest extends CreateCompletionsByAllProvidersRequest {
+public class CreateCompletionsByProvidersRequest extends CreateCompletionsRequest {
 
     @NotNull
     @ValidProviderSize

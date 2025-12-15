@@ -3,5 +3,5 @@
   "title": "Validation error",
   "status": 400,
   "detail": "JSON parse error: Unrecognized field \"promt\" (class com.ment.chat.client.model.in.CreateCompletionByProviderRequest$CreateCompletionByProviderRequestBuilderImpl), not marked as ignorable",
-  "instance": "/chat/llm"
+  "instance": "/chat/provider/prompt"
 }

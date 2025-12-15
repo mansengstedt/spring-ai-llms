@@ -29,8 +29,8 @@ import java.util.Objects;
 
 import static com.ment.chat.client.controller.ChatController.BASE_PATH;
 import static com.ment.chat.client.controller.ChatController.CHAT_PATH;
-import static com.ment.chat.client.controller.ChatController.LLM_PATH;
-import static com.ment.chat.client.controller.ChatController.LLM_PROVIDERS_PATH;
+import static com.ment.chat.client.controller.ChatController.PROVIDER_PROMPT_PATH;
+import static com.ment.chat.client.controller.ChatController.PROVIDERS_PROMPT_PATH;
 import static com.ment.chat.client.controller.ChatController.PROMPT_PATH;
 import static com.ment.chat.client.model.enums.LlmProvider.ANTHROPIC;
 import static com.ment.chat.client.model.enums.LlmProvider.GEMINI;
@@ -76,7 +76,7 @@ public class LocalIT {
                                                        String responseFileName,
                                                        String httpStatus) throws Exception {
         String requestBody = readFileResource(requestFileName);
-        WebTestClient.ResponseSpec response = client.post().uri(BASE_PATH + LLM_PATH)
+        WebTestClient.ResponseSpec response = client.post().uri(BASE_PATH + PROVIDER_PROMPT_PATH)
                 .headers(httpHeaders -> {
                     httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
                     httpHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_VALUE);
@@ -110,7 +110,7 @@ public class LocalIT {
                                                        String responseFileName,
                                                        String httpStatus) throws Exception {
         String requestBody = readFileResource(requestFileName);
-        WebTestClient.ResponseSpec response = client.post().uri(BASE_PATH + LLM_PROVIDERS_PATH)
+        WebTestClient.ResponseSpec response = client.post().uri(BASE_PATH + PROVIDERS_PROMPT_PATH)
                 .headers(httpHeaders -> {
                     httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
                     httpHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_VALUE);
@@ -151,7 +151,7 @@ public class LocalIT {
 
         WebTestClient.ResponseSpec responseSpec;
         try {
-            responseSpec = client.post().uri(BASE_PATH + LLM_PATH)
+            responseSpec = client.post().uri(BASE_PATH + PROVIDER_PROMPT_PATH)
                     .headers(httpHeaders -> {
                         httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher);
                         httpHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_VALUE);
