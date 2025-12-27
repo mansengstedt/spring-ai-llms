@@ -62,7 +62,7 @@ public abstract class BaseChatServiceTest {
     CreateCompletionsByProvidersRequest createCompletionsByProvidersRequest(String prompt, EnumSet<LlmProvider> providers) {
         return CreateCompletionsByProvidersRequest.builder()
                 .prompt(prompt)
-                .chatId("default")
+                //.chatId(DEFAULT_CHAT_ID) is implicitly set
                 .llmProviders(providers)
                 .build();
     }

@@ -18,6 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.EnumSet;
 
+import static com.ment.chat.client.model.in.CreateCompletionsRequest.DEFAULT_CHAT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -105,7 +106,7 @@ public class ChatServiceTest extends BaseChatServiceTest {
 
         assertThat(response1.getInteractionPrompt()).isEqualTo(response2.getInteractionPrompt());
         assertThat(response1.getInteractionPrompt().getPrompt()).isEqualTo(prompt1);
-        assertThat(response1.getInteractionPrompt().getChatId()).isNull();
+        assertThat(response1.getInteractionPrompt().getChatId()).isEqualTo(DEFAULT_CHAT_ID);
         assertThat(response1.getInteractionCompletions().size()).isEqualTo(providerSet.size());
         assertThat(response2.getInteractionCompletions().size()).isEqualTo(1);
 

@@ -20,6 +20,8 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class CreateCompletionsRequest {
 
+    public static final String DEFAULT_CHAT_ID = "default";
+
     @NotBlank
     @Size(min = 2, max = 40000, message = "Size must be between 2 and 40000 characters")
     @Schema(description = "Prompt as free text", example = "Who is the present president of USA", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -31,8 +33,8 @@ public class CreateCompletionsRequest {
 
     @Size(max = 128, message = "Size must be max 128 characters")
     @Builder.Default
-    @Schema(description = "The chat id of the interaction used for memory", defaultValue = "default", example = "myId", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    String chatId = "default";
+    @Schema(description = "The chat id of the interaction used for memory", defaultValue = DEFAULT_CHAT_ID, example = "myId", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    String chatId = DEFAULT_CHAT_ID;
 
     public String createPrompt() {
         return style != null && !style.isEmpty()
