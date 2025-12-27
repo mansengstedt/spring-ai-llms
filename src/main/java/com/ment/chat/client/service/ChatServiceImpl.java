@@ -1,5 +1,6 @@
 package com.ment.chat.client.service;
 
+import com.ment.chat.client.client.ChatClientWIthChatMemory;
 import com.ment.chat.client.client.ProviderClient;
 import com.ment.chat.client.config.AppProperties;
 import com.ment.chat.client.domain.ChatResponseTimer;
@@ -21,13 +22,14 @@ import com.ment.chat.client.model.out.GetChatResponse;
 import com.ment.chat.client.model.out.GetInteractionResponse;
 import com.ment.chat.client.model.out.GetInteractionsResponse;
 import com.ment.chat.client.model.out.GetLlmProvidersStatusResponse;
+import com.ment.chat.client.model.out.GetSessionMessagesResponse;
 import com.ment.chat.client.model.out.InteractionCompletion;
 import com.ment.chat.client.model.out.InteractionPrompt;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.Aspect;
-import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -38,6 +40,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -58,6 +61,9 @@ public class ChatServiceImpl implements ChatService {
     private static final String PING_STATUS_PROMPT = "ping LLM to check status";
     private static final Integer MAX_NO_PROVIDERS = 10;
 
+    //To provide a unique name space for each chat session
+    private static final String sessionId = setSecondsAndNanosOfInstant();
+
     private final AppProperties appProperties;
 
     private static Scheduler scheduler;
@@ -70,31 +76,48 @@ public class ChatServiceImpl implements ChatService {
 
 
     @Qualifier("ollamaChatClient")
-    private final ChatClient ollamaChatClient;
+    private final ChatClientWIthChatMemory ollamaChatClient;
 
     @Qualifier("dockerChatClient")
-    private final ChatClient dockerChatClient;
+    private final ChatClientWIthChatMemory dockerChatClient;
 
     @Qualifier("openAiChatClient")
-    private final ChatClient openAiChatClient;
+    private final ChatClientWIthChatMemory openAiChatClient;
 
     @Qualifier("anthropicChatClient")
-    private final ChatClient anthropicChatClient;
+    private final ChatClientWIthChatMemory anthropicChatClient;
 
     @Qualifier("geminiChatClient")
-    private final ChatClient geminiChatClient;
+    private final ChatClientWIthChatMemory geminiChatClient;
 
     private Map<LlmProvider, ProviderClient> chatClientMap;
 
     @PostConstruct
     private void chatClientMap() {
         chatClientMap = new HashMap<>();
-        chatClientMap.put(LlmProvider.OLLAMA, new ProviderClient(appProperties, ollamaChatClient));
-        chatClientMap.put(LlmProvider.DOCKER, new ProviderClient(appProperties, dockerChatClient));
-        chatClientMap.put(LlmProvider.OPENAI, new ProviderClient(appProperties, openAiChatClient));
-        chatClientMap.put(LlmProvider.ANTHROPIC, new ProviderClient(appProperties, anthropicChatClient));
-        chatClientMap.put(LlmProvider.GEMINI, new ProviderClient(appProperties, geminiChatClient));
+        chatClientMap.put(LlmProvider.OLLAMA, new ProviderClient(ollamaChatClient, sessionId));
+        chatClientMap.put(LlmProvider.DOCKER, new ProviderClient(dockerChatClient, sessionId));
+        chatClientMap.put(LlmProvider.OPENAI, new ProviderClient(openAiChatClient, sessionId));
+        chatClientMap.put(LlmProvider.ANTHROPIC, new ProviderClient(anthropicChatClient, sessionId));
+        chatClientMap.put(LlmProvider.GEMINI, new ProviderClient(geminiChatClient, sessionId));
         checkProviders();
+    }
+
+    /**
+     * Provide a unique value that is reset and fixed each time the server is restarted.
+     * The value is used to create a unique name space with a session,
+     * so chats on each side of a system restart are not linked to each other.
+     * @return a value as seconds with nanoseconds
+     */
+    private static String setSecondsAndNanosOfInstant() {
+        Instant instant = Instant.now();
+        long seconds = instant.getEpochSecond();
+        long nanos = instant.getNano(); // 0-999,999,999
+        return String.valueOf(seconds * 1000000000L + nanos);
+    }
+
+    public String getSessionId() {
+        return sessionId;
     }
 
     private void checkProviders() {
@@ -194,6 +217,22 @@ public class ChatServiceImpl implements ChatService {
                 .build()));
     }
 
+    @Override
+    public void clearSessionHistory(String chatId, LlmProvider provider) {
+        chatClientMap.get(provider).clearSessionHistory(chatId);
+    }
+
+    @Override
+    public GetSessionMessagesResponse getSessionMessages(String chatId, LlmProvider provider) {
+        List<Message> sessionMessages = chatClientMap.get(provider).getSessionMessages(chatId);
+        if (sessionMessages.isEmpty()) {
+            throw new ChatNotFoundException(chatId);
+        }
+        return GetSessionMessagesResponse.builder()
+                .sessionMessages(sessionMessages)
+                .build();
+    }
+
     private GetChatResponse getGetChatResponse(List<LlmPrompt> llmPrompts) {
         List<GetInteractionResponse> responses = llmPrompts
                 .stream()
@@ -259,13 +298,6 @@ public class ChatServiceImpl implements ChatService {
 
     private CreateCompletionByProviderResponse getCompletionResponse(String id, CreateCompletionByProviderRequest completionRequest) {
         try {
-            /* simpler call, not using chat memory
-            String llmAnswer = defaultChatClient
-                    .interactionPrompt(promptRequest.createPrompt())
-                    .call()
-                    .content();
-            String model = getModelFromChatClient(defaultChatClient);
-            */
             createSavePublishRequest(id, completionRequest);
 
             ChatResponseTimer chatResponse = callProvider(completionRequest, completionRequest.getLlmProvider());
@@ -427,6 +459,7 @@ public class ChatServiceImpl implements ChatService {
         return LlmPrompt.builder()
                 .promptId(id)
                 .prompt(prompt)
+                .sessionId(getSessionId())
                 .chatId(chatId)
                 .promptedAt(OffsetDateTime.now())
                 .build();

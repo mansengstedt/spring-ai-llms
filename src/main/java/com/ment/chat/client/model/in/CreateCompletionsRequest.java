@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -29,8 +30,9 @@ public class CreateCompletionsRequest {
     String style;
 
     @Size(max = 128, message = "Size must be max 128 characters")
-    @Schema(description = "The chat id of the interaction used for memory", example = "myId", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    String chatId;
+    @Builder.Default
+    @Schema(description = "The chat id of the interaction used for memory", defaultValue = "default", example = "myId", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    String chatId = "default";
 
     public String createPrompt() {
         return style != null && !style.isEmpty()

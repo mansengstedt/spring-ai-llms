@@ -35,4 +35,9 @@ public class SpringEventListener {
                         () -> log.info("LlmCompletion with ID {} not saved yet.", llmCompletion.getCompletionId())
                 );
     }
+
+    @EventListener
+    public void handleMessage(String message) {
+        log.info("Published message by EventListener: {}", message);
+    }
 }

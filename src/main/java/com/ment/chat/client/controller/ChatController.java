@@ -2,14 +2,15 @@ package com.ment.chat.client.controller;
 
 import com.ment.chat.client.aop.LogExecutionTime;
 import com.ment.chat.client.model.enums.LlmProvider;
-import com.ment.chat.client.model.in.CreateCompletionsByProvidersRequest;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
-import com.ment.chat.client.model.out.CreateCompletionsByProvidersResponse;
+import com.ment.chat.client.model.in.CreateCompletionsByProvidersRequest;
 import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
+import com.ment.chat.client.model.out.CreateCompletionsByProvidersResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
 import com.ment.chat.client.model.out.GetInteractionResponse;
 import com.ment.chat.client.model.out.GetInteractionsResponse;
 import com.ment.chat.client.model.out.GetLlmProvidersStatusResponse;
+import com.ment.chat.client.model.out.GetSessionMessagesResponse;
 import com.ment.chat.client.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -27,12 +28,13 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.ment.chat.client.controller.ChatController.*;
+import static com.ment.chat.client.controller.ChatController.BASE_PATH;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 
@@ -56,6 +58,9 @@ public class ChatController {
     public static final String COMPLETION_CONTAINS_PATH = COMPLETION_PATH + "/contains";
     public static final String CHAT_PATH = "/chat";
     public static final String PROVIDERS_STATUS_PATH = PROVIDERS_PATH + "/status";
+    public static final String HISTORY_PATH = "/history";
+    public static final String CLEAR_PATH = "/clear";
+    public static final String CLEAR_HISTORY_PATH = HISTORY_PATH + CLEAR_PATH;
 
     private final ChatService chatService;
 
@@ -460,4 +465,97 @@ public class ChatController {
     public ResponseEntity<GetLlmProvidersStatusResponse> getAllStatuses() {
         return ResponseEntity.ok(chatService.getAllProviderStatus());
     }
+
+    @Operation(
+            summary = "A list of messages for given chatId and provider.",
+            description = "Get all messages from a given provider with a given chatId in the present session. If no chatId is given, 'default' is used."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "The messages were found for the given chatId and provider",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GetSessionMessagesResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid chatId",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Unknown chatId",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            )
+    })
+    @GetMapping(value = HISTORY_PATH)
+    public ResponseEntity<GetSessionMessagesResponse> getSessionMessages(
+            @Parameter(
+                    name = "chat_id",
+                    description = "the chatId used in the chat",
+                    schema = @Schema(maxLength = 128)  // This shows in Swagger UI
+            )
+            @RequestParam(name = "chat_id", defaultValue = "default") @Size(max = 128, message = "Size must be max 128 characters") String chatId,
+            @RequestParam LlmProvider provider) {
+        return ResponseEntity.ok(chatService.getSessionMessages(chatId, provider));
+    }
+
+    @Operation(
+            summary = "Clear messages history for given chatId and provider.",
+            description = "Clear all prompts for a given provider with a given chatId in the present session. If no chatId is given, 'default' is used."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "The messages were cleared for the given chatId and provider",
+                    content = @Content(
+                            schema = @Schema()
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid chatId",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            )
+    })
+    @PutMapping(value = CLEAR_HISTORY_PATH)
+    public ResponseEntity<Void> clearHistory(
+            @Parameter(
+                    name = "chat_id",
+                    description = "the chatId used in the chat",
+                    schema = @Schema(maxLength = 128)  // This shows in Swagger UI
+            )
+            @RequestParam(name = "chat_id", defaultValue = "default") @Size(max = 128, message = "Size must be max 128 characters") String chatId,
+            @RequestParam LlmProvider provider) {
+        chatService.clearSessionHistory(chatId, provider);
+        return ResponseEntity.noContent().build();
+    }
+
 }

@@ -59,10 +59,10 @@ public abstract class BaseChatServiceTest {
                 .build();
     }
 
-    CreateCompletionsByProvidersRequest createCompletionsByProvidersRequest(String prompt, String chatId, EnumSet<LlmProvider> providers) {
+    CreateCompletionsByProvidersRequest createCompletionsByProvidersRequest(String prompt, EnumSet<LlmProvider> providers) {
         return CreateCompletionsByProvidersRequest.builder()
                 .prompt(prompt)
-                .chatId(chatId)
+                .chatId("default")
                 .llmProviders(providers)
                 .build();
     }

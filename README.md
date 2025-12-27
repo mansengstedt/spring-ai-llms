@@ -55,7 +55,7 @@ The generated key is read outside the app in env variable `ANTHROPIC_CONNECTION_
 To see OpenApi account usage, go to https://console.anthropic.com/settings/billing or https://console.anthropic.com/usage
 
 ### Google Gemini
-LLM using Google Gemini
+LLM using Google Gemini API.
 
 Steps to install and use Gemini/Vertex:
 
@@ -81,7 +81,7 @@ The model name is fetched from `app.gemini.llm-model.name`, but defaults to valu
 
 Do not use the model name values in `org.springframework.ai.vertexai.gemini.VertexAiGeminiChatModel.ChatModel`, like `GEMINI_2_5_PRO`,
 when setting the model name in configuring the VertexAiGeminiChatModel, since the corresponding names are outdated.
-Working example values are `gemini-2-5-pro`, `gemini-2-5-flash` (mukltimodal), `gemini-3-pro-preview` and `gemini-3-pro`.
+Working example values are `gemini-2-5-pro`, `gemini-2-5-flash` (multimodal), `gemini-3-pro-preview` and `gemini-3-pro`.
 
 However, the model returned by gemini is empty. In the code it is set to the configured value.
 
@@ -93,7 +93,7 @@ However, the model returned by gemini is empty. In the code it is set to the con
 Example Projects
 - Josh Long: https://cloud.google.com/blog/topics/developers-practitioners/google-cloud-and-spring-ai-10
 - google: https://console.cloud.google.com/welcome/new?project=lithe-breaker-480809-c9&walkthrough_id=vertex-ai--prompt_design
-
+- ChatMemory: https://www.youtube.com/watch?v=QTaCb7lxyL8
 
 ## Service End points
 
@@ -101,7 +101,7 @@ Example Projects
 * POST /chat/provider/prompt chat with a given LLM in the request object, one of OLLAMA, DOCKER, OPENAI, ANTHROPIC or GEMINI
 * POST /chat/providers/prompt chat with given LLMs in the request object, in set OLLAMA, DOCKER, OPENAI, ANTHROPIC, GEMINI
 * GET /chat/chat/{chat-id} get chat by chatId
-* GET /chat/prompt/{prompt-id} get llmPrompt and completions from given promptId
+* GET /chat/prompt/{prompt-id} get llmPrompt and completions from the given promptId
 * GET /chat/prompt/contains/{part-of-prompt} get chats containing the given part of the prompt
 * GET /chat/completion/{completion-id} get chats containing the given completionId
 * GET /chat/completion/contains/{part-of-completion} get chats containing the given part of the completion
@@ -121,6 +121,10 @@ The main domain objects are:
 To test, you can use the IntelliJ HTTP client with the provided `.rest` files in the `src/test/intellij` directory.
 
 ## Todo
+* ChatMemory, endpoint to show history and clear memory, reference to ChatMemory needed for each client (fixed)
+* Message.ASSISTANT should not be used (fixed)
+* Session handling to separate different chats after restart (fixed)
+* Tooling (fixed)
 * choose which provider to use: replace 'llm/all' endpoint with chosen providers (fixed)
 * upgrade spring-ai to the latest version 1.1.2 (fixed)
 * add Gemini (fixed)

@@ -4,7 +4,6 @@ import com.ment.chat.client.ChatClientApplication;
 import com.ment.chat.client.config.CommonTestConfiguration;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
 import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -134,7 +133,7 @@ class LocalWiremockServerIT {
         assertThat(response.getInteractionCompletion().getLlmProvider()).isEqualTo(request.getLlmProvider());
     }
 
-    @Disabled("Gemini stubbing is not working, real Gemini call is done since wiremock port can't be set in 1.0.3")
+    //Gemini stubbing is now working, real Gemini call is done since wiremock port can be set in 1.1.2.
     @ParameterizedTest
     @CsvSource({
             "gemini-llm-response, payload/chat/create-completion/in/valid_request_gemini.json, 200",

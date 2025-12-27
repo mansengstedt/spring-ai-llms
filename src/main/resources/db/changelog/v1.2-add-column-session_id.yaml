@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-column-llm_prompt-session_id
+      author: mansengstedt
+      changes:
+        - addColumn:
+             tableName: llm_prompt
+             columns:
+               - column:
+                   name: session_id
+                   type: varchar(64)
+                   defaultValue: "default"
+                   constraints:
+                     nullable: false

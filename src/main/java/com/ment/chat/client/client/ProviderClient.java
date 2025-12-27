@@ -1,6 +1,5 @@
 package com.ment.chat.client.client;
 
-import com.ment.chat.client.config.AppProperties;
 import com.ment.chat.client.domain.ChatResponseTimer;
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.in.CreateCompletionsRequest;
@@ -10,23 +9,27 @@ import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
+import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.util.StringUtils;
+
+import java.util.List;
+import java.util.Optional;
+
 
 @Slf4j
 public class ProviderClient {
 
-    private MessageType messageType = MessageType.USER;
+    private final MessageType messageType = MessageType.USER;
 
-    private final AppProperties appProperties;
+    private final ChatClientWIthChatMemory chatClient;
 
-    private final ChatClient chatClient;
+    private final String sessionId;
 
-    public ProviderClient(AppProperties appProperties, ChatClient chatClient) {
-        this.appProperties = appProperties;
+    public ProviderClient(ChatClientWIthChatMemory chatClient, String sessionId) {
         this.chatClient = chatClient;
+        this.sessionId = sessionId;
     }
 
     /**
@@ -37,9 +40,17 @@ public class ProviderClient {
      * @return the answer from the provider with response time
      */
     public ChatResponseTimer callProvider(CreateCompletionsRequest completionRequest, LlmProvider llmProvider) {
-        Message message = createMessageAndToggleMessageType(completionRequest.createPrompt());
-        ChatClient.ChatClientRequestSpec input = createRequestSpec(completionRequest, chatClient, message);
+        Message message = createMessage(completionRequest.createPrompt());
+        ChatClient.ChatClientRequestSpec input = createRequestSpec(completionRequest, chatClient.chatClient(), message);
         return callProvider(llmProvider, input);
+    }
+
+    public void clearSessionHistory(String chatId) {
+        chatClient.chatMemory().clear(sessionChatId(chatId));
+    }
+
+    public List<Message> getSessionMessages(String chatId) {
+        return chatClient.chatMemory().get(sessionChatId(chatId));
     }
 
     private ChatClient.ChatClientRequestSpec createRequestSpec(CreateCompletionsRequest completionRequest, ChatClient chatClient, Message message) {
@@ -47,10 +58,14 @@ public class ProviderClient {
                 .prompt(Prompt.builder()
                         .messages(message)
                         .build());
-        if (StringUtils.hasText(completionRequest.getChatId())) {
-            reqSpec.advisors(a -> a.param(ChatMemory.CONVERSATION_ID, completionRequest.getChatId()));
-        }
+        reqSpec.advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionChatId(completionRequest.getChatId())));
         return reqSpec;
+    }
+
+    private String sessionChatId(String chatId) {
+        return Optional.ofNullable(chatId)
+                .map(id -> sessionId + "-" + id)
+                .orElse(sessionId);
     }
 
     private ChatResponseTimer callProvider(LlmProvider llmProvider, ChatClient.ChatClientRequestSpec reqSpec) {
@@ -70,22 +85,14 @@ public class ProviderClient {
         }
     }
 
-    private Message createMessageAndToggleMessageType(String prompt) {
-        if (messageType == MessageType.USER) {
-            if (Boolean.TRUE == appProperties.toggle().messageType()) {
-                messageType = MessageType.ASSISTANT;
-            }
-            log.info("Sending user message to LLMs: {}", prompt);
-            return new UserMessage(prompt);
-        } else if (messageType == MessageType.ASSISTANT) {
-            if (Boolean.TRUE == appProperties.toggle().messageType()) {
-                messageType = MessageType.USER;
-            }
-            log.info("Sending assistant message to LLMs: {}", prompt);
-            return new AssistantMessage(prompt);
-        } else {
-            throw new IllegalStateException("Unknown message type: " + messageType);
-        }
+    private Message createMessage(String prompt) {
+        log.info("Sending {} message to LLMs: {}", messageType, prompt);
+        return switch (messageType) {
+            case USER -> new UserMessage(prompt);
+            case ASSISTANT -> new AssistantMessage(prompt);
+            case SYSTEM -> new SystemMessage(prompt);
+            default -> throw new IllegalStateException("Illegal message type: " + messageType);
+        };
     }
 
 }

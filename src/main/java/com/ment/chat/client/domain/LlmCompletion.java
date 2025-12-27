@@ -1,8 +1,19 @@
 package com.ment.chat.client.domain;
 
 import com.ment.chat.client.model.enums.LlmProvider;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.OffsetDateTime;
 
@@ -44,7 +55,7 @@ public class LlmCompletion {
 
     @ManyToOne
     @JoinColumn(name = "PROMPT_ID", referencedColumnName = "PROMPT_ID", nullable = false, insertable = false, updatable = false)
-    // Needs to exclude , otherwise a toString() causes an infinite loop between InteractionPrompt and InteractionCompletion
+    // Needs to exclude, otherwise a toString() causes an infinite loop between InteractionPrompt and InteractionCompletion
     @ToString.Exclude
     private LlmPrompt llmPrompt;
 }

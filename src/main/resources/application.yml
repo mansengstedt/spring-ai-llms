@@ -15,6 +15,9 @@ spring:
     contexts: default
   jpa:
     open-in-view: false
+  threads:
+    virtual:
+      enabled: true
   jackson:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
@@ -73,10 +76,15 @@ app:
         url: ${DOCKER_CONNECTION_URL:http://localhost:12434/engines}
         key: ${DOCKER_CONNECTION_KEY:NOT_NEEDED}
     gemini:
-      llm-model-name: ${GEMINI_LLM_MODEL_NAME:gemini-3-pro}
+      llm-model-name: ${GEMINI_LLM_MODEL_NAME:gemini-3-pro-preview}
       api-connection:
         url: ${GEMINI_CONNECTION_URL:https://generativelanguage.googleapis.com/v1beta} #not needed, set in the credential file
         key: ${GEMINI_CONNECTION_KEY:NOT_NEEDED} #not needed
+
+logging:
+  level:
+    org.springframework.ai.chat.client: DEBUG
+    org.springframework.ai.chat.client.advisor: DEBUG
 
 management:
   endpoints:

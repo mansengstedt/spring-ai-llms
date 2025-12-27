@@ -161,16 +161,36 @@ Content-Type: application/json
     });
 %}
 
-### Create llmCompletion from given providers
+### Create llmCompletion from given providers to test Tooling
 POST {{host}}/chat/providers/prompt
 Content-Type: application/json
 
 {
-  "prompt": "What is the relation between Hassabis, Hinton, Jumper and Nobel prize",
-  "style": "answer with max 100 words",
-  "llm_providers": ["GEMINI", "ANTHROPIC"]
+  "prompt": "Explain superposition in quantum mechanics?",
+  "style": "elaborate with max 30 words",
+  "chat_id": "superposition",
+  "llm_providers": ["GEMINI","ANTHROPIC","OPENAI"]
 }
 
+### Get chat history for a given chat id and provider
+GET {{host}}/chat/history?chat_id=superposition&provider=ANTHROPIC
+
+### Clear chat history for a given chat id and provider
+PUT {{host}}/chat/history/clear?chat_id=superposition&provider=ANTHROPIC
+
+### Get chat history for a given chat id and provider, now returns 404
+GET {{host}}/chat/history?chat_id=superposition&provider=ANTHROPIC
+
+### Check that ANTHROPIC does not understand the question after clearing it's history
+POST {{host}}/chat/providers/prompt
+Content-Type: application/json
+
+{
+  "prompt": "Who coined the term?",
+  "style": "elaborate with max 30 words",
+  "chat_id": "superposition",
+  "llm_providers": ["GEMINI","ANTHROPIC","OPENAI"]
+}
 
 ### Create llmCompletion from all LLMs like ollama, docker, openai, anthropic
 POST {{host}}/chat/providers/prompt

@@ -5,3 +5,6 @@ databaseChangeLog:
   - include:
       file: changelog/v1.1-create-index-prompt-completion.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/v1.2-add-column-session_id.yaml
+      relativeToChangelogFile: true

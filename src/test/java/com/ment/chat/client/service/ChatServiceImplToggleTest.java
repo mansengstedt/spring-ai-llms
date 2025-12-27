@@ -1,6 +1,7 @@
 package com.ment.chat.client.service;
 
-import com.ment.chat.client.config.AppProperties;
+import com.ment.chat.client.client.ChatClientWIthChatMemory;
+import com.ment.chat.client.client.ProviderClient;
 import com.ment.chat.client.domain.LlmCompletion;
 import com.ment.chat.client.domain.LlmPrompt;
 import com.ment.chat.client.domain.repository.LlmCompletionRepository;
@@ -31,7 +32,10 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -56,9 +60,8 @@ class ChatServiceImplToggleTest {
     @Mock
     private ApplicationEventPublisher applicationEventPublisher;
 
-
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    private AppProperties appProperties;
+    @Mock
+    private ChatClientWIthChatMemory chatClientWIthChatMemory;
 
     @InjectMocks
     private ChatServiceImpl service;
@@ -69,11 +72,19 @@ class ChatServiceImplToggleTest {
     @BeforeEach
     void setUp() throws Exception {
         try (AutoCloseable _ = MockitoAnnotations.openMocks(this)) {
-            var method = ChatServiceImpl.class.getDeclaredMethod("chatClientMap");
-            method.setAccessible(true);
-            method.invoke(service);
+            Field mapField = ChatServiceImpl.class.getDeclaredField("chatClientMap");
+            mapField.setAccessible(true);
+
+            Map<LlmProvider, ProviderClient> mockMap = new HashMap<>();
+            for (LlmProvider provider : LlmProvider.values()) {
+                mockMap.put(provider, new ProviderClient(chatClientWIthChatMemory, "test-session"));
+            }
+            mapField.set(service, mockMap);
         }
 
+
+        // Mock ChatClientWIthChatMemory to return the mockedChatClient
+        when(chatClientWIthChatMemory.chatClient()).thenReturn(mockedChatClient);
         // Mock repository behavior to avoid NPE
         when(llmPromptRepository.save(any())).thenReturn(LlmPrompt.builder().build());
         when(llmPromptRepository.findById(any())).thenReturn(Optional.of(LlmPrompt.builder().build()));
@@ -82,8 +93,8 @@ class ChatServiceImplToggleTest {
     }
 
     @ParameterizedTest
-    @MethodSource("toggle")
-    void testInternalResponseAndMessageTypeNoToggle(Boolean toggle, LlmProvider llmProvider) {
+    @MethodSource("providers")
+    void testInternalResponseAndMessageTypeNoToggle(LlmProvider llmProvider) {
         String model = "model-1";
         String answer1 = "answer1";
         String prompt1 = "Ping";
@@ -92,7 +103,6 @@ class ChatServiceImplToggleTest {
         ChatResponse resp1 = chatResponse(model, answer1);
         ChatClient chatClient = mockedChatClient;
 
-        when(appProperties.toggle().messageType()).thenReturn(toggle);
         when(chatClient.prompt(any(Prompt.class)).call().chatResponse()).thenReturn(resp1);
 
         CreateCompletionByProviderRequest req1 = CreateCompletionByProviderRequest.builder()
@@ -111,6 +121,7 @@ class ChatServiceImplToggleTest {
         CreateCompletionByProviderResponse r2 = service.createCompletionByProvider(req2);
 
         verify(chatClient, times(3)).prompt(promptCaptor.capture());
+        verify(chatClientWIthChatMemory, times(2)).chatClient();
 
         assertThat(r1.getInteractionCompletion().getCompletion()).isEqualTo(answer1);
         assertThat(r2.getInteractionCompletion().getCompletion()).isEqualTo(answer1); //any prompt returns answer1
@@ -127,27 +138,18 @@ class ChatServiceImplToggleTest {
         assertThat(second).isInstanceOf(SystemMessage.class);
 
         assertThat(prompts.get(1).getUserMessage().getText()).isEqualTo(prompt1);
-        if (toggle) {
-            //toggling from MessageType.USER to MessageType.ASSISTANT
-            assertThat(prompts.get(2).getUserMessage().getText()).isEqualTo("");
-            assertThat(prompts.get(2).toString()).contains("messageType=ASSISTANT");
-        } else {
-            //no toggling: always MessageType.USER
-            assertThat(prompts.get(2).getUserMessage().getText()).isEqualTo(prompt2);
-            assertThat(prompts.get(2).toString()).contains("messageType=USER");
-        }
+        assertThat(prompts.get(2).getUserMessage().getText()).isEqualTo(prompt2);
+        assertThat(prompts.get(2).toString()).contains("messageType=USER");
+
     }
 
-    static Stream<Arguments> toggle() {
+    static Stream<Arguments> providers() {
         return Stream.of(
-                Arguments.of(true, LlmProvider.OPENAI), // enable flip from USER to ASSISTANT
-                Arguments.of(false, LlmProvider.OPENAI), // disable flip, always USER, NO ASSISTANT
-                Arguments.of(true, LlmProvider.ANTHROPIC),
-                Arguments.of(false, LlmProvider.ANTHROPIC),
-                Arguments.of(true, LlmProvider.DOCKER),
-                Arguments.of(false, LlmProvider.DOCKER),
-                Arguments.of(true, LlmProvider.OLLAMA),
-                Arguments.of(false, LlmProvider.OLLAMA)
+                Arguments.of(LlmProvider.OPENAI), // enable flip from USER to ASSISTANT
+                Arguments.of(LlmProvider.ANTHROPIC),
+                Arguments.of(LlmProvider.ANTHROPIC),
+                Arguments.of(LlmProvider.DOCKER),
+                Arguments.of(LlmProvider.OLLAMA)
         );
     }
 

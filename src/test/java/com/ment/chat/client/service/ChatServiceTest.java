@@ -95,7 +95,7 @@ public class ChatServiceTest extends BaseChatServiceTest {
         var prompt1 = "Who is Elon Musk?";
         var providerSet = EnumSet.of(LlmProvider.OLLAMA, LlmProvider.DOCKER);
 
-        var completionByProvider = chatService.createCompletionsByProviders(createCompletionsByProvidersRequest(prompt1, null, providerSet));
+        var completionByProvider = chatService.createCompletionsByProviders(createCompletionsByProvidersRequest(prompt1, providerSet));
         var response1 = chatService.getInteractionByPromptId(completionByProvider.getInteractionCompletions().getFirst().getPromptId());
         var response2 = chatService.getInteractionByCompletionId(completionByProvider.getInteractionCompletions().getFirst().getCompletionId());
 
