@@ -140,7 +140,7 @@ To test, you can use the IntelliJ HTTP client with the provided `.rest` files in
 * improve error messages (partly fixed)
 
 ## Prerequisites
-- Java 21 or higher
+- Java 24 or higher
 - Ollama installed and running, do: `ollama serve`, with some models
 - Docker installed and running with some models
 - OpenApi account, quota and key for external LLMs to use
