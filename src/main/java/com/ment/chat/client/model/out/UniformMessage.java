@@ -6,17 +6,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
+import org.springframework.ai.chat.messages.MessageType;
 
-import java.util.List;
-
-@Schema(description = "The list of messages in in the ongoing session")
+@Schema(description = "A uniform message that covers all MessageTypes")
 @Value
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Jacksonized
-public class GetSessionMessagesResponse {
+public class UniformMessage {
 
-    @Schema(description = "List of messages for a given chatId in the ongoing session", requiredMode = Schema.RequiredMode.REQUIRED)
-    List<UniformMessage> sessionMessages;
+    String content;
+    MessageType messageType;
 
 }

@@ -14,8 +14,8 @@ import com.ment.chat.client.domain.repository.LlmPromptRepository;
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.enums.LlmStatus;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
-import com.ment.chat.client.model.in.CreateCompletionsRequest;
 import com.ment.chat.client.model.in.CreateCompletionsByProvidersRequest;
+import com.ment.chat.client.model.in.CreateCompletionsRequest;
 import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
 import com.ment.chat.client.model.out.CreateCompletionsByProvidersResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
@@ -25,6 +25,7 @@ import com.ment.chat.client.model.out.GetLlmProvidersStatusResponse;
 import com.ment.chat.client.model.out.GetSessionMessagesResponse;
 import com.ment.chat.client.model.out.InteractionCompletion;
 import com.ment.chat.client.model.out.InteractionPrompt;
+import com.ment.chat.client.model.out.UniformMessage;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -229,8 +230,17 @@ public class ChatServiceImpl implements ChatService {
             throw new ChatNotFoundException(chatId);
         }
         return GetSessionMessagesResponse.builder()
-                .sessionMessages(sessionMessages)
+                .sessionMessages(sessionMessages.stream()
+                        .map(this::transform)
+                        .toList())
                 .build();
+    }
+
+    private UniformMessage transform(Message message) {
+        return UniformMessage.builder()
+                            .content(message.getText())
+                            .messageType(message.getMessageType())
+                            .build();
     }
 
     private GetChatResponse getGetChatResponse(List<LlmPrompt> llmPrompts) {

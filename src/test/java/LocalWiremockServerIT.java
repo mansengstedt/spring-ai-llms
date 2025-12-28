@@ -2,11 +2,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.ment.chat.client.ChatClientApplication;
 import com.ment.chat.client.config.CommonTestConfiguration;
+import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
 import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
+import com.ment.chat.client.model.out.GetSessionMessagesResponse;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
@@ -16,6 +19,7 @@ import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -24,7 +28,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.ment.chat.client.controller.ChatController.BASE_PATH;
+import static com.ment.chat.client.controller.ChatController.CLEAR_HISTORY_PATH;
+import static com.ment.chat.client.controller.ChatController.HISTORY_PATH;
 import static com.ment.chat.client.controller.ChatController.PROVIDER_PROMPT_PATH;
+import static com.ment.chat.client.model.in.CreateCompletionsRequest.DEFAULT_CHAT_ID;
 import static com.ment.chat.client.utils.Utility.createObjectMapper;
 import static com.ment.chat.client.utils.Utility.readFileResource;
 import static com.ment.chat.client.utils.Utility.replaceTemplateValue;
@@ -96,6 +103,8 @@ class LocalWiremockServerIT {
         assertThat(response.getInteractionCompletion().getLlm()).isEqualTo(OPENAI_MODEL);
         assertThat(response.getInteractionCompletion().getTokenUsage()).contains(TOKEN_USAGE);
         assertThat(response.getInteractionCompletion().getLlmProvider()).isEqualTo(request.getLlmProvider());
+
+        testHistory(request.getChatId(), request.getLlmProvider());
     }
 
     @ParameterizedTest
@@ -131,16 +140,19 @@ class LocalWiremockServerIT {
         assertThat(response.getInteractionCompletion().getLlm()).isEqualTo(ANTHROPIC_MODEL);
         assertThat(response.getInteractionCompletion().getTokenUsage()).contains(TOKEN_USAGE);
         assertThat(response.getInteractionCompletion().getLlmProvider()).isEqualTo(request.getLlmProvider());
+
+        testHistory(request.getChatId(), request.getLlmProvider());
     }
 
     //Gemini stubbing is now working, real Gemini call is done since wiremock port can be set in 1.1.2.
+    //In test timeout is 10 seconds, which might be too small.
     @ParameterizedTest
     @CsvSource({
             "gemini-llm-response, payload/chat/create-completion/in/valid_request_gemini.json, 200",
     })
     void testGeminiResponse_success(String idpMatcher,
-                                       String requestFileName,
-                                       String httpStatus) throws Exception {
+                                    String requestFileName,
+                                    String httpStatus) throws Exception {
         stubGemini();
 
         String requestBody = readFileResource(requestFileName);
@@ -166,6 +178,58 @@ class LocalWiremockServerIT {
         //shows that stubbing is not working since real content is returned
         assertThat(response.getInteractionCompletion().getCompletion()).isNotEqualTo(CONTENT);
         assertThat(response.getInteractionCompletion().getLlmProvider()).isEqualTo(request.getLlmProvider());
+
+        testHistory(request.getChatId(), request.getLlmProvider());
+    }
+
+    void testHistory(String chatId, LlmProvider provider) {
+        getHistoryResponse(chatId, provider, "200");
+        //delete should succeed and history is now empty.
+        deleteHistoryResponseFailure(chatId, provider, "204");
+        //now getHistoryResponse should give 404 for the same chatId
+        getHistoryResponse(chatId, provider, "404");
+    }
+
+    void deleteHistoryResponseFailure(String chatId, LlmProvider provider, String httpStatus) {
+        String idpMatcher = "history-delete";
+
+        WebTestClient.ResponseSpec responseSpec = client.delete().uri(BASE_PATH + CLEAR_HISTORY_PATH + "?chat_id=%s&provider=%s".formatted(chatId, provider.name()))
+                .headers(httpHeaders ->
+                    httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher))
+                .exchange();
+
+        responseSpec
+                .expectStatus().isEqualTo(HttpStatus.valueOf(Integer.parseInt(httpStatus)));
+    }
+
+    void getHistoryResponse(String chatId, LlmProvider provider, String httpStatus) {
+        String idpMatcher = "history-get";
+
+        WebTestClient.ResponseSpec responseSpec = client.get().uri(BASE_PATH + HISTORY_PATH + "?chat_id=%s&provider=%s".formatted(chatId, provider.name()))
+                .headers(httpHeaders -> httpHeaders.add(IDP_MATCHER_HEADER_KEY, idpMatcher))
+                .exchange();
+
+        if (httpStatus.equals("200")) {
+            GetSessionMessagesResponse response = responseSpec
+                    .expectStatus().isEqualTo(HttpStatus.valueOf(Integer.parseInt(httpStatus)))
+                    .expectBody(GetSessionMessagesResponse.class)
+                    .returnResult()
+                    .getResponseBody();
+            assertThat(response).isNotNull();
+            assertThat(response.getSessionMessages()).isNotNull();
+            assertThat(response.getSessionMessages()).hasSize(2);
+            assertThat(response.getSessionMessages().get(0).getMessageType()).isEqualTo(MessageType.USER);
+            assertThat(response.getSessionMessages().get(1).getMessageType()).isEqualTo(MessageType.ASSISTANT);
+        } else if (httpStatus.equals("404")) {
+            ProblemDetail response = responseSpec
+                    .expectStatus().isEqualTo(HttpStatus.valueOf(Integer.parseInt(httpStatus)))
+                    .expectBody(ProblemDetail.class)
+                    .returnResult()
+                    .getResponseBody();
+            assertThat(response).isNotNull();
+            assertThat(response.getDetail()).isEqualTo(DEFAULT_CHAT_ID);
+        }
+
     }
 
     void stubOpenai() throws Exception {

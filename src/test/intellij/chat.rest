@@ -175,11 +175,29 @@ Content-Type: application/json
 ### Get chat history for a given chat id and provider
 GET {{host}}/chat/history?chat_id=superposition&provider=ANTHROPIC
 
+> {%
+    client.test("Status", function () {
+        client.assert(response.status === 200, "Unexpected response status");
+    });
+%}
+
 ### Clear chat history for a given chat id and provider
-PUT {{host}}/chat/history/clear?chat_id=superposition&provider=ANTHROPIC
+DELETE {{host}}/chat/history/clear?chat_id=superposition&provider=ANTHROPIC
+
+> {%
+    client.test("Status", function () {
+        client.assert(response.status === 204, "Unexpected response status");
+    });
+%}
 
 ### Get chat history for a given chat id and provider, now returns 404
 GET {{host}}/chat/history?chat_id=superposition&provider=ANTHROPIC
+
+> {%
+    client.test("Status", function () {
+        client.assert(response.status === 404, "Unexpected response status");
+    });
+%}
 
 ### Check that ANTHROPIC does not understand the question after clearing it's history
 POST {{host}}/chat/providers/prompt
@@ -192,6 +210,12 @@ Content-Type: application/json
   "llm_providers": ["GEMINI","ANTHROPIC","OPENAI"]
 }
 
+> {%
+    client.test("Status", function () {
+        client.assert(response.status === 200, "Unexpected response status");
+    });
+%}
+
 ### Create llmCompletion from all LLMs like ollama, docker, openai, anthropic
 POST {{host}}/chat/providers/prompt
 Content-Type: application/json
@@ -201,6 +225,12 @@ Content-Type: application/json
   "style": "answer with max 10 word and end answer with Presently!",
   "llm_providers": ["OLLAMA", "DOCKER", "OPENAI", "ANTHROPIC","GEMINI"]
 }
+
+> {%
+    client.test("Status", function () {
+        client.assert(response.status === 200, "Unexpected response status");
+    });
+%}
 
 
 ### GET one or several completions from a given llmPrompt id

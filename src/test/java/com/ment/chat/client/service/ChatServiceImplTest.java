@@ -22,6 +22,9 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.ToolResponseMessage;
+import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.metadata.ChatResponseMetadata;
 import org.springframework.ai.chat.metadata.DefaultUsage;
 import org.springframework.ai.chat.metadata.Usage;
@@ -110,7 +113,14 @@ class ChatServiceImplTest {
 
     @Test
     void testChatMemoryCalls() {
-        List<Message> actualMessages = List.of(new AssistantMessage("Test answer"));
+        List<Message> actualMessages =
+                List.of(new UserMessage("Test prompt"),
+                        new AssistantMessage("Test answer"),
+                        new SystemMessage("Test system message"),
+                        ToolResponseMessage.builder().responses(List.of(
+                                        new ToolResponseMessage.ToolResponse("id", "name", "responsedata")))
+                                .build()
+                );
         String chatId = "chatId";
 
         when(chatClientWIthChatMemory.chatMemory()).thenReturn(chatMemory);
@@ -119,7 +129,11 @@ class ChatServiceImplTest {
         GetSessionMessagesResponse response = chatService.getSessionMessages(chatId, ANTHROPIC);
         chatService.clearSessionHistory(chatId, ANTHROPIC);
 
-        assertThat(response.getSessionMessages()).isEqualTo(actualMessages);
+        assertThat(response.getSessionMessages().size()).isEqualTo(actualMessages.size());
+        for (int i = 0; i < actualMessages.size(); i++) {
+            assertThat(response.getSessionMessages().get(i).getMessageType()).isEqualTo(actualMessages.get(i).getMessageType());
+            assertThat(response.getSessionMessages().get(i).getContent()).isEqualTo(actualMessages.get(i).getText());
+        }
 
         verify(chatClientWIthChatMemory, times(2)).chatMemory();
         verify(chatMemory, times(1)).get(ArgumentMatchers.contains(chatId));
@@ -146,7 +160,7 @@ class ChatServiceImplTest {
 
     }
 
-        @SuppressWarnings("SameParameterValue")
+    @SuppressWarnings("SameParameterValue")
     private ChatResponse mockChatResponse(String model, Usage usage, String answer) {
         ChatResponseMetadata metadata = ChatResponseMetadata.builder()
                 .model(model)
