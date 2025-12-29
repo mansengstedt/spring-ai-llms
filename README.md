@@ -100,6 +100,7 @@ Example Projects
 * POST /chat/provider/haiku?provider={provider} create a haiku from provider, for example Anthropic, with given parameters
 * POST /chat/provider/prompt chat with a given LLM in the request object, one of OLLAMA, DOCKER, OPENAI, ANTHROPIC or GEMINI
 * POST /chat/providers/prompt chat with given LLMs in the request object, in set OLLAMA, DOCKER, OPENAI, ANTHROPIC, GEMINI
+* POST /chat/providers/prompt/aggregate chat with given LLMs using the tagged completions as an aggregate prompt to the aggregator LLM 
 * DELETE /chat/history/clear?chat_id={chat_id}&provider={provider} clear chat history for a Provider
 * GET /chat/history?chat_id={chat_id}&provider={provider} get chat history for a Provider
 * GET /chat/chat/{chat-id} get chat by chatId
