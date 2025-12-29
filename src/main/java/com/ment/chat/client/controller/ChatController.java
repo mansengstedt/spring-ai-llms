@@ -91,6 +91,7 @@ public class ChatController {
             )
     })
     @PostMapping(value = PROVIDER_HAIKU_PATH)
+    @LogExecutionTime
     public ResponseEntity<CreateCompletionByProviderResponse> createHaiku(
             @RequestParam LlmProvider provider,
             @Parameter(

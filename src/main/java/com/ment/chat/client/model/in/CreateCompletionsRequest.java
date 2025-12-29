@@ -36,6 +36,11 @@ public class CreateCompletionsRequest {
     @Schema(description = "The chat id of the interaction used for memory", defaultValue = DEFAULT_CHAT_ID, example = "myId", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     String chatId = DEFAULT_CHAT_ID;
 
+    @Size(min = 10, max = 128, message = "System must be between 10 and 128 characters")
+    @Schema(description = "The system message for the current prompt, overrides default system message", example = "Answer with max 25 words!", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    String system;
+
+
     public String createPrompt() {
         return style != null && !style.isEmpty()
                 ? prompt + ". " + style

@@ -5,4 +5,6 @@ public interface Systems {
     String HELPFUL_SYSTEM_MAX_100 = "You are a helpful assistant that gives detailed answers with maximum 100 words.";
     String HELPFUL_SYSTEM_MAX_50 = "You are a helpful assistant that gives detailed answers with maximum 100 words.";
     String HELPFUL_SYSTEM_PUBLISH = "You are a helpful assistant. Answer the question as best you can. After providing any answer, always use the publish_arbitrary_message tool to publish";
+    String SUMMARY_SYSTEM_MAX_100 = "You are a helpful assistant that gives summaries of the most important non-overlapping facts with maximum 100 words.";
+
 }
