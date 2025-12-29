@@ -14,9 +14,11 @@ import com.ment.chat.client.domain.repository.LlmPromptRepository;
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.enums.LlmStatus;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
+import com.ment.chat.client.model.in.CreateCompletionsByProvidersAggregateRequest;
 import com.ment.chat.client.model.in.CreateCompletionsByProvidersRequest;
 import com.ment.chat.client.model.in.CreateCompletionsRequest;
 import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
+import com.ment.chat.client.model.out.CreateCompletionsByProvidersAggregateResponse;
 import com.ment.chat.client.model.out.CreateCompletionsByProvidersResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
 import com.ment.chat.client.model.out.GetInteractionResponse;
@@ -50,6 +52,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+
+import static com.ment.chat.client.config.Systems.SUMMARY_SYSTEM_FROM_LLMS;
 
 @Aspect
 @Service
@@ -141,6 +145,21 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public CreateCompletionsByProvidersResponse createCompletionsByProviders(CreateCompletionsByProvidersRequest createCompletionsByProvidersRequest) {
         return getCompletionsResponse(createUniqueId(), createCompletionsByProvidersRequest, createCompletionsByProvidersRequest.getLlmProviders());
+    }
+
+    @Override
+    public CreateCompletionsByProvidersAggregateResponse createCompletionsByProvidersAggregate(CreateCompletionsByProvidersAggregateRequest createCompletionsByProvidersAggregatorRequest) {
+        CreateCompletionsByProvidersResponse completionsByProviders = createCompletionsByProviders(createCompletionsByProvidersAggregatorRequest);
+        CreateCompletionByProviderRequest aggregateRequest = aggregateCompletionsToRequest(
+                createCompletionsByProvidersAggregatorRequest,
+                completionsByProviders);
+        log.info("Aggregate request: {}", aggregateRequest);
+        CreateCompletionByProviderResponse completionByProvider = createCompletionByProvider(aggregateRequest);
+        return CreateCompletionsByProvidersAggregateResponse.builder()
+                .interactionCompletions(completionsByProviders.getInteractionCompletions())
+                .aggregateRequest(aggregateRequest)
+                .aggregateSummary(completionByProvider.getInteractionCompletion())
+                .build();
     }
 
     @Override
@@ -238,9 +257,9 @@ public class ChatServiceImpl implements ChatService {
 
     private UniformMessage transform(Message message) {
         return UniformMessage.builder()
-                            .content(message.getText())
-                            .messageType(message.getMessageType())
-                            .build();
+                .content(message.getText())
+                .messageType(message.getMessageType())
+                .build();
     }
 
     private GetChatResponse getGetChatResponse(List<LlmPrompt> llmPrompts) {
@@ -260,11 +279,12 @@ public class ChatServiceImpl implements ChatService {
 
     private InteractionPrompt transform(LlmPrompt llmPrompt) {
         return InteractionPrompt.builder()
-                        .promptId(llmPrompt.getPromptId())
-                        .prompt(llmPrompt.getPrompt())
-                        .chatId(llmPrompt.getChatId())
-                        .promptedAt(llmPrompt.getPromptedAt())
-                        .build();
+                .promptId(llmPrompt.getPromptId())
+                .prompt(llmPrompt.getPrompt())
+                .sessionId(llmPrompt.getSessionId())
+                .chatId(llmPrompt.getChatId())
+                .promptedAt(llmPrompt.getPromptedAt())
+                .build();
     }
 
     private GetLlmProvidersStatusResponse extractStatusFrom(CreateCompletionsByProvidersResponse combinedChatResponse) {
@@ -485,6 +505,20 @@ public class ChatServiceImpl implements ChatService {
                 .tokenUsage(response.getInteractionCompletion().getTokenUsage())
                 .executionTimeMs(response.getInteractionCompletion().getExecutionTimeMs())
                 .completedAt(response.getInteractionCompletion().getCompletedAt())
+                .build();
+    }
+
+    private CreateCompletionByProviderRequest aggregateCompletionsToRequest(CreateCompletionsByProvidersAggregateRequest aggregateRequest,
+                                                                            CreateCompletionsByProvidersResponse completionsByProviders) {
+        return CreateCompletionByProviderRequest.builder()
+                .llmProvider(aggregateRequest.getLlmAggregator())
+                .prompt(completionsByProviders.getInteractionCompletions().stream()
+                        .map(c -> c.getLlmProvider() + ": " + c.getCompletion())
+                        .reduce((a, b) -> a + "\n\n" + b)
+                        .orElse(""))
+                .chatId(aggregateRequest.getChatId())
+                .system(SUMMARY_SYSTEM_FROM_LLMS)
+                .style(aggregateRequest.getStyle())
                 .build();
     }
 

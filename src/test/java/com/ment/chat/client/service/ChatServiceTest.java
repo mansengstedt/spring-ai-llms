@@ -18,6 +18,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.EnumSet;
 
+import static com.ment.chat.client.model.enums.LlmProvider.DOCKER;
+import static com.ment.chat.client.model.enums.LlmProvider.OLLAMA;
 import static com.ment.chat.client.model.in.CreateCompletionsRequest.DEFAULT_CHAT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -94,7 +96,7 @@ public class ChatServiceTest extends BaseChatServiceTest {
     @Test
     void chatProviderGetCompletionsByProviders() {
         var prompt1 = "Who is Elon Musk?";
-        var providerSet = EnumSet.of(LlmProvider.OLLAMA, LlmProvider.DOCKER);
+        var providerSet = EnumSet.of(OLLAMA, DOCKER);
 
         var completionByProvider = chatService.createCompletionsByProviders(createCompletionsByProvidersRequest(prompt1, providerSet));
         var response1 = chatService.getInteractionByPromptId(completionByProvider.getInteractionCompletions().getFirst().getPromptId());
@@ -117,13 +119,44 @@ public class ChatServiceTest extends BaseChatServiceTest {
     }
 
     @Test
+    void chatProviderGetCompletionsByProvidersAggregate() {
+        var prompt1 = "Who is Elon Musk?";
+        var providerSet = EnumSet.of(OLLAMA, DOCKER);
+        var aggregator = OLLAMA;
+
+        var completionByProviderAggregate = chatService.createCompletionsByProvidersAggregate(createCompletionsByProvidersAggregateRequest(prompt1, providerSet, aggregator));
+        var response1 = chatService.getInteractionByPromptId(completionByProviderAggregate.getInteractionCompletions().getFirst().getPromptId());
+        var response2 = chatService.getInteractionByCompletionId(completionByProviderAggregate.getInteractionCompletions().getFirst().getCompletionId());
+
+        assertThat(completionByProviderAggregate.getAggregateRequest()).isNotNull();
+        assertThat(completionByProviderAggregate.getAggregateRequest().getChatId()).isEqualTo(response1.getInteractionPrompt().getChatId());
+        assertThat(completionByProviderAggregate.getAggregateRequest().getLlmProvider()).isEqualTo(aggregator);
+        assertThat(completionByProviderAggregate.getAggregateSummary().getPromptId()).isNotNull();
+
+        assertThat(completionByProviderAggregate.getInteractionCompletions().size()).isEqualTo(providerSet.size());
+        assertThat(completionByProviderAggregate.getInteractionCompletions().getFirst().getPromptId()).isEqualTo(completionByProviderAggregate.getInteractionCompletions().get(1).getPromptId());
+        assertThat(completionByProviderAggregate.getInteractionCompletions().getFirst().getCompletionId()).isNotEqualTo(completionByProviderAggregate.getInteractionCompletions().get(1).getCompletionId());
+
+        assertThat(response1.getInteractionPrompt()).isEqualTo(response2.getInteractionPrompt());
+        assertThat(response1.getInteractionPrompt().getPrompt()).isEqualTo(prompt1);
+        assertThat(response1.getInteractionPrompt().getChatId()).isEqualTo(DEFAULT_CHAT_ID);
+        assertThat(response1.getInteractionCompletions().size()).isEqualTo(providerSet.size());
+        assertThat(response2.getInteractionCompletions().size()).isEqualTo(1);
+
+        assertThat(completionByProviderAggregate.getInteractionCompletions()).containsExactlyInAnyOrderElementsOf(response1.getInteractionCompletions());
+        response1.getInteractionCompletions()
+                .forEach(completion ->
+                        assertThat(completion.getCompletion()).isNotNull());
+    }
+
+    @Test
     void chatProviderGetPromptById() {
         var chatId = "test-chat-id";
         var prompt1 = "Who is Elon Musk?";
         var prompt2 = "Is he a friend of Donald Trump?";
 
-        chatService.createCompletionByProvider(createCompletionRequest(prompt1, chatId, LlmProvider.OLLAMA));
-        chatService.createCompletionByProvider(createCompletionRequest(prompt2, chatId, LlmProvider.OLLAMA));
+        chatService.createCompletionByProvider(createCompletionRequest(prompt1, chatId, OLLAMA));
+        chatService.createCompletionByProvider(createCompletionRequest(prompt2, chatId, OLLAMA));
         var response = chatService.getChatByChatId(chatId);
 
         assertThat(response).isInstanceOf(GetChatResponse.class);

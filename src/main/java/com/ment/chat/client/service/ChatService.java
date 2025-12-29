@@ -1,9 +1,11 @@
 package com.ment.chat.client.service;
 
 import com.ment.chat.client.model.enums.LlmProvider;
+import com.ment.chat.client.model.in.CreateCompletionsByProvidersAggregateRequest;
 import com.ment.chat.client.model.in.CreateCompletionsByProvidersRequest;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
 import com.ment.chat.client.model.in.CreateCompletionsRequest;
+import com.ment.chat.client.model.out.CreateCompletionsByProvidersAggregateResponse;
 import com.ment.chat.client.model.out.CreateCompletionsByProvidersResponse;
 import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
@@ -17,6 +19,8 @@ public interface ChatService {
     CreateCompletionByProviderResponse createCompletionByProvider(CreateCompletionByProviderRequest createCompletionByProviderRequest);
 
     CreateCompletionsByProvidersResponse createCompletionsByProviders(CreateCompletionsByProvidersRequest createCompletionsByProvidersRequest);
+
+    CreateCompletionsByProvidersAggregateResponse createCompletionsByProvidersAggregate(CreateCompletionsByProvidersAggregateRequest createCompletionsByProvidersAggregatorRequest);
 
     CreateCompletionsByProvidersResponse createCompletionsByAllProviders(CreateCompletionsRequest createCompletionsRequest);
 

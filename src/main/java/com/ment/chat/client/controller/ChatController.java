@@ -3,8 +3,10 @@ package com.ment.chat.client.controller;
 import com.ment.chat.client.aop.LogExecutionTime;
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
+import com.ment.chat.client.model.in.CreateCompletionsByProvidersAggregateRequest;
 import com.ment.chat.client.model.in.CreateCompletionsByProvidersRequest;
 import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
+import com.ment.chat.client.model.out.CreateCompletionsByProvidersAggregateResponse;
 import com.ment.chat.client.model.out.CreateCompletionsByProvidersResponse;
 import com.ment.chat.client.model.out.GetChatResponse;
 import com.ment.chat.client.model.out.GetInteractionResponse;
@@ -52,6 +54,7 @@ public class ChatController {
     public static final String PROMPT_PATH = "/prompt";
     public static final String PROVIDER_PROMPT_PATH = PROVIDER_PATH + PROMPT_PATH;
     public static final String PROVIDERS_PROMPT_PATH = PROVIDERS_PATH + PROMPT_PATH;
+    public static final String PROVIDERS_PROMPT_AGGREGATE_PATH = PROVIDERS_PROMPT_PATH + "/aggregate";
     public static final String PROVIDER_HAIKU_PATH = PROVIDER_PATH + "/haiku";
     public static final String PROMPT_CONTAINS_PATH = PROMPT_PATH + "/contains";
     public static final String COMPLETION_PATH = "/completion";
@@ -91,6 +94,7 @@ public class ChatController {
             )
     })
     @PostMapping(value = PROVIDER_HAIKU_PATH)
+    @LogExecutionTime
     public ResponseEntity<CreateCompletionByProviderResponse> createHaiku(
             @RequestParam LlmProvider provider,
             @Parameter(
@@ -182,6 +186,42 @@ public class ChatController {
     @LogExecutionTime
     public ResponseEntity<CreateCompletionsByProvidersResponse> createCompletionsByProviders(@RequestBody @Valid CreateCompletionsByProvidersRequest createCompletionsByProvidersRequest) {
         return ResponseEntity.ok(chatService.createCompletionsByProviders(createCompletionsByProvidersRequest));
+    }
+
+    @Operation(
+            summary = "Create an aggregate completion for a specified prompt for given LLM providers completion as input to the aggregator.",
+            description = "Retrieves the completion from all LLM aggregator provider based on the given completions."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successful completions of prompt",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CreateCompletionsByProvidersAggregateResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid prompt",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            )
+    })
+    @PostMapping(value = PROVIDERS_PROMPT_AGGREGATE_PATH, consumes = {APPLICATION_JSON_VALUE})
+    @LogExecutionTime
+    public ResponseEntity<CreateCompletionsByProvidersAggregateResponse> createAggregateCompletionByProviders(@RequestBody @Valid CreateCompletionsByProvidersAggregateRequest createCompletionsByProvidersRequest) {
+        return ResponseEntity.ok(chatService.createCompletionsByProvidersAggregate(createCompletionsByProvidersRequest));
     }
 
     @Operation(

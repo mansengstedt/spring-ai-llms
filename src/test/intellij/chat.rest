@@ -28,6 +28,12 @@ Content-Type: application/json
   "llm_provider": "OLLAMA"
 }
 
+> {%
+    client.test("Status", function () {
+        client.assert(response.status === 200, "Unexpected response status");
+    });
+%}
+
 ### invalid input
 POST {{host}}/chat/provider/prompt
 Content-Type: application/json
@@ -38,6 +44,12 @@ Content-Type: application/json
   "llm_provider": "DOCKER",
   "style": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 }
+
+> {%
+    client.test("Status", function () {
+        client.assert(response.status === 400, "Unexpected response status");
+    });
+%}
 
 ### Create llmCompletion from internal LLM like ollama
 POST {{host}}/chat/provider/prompt
@@ -56,25 +68,57 @@ Content-Type: application/json
     });
 %}
 
-### Create llmCompletion from external LLM Anthropic
+### Create llmCompletion from external LLM Anthropic, use style
 POST {{host}}/chat/provider/prompt
 Content-Type: application/json
 
 {
-  "prompt": "Are Trump and Musk still BFF friends",
+  "prompt": "Are Trump and Musk relatives",
+  "chat_id": "trump-musk-id",
+  "system": "answer with 4 line poem!",
+  "llm_provider": "GEMINI"
+}
+
+> {%
+    client.test("Status", function () {
+        client.assert(response.status === 200, "Unexpected response status");
+    });
+%}
+
+### Create llmCompletion from external LLM Anthropic, use style
+POST {{host}}/chat/provider/prompt
+Content-Type: application/json
+
+{
+  "prompt": "Are Trump and Musk friends",
+  "chat_id": "trump-musk-id",
   "style": "answer with max 10 word and end answer with Presently!",
+  "llm_provider": "GEMINI"
+}
+
+> {%
+    client.test("Status", function () {
+        client.assert(response.status === 200, "Unexpected response status");
+    });
+%}
+
+### Create llmCompletion from external LLM Anthropic, use both style and system
+POST {{host}}/chat/provider/prompt
+Content-Type: application/json
+
+{
+  "prompt": "Are Trump and Musk in the Epstein files",
+  "chat_id": "trump-musk-id",
+  "style": "answer with max 10 word and end answer with Presently!",
+  "system": "answer with 4 line poem!",
   "llm_provider": "ANTHROPIC"
 }
 
-### Create llmCompletion from external LLM OpenAi/chatGpt
-POST {{host}}/chat/provider/prompt
-Content-Type: application/json
-
-{
-  "prompt": "Are Trump and Musk still best friends",
-  "style": "answer with max 10 word and end answer with Presently!",
-  "llm_provider": "OPENAI"
-}
+> {%
+    client.test("Status", function () {
+        client.assert(response.status === 200, "Unexpected response status");
+    });
+%}
 
 ### Create llmCompletion from Gemini
 POST {{host}}/chat/provider/prompt
@@ -85,6 +129,12 @@ Content-Type: application/json
   "style": "answer with max 200 words",
   "llm_provider": "GEMINI"
 }
+
+> {%
+    client.test("Status", function () {
+        client.assert(response.status === 200, "Unexpected response status");
+    });
+%}
 
 ### Create llmCompletion using chat-id for a given provider
 POST {{host}}/chat/provider/prompt
@@ -97,6 +147,12 @@ Content-Type: application/json
   "llm_provider": "OPENAI"
 }
 
+> {%
+    client.test("Status", function () {
+        client.assert(response.status === 200, "Unexpected response status");
+    });
+%}
+
 ### Create llmCompletion relating to previous question
 POST {{host}}/chat/provider/prompt
 Content-Type: application/json
@@ -107,6 +163,12 @@ Content-Type: application/json
   "chat_id": "me-id",
   "llm_provider": "OPENAI"
 }
+
+> {%
+    client.test("Status", function () {
+        client.assert(response.status === 200, "Unexpected response status");
+    });
+%}
 
 ### Create llmCompletion relating to previous question with correction
 POST {{host}}/chat/provider/prompt
@@ -119,6 +181,12 @@ Content-Type: application/json
   "llm_provider": "OPENAI"
 }
 
+> {%
+    client.test("Status", function () {
+        client.assert(response.status === 200, "Unexpected response status");
+    });
+%}
+
 ### Create llmCompletion with complex relations
 POST {{host}}/chat/provider/prompt
 Content-Type: application/json
@@ -128,6 +196,12 @@ Content-Type: application/json
   "style": "end answer with: Ok!",
   "llm_provider": "OPENAI"
 }
+
+> {%
+    client.test("Status", function () {
+        client.assert(response.status === 200, "Unexpected response status");
+    });
+%}
 
 ### Create llmCompletion with correction
 POST {{host}}/chat/provider/prompt
@@ -169,11 +243,23 @@ Content-Type: application/json
   "prompt": "Explain superposition in quantum mechanics?",
   "style": "elaborate with max 30 words",
   "chat_id": "superposition",
-  "llm_providers": ["GEMINI","ANTHROPIC","OPENAI"]
+  "llm_providers": ["GEMINI","ANTHROPIC"]
+}
+
+### Create aggreate completion from given providers
+POST {{host}}/chat/providers/prompt/aggregate
+Content-Type: application/json
+
+{
+  "prompt": "Explain superposition in quantum mechanics?",
+  "system": "elaborate with max 30 words",
+  "chat_id": "superposition",
+  "llm_providers": ["GEMINI","DOCKER"],
+  "llm_aggregator": "OPENAI"
 }
 
 ### Get chat history for a given chat id and provider
-GET {{host}}/chat/history?chat_id=superposition&provider=ANTHROPIC
+GET {{host}}/chat/history?provider=ANTHROPIC
 
 > {%
     client.test("Status", function () {
@@ -234,7 +320,7 @@ Content-Type: application/json
 
 
 ### GET one or several completions from a given llmPrompt id
-GET {{host}}/chat/prompt/52e7c62c-68d7-4edf-b1a8-a964aee3b447
+GET {{host}}/chat/prompt/e6931b7d-743f-41d2-b3c2-ed454700c381
 
 ### GET one or several completions from a given text in a previous prompt (case sensitive)
 GET {{host}}/chat/prompt/contains/Epstein

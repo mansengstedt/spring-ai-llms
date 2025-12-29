@@ -123,7 +123,9 @@ The main domain objects are:
 To test, you can use the IntelliJ HTTP client with the provided `.rest` files in the `src/test/intellij` directory.
 
 ## Todo
+* Aggregate endpoint added (fixed)
 * ChatMemory, endpoint to show history and clear memory, reference to ChatMemory needed for each client (fixed)
+* Dynamic system in REST API (fixed) 
 * Message.ASSISTANT should not be used (fixed)
 * Session handling to separate different chats after restart (fixed)
 * Tooling (fixed)

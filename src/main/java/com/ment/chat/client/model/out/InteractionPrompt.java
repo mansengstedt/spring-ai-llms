@@ -20,6 +20,9 @@ public class InteractionPrompt {
     @Schema(description = "Prompt Id", example = "f3ccfb64-95d7-4e6a-a9ef-1455a0f81f6e", requiredMode = Schema.RequiredMode.REQUIRED)
     String promptId;
 
+    @Schema(description = "Session Id", example = "1767031505585372000 (represents an instant with nanoseconds)", requiredMode = Schema.RequiredMode.REQUIRED)
+    String sessionId;
+
     @Schema(description = "Interaction prompt", example = "who is presently the best male golf player in Sweden", requiredMode = Schema.RequiredMode.REQUIRED)
     String prompt;
 

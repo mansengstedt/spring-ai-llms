@@ -2,6 +2,7 @@ package com.ment.chat.client.service;
 
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.in.CreateCompletionByProviderRequest;
+import com.ment.chat.client.model.in.CreateCompletionsByProvidersAggregateRequest;
 import com.ment.chat.client.model.in.CreateCompletionsRequest;
 import com.ment.chat.client.model.in.CreateCompletionsByProvidersRequest;
 import com.ment.chat.client.model.out.CreateCompletionByProviderResponse;
@@ -64,6 +65,15 @@ public abstract class BaseChatServiceTest {
                 .prompt(prompt)
                 //.chatId(DEFAULT_CHAT_ID) is implicitly set
                 .llmProviders(providers)
+                .build();
+    }
+
+    CreateCompletionsByProvidersAggregateRequest createCompletionsByProvidersAggregateRequest(String prompt, EnumSet<LlmProvider> providers, LlmProvider aggregator) {
+        return CreateCompletionsByProvidersAggregateRequest.builder()
+                .prompt(prompt)
+                //.chatId(DEFAULT_CHAT_ID) is implicitly set
+                .llmProviders(providers)
+                .llmAggregator(aggregator)
                 .build();
     }
 }

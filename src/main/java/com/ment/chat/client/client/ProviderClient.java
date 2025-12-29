@@ -42,7 +42,7 @@ public class ProviderClient {
     public ChatResponseTimer callProvider(CreateCompletionsRequest completionRequest, LlmProvider llmProvider) {
         Message message = createMessage(completionRequest.createPrompt());
         ChatClient.ChatClientRequestSpec input = createRequestSpec(completionRequest, chatClient.chatClient(), message);
-        return callProvider(llmProvider, input);
+        return callProvider(llmProvider, input, completionRequest.getSystem());
     }
 
     public void clearSessionHistory(String chatId) {
@@ -68,13 +68,19 @@ public class ProviderClient {
                 .orElse(sessionId);
     }
 
-    private ChatResponseTimer callProvider(LlmProvider llmProvider, ChatClient.ChatClientRequestSpec reqSpec) {
+    private ChatResponseTimer callProvider(LlmProvider llmProvider, ChatClient.ChatClientRequestSpec reqSpec, String system) {
         try {
             long start = System.currentTimeMillis();
-            log.info("Calling provider {}", llmProvider);
-            ChatResponse chatResponse = reqSpec
-                    .call()
-                    .chatResponse();
+            log.info("Calling provider {} with system {}", llmProvider, system);
+            ChatResponse chatResponse = system != null ?
+                    reqSpec
+                            //dynamic system value overrides default system from config
+                            .system(system)
+                            .call()
+                            .chatResponse() :
+                    reqSpec
+                            .call()
+                            .chatResponse();
             Long executionTime = System.currentTimeMillis() - start;
             log.info("Called provider {} using model {}, answered after {} ms", llmProvider,
                     chatResponse != null ? chatResponse.getMetadata().getModel() : "unknown", executionTime);
