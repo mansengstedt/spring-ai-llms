@@ -1,6 +1,6 @@
 package com.ment.chat.client.service;
 
-import com.ment.chat.client.client.ChatClientWIthChatMemory;
+import com.ment.chat.client.client.ChatClientWithChatMemory;
 import com.ment.chat.client.client.ProviderClient;
 import com.ment.chat.client.domain.LlmCompletion;
 import com.ment.chat.client.domain.LlmPrompt;
@@ -61,7 +61,7 @@ class ChatServiceImplToggleTest {
     private ApplicationEventPublisher applicationEventPublisher;
 
     @Mock
-    private ChatClientWIthChatMemory chatClientWIthChatMemory;
+    private ChatClientWithChatMemory chatClientWIthChatMemory;
 
     @InjectMocks
     private ChatServiceImpl service;
@@ -83,7 +83,7 @@ class ChatServiceImplToggleTest {
         }
 
 
-        // Mock ChatClientWIthChatMemory to return the mockedChatClient
+        // Mock ChatClientWithChatMemory to return the mockedChatClient
         when(chatClientWIthChatMemory.chatClient()).thenReturn(mockedChatClient);
         // Mock repository behavior to avoid NPE
         when(llmPromptRepository.save(any())).thenReturn(LlmPrompt.builder().build());

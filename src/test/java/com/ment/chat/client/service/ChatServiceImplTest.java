@@ -1,6 +1,6 @@
 package com.ment.chat.client.service;
 
-import com.ment.chat.client.client.ChatClientWIthChatMemory;
+import com.ment.chat.client.client.ChatClientWithChatMemory;
 import com.ment.chat.client.domain.LlmCompletion;
 import com.ment.chat.client.domain.LlmPrompt;
 import com.ment.chat.client.domain.exception.ChatNotFoundException;
@@ -53,7 +53,7 @@ class ChatServiceImplTest {
     private ChatClient chatClient;
 
     @Mock
-    private ChatClientWIthChatMemory chatClientWIthChatMemory;
+    private ChatClientWithChatMemory chatClientWIthChatMemory;
 
     @Mock
     private ChatMemory chatMemory;

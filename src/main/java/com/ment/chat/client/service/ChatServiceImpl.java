@@ -1,6 +1,6 @@
 package com.ment.chat.client.service;
 
-import com.ment.chat.client.client.ChatClientWIthChatMemory;
+import com.ment.chat.client.client.ChatClientWithChatMemory;
 import com.ment.chat.client.client.ProviderClient;
 import com.ment.chat.client.config.AppProperties;
 import com.ment.chat.client.domain.ChatResponseTimer;
@@ -81,19 +81,19 @@ public class ChatServiceImpl implements ChatService {
 
 
     @Qualifier("ollamaChatClient")
-    private final ChatClientWIthChatMemory ollamaChatClient;
+    private final ChatClientWithChatMemory ollamaChatClient;
 
     @Qualifier("dockerChatClient")
-    private final ChatClientWIthChatMemory dockerChatClient;
+    private final ChatClientWithChatMemory dockerChatClient;
 
     @Qualifier("openAiChatClient")
-    private final ChatClientWIthChatMemory openAiChatClient;
+    private final ChatClientWithChatMemory openAiChatClient;
 
     @Qualifier("anthropicChatClient")
-    private final ChatClientWIthChatMemory anthropicChatClient;
+    private final ChatClientWithChatMemory anthropicChatClient;
 
     @Qualifier("geminiChatClient")
-    private final ChatClientWIthChatMemory geminiChatClient;
+    private final ChatClientWithChatMemory geminiChatClient;
 
     private Map<LlmProvider, ProviderClient> chatClientMap;
 

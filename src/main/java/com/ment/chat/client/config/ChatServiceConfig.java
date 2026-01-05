@@ -1,7 +1,7 @@
 package com.ment.chat.client.config;
 
 import com.google.cloud.vertexai.VertexAI;
-import com.ment.chat.client.client.ChatClientWIthChatMemory;
+import com.ment.chat.client.client.ChatClientWithChatMemory;
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.tools.PublisherTool;
 import lombok.RequiredArgsConstructor;
@@ -44,21 +44,21 @@ public class ChatServiceConfig {
             .build();
 
     @Bean
-    public ChatClientWIthChatMemory ollamaChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
+    public ChatClientWithChatMemory ollamaChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
         return mutateClient(baseChatModel,
                 nameToLlm(appProperties.models().get(LlmProvider.OLLAMA).llmModelName(), LLM_OLLAMA_QWEN_3),
                 appProperties.models().get(LlmProvider.OLLAMA).apiConnection());
     }
 
     @Bean
-    public ChatClientWIthChatMemory dockerChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
+    public ChatClientWithChatMemory dockerChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
         return mutateClient(baseChatModel,
                 nameToLlm(appProperties.models().get(LlmProvider.DOCKER).llmModelName(), LLM_DOCKER_DEEPSEEK_R1),
                 appProperties.models().get(LlmProvider.DOCKER).apiConnection());
     }
 
     @Bean
-    public ChatClientWIthChatMemory openAiChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
+    public ChatClientWithChatMemory openAiChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
         return mutateClient(baseChatModel,
                 nameToLlm(appProperties.models().get(LlmProvider.OPENAI).llmModelName(), LLM_OPEN_AI_GPT_5),
                 appProperties.models().get(LlmProvider.OPENAI).apiConnection());
@@ -77,14 +77,14 @@ public class ChatServiceConfig {
      * @return a configured ChatClient for Anthropic
      */
     @Bean
-    public ChatClientWIthChatMemory anthropicChatClient(AppProperties appProperties) {
+    public ChatClientWithChatMemory anthropicChatClient(AppProperties appProperties) {
         return mutateAnthropicClient(
                 nameToLlm(appProperties.models().get(LlmProvider.ANTHROPIC).llmModelName(), LLM_ANTHROPIC_CLAUDE_4_5),
                 appProperties.models().get(LlmProvider.ANTHROPIC).apiConnection());
     }
 
     @Bean
-    public ChatClientWIthChatMemory geminiChatClient(AppProperties appProperties, GeminiProperties geminiProperties) throws IOException {
+    public ChatClientWithChatMemory geminiChatClient(AppProperties appProperties, GeminiProperties geminiProperties) throws IOException {
         return mutateGeminiClient(
                 //the accessibility of models like 'gemini-3.0-pro-preview' in a location, like 'europe-north1' might change
                 nameToLlm(appProperties.models().get(LlmProvider.GEMINI).llmModelName(), LLM_GEMINI_2_5_PRO),
@@ -98,24 +98,24 @@ public class ChatServiceConfig {
                 .orElse(defaultModel);
     }
 
-    private ChatClientWIthChatMemory mutateClient(OpenAiChatModel chatModel, LlmConfig llmConfig, AppProperties.ApiConnection apiConnection) {
+    private ChatClientWithChatMemory mutateClient(OpenAiChatModel chatModel, LlmConfig llmConfig, AppProperties.ApiConnection apiConnection) {
         OpenAiApi api = configOpenAiApi(apiConnection, llmConfig.getLlmProvider());
         OpenAiChatModel model = configChatModel(chatModel, api, llmConfig);
         return createChatClient(llmConfig, model) ;
     }
 
-    private ChatClientWIthChatMemory mutateAnthropicClient(LlmConfig llmConfig, AppProperties.ApiConnection apiConnection) {
+    private ChatClientWithChatMemory mutateAnthropicClient(LlmConfig llmConfig, AppProperties.ApiConnection apiConnection) {
         AnthropicApi api = configAnthropicApi(apiConnection, llmConfig.getLlmProvider());
         AnthropicChatModel model = configChatModel(api, llmConfig);
         return createChatClient(llmConfig, model);
     }
 
-    private ChatClientWIthChatMemory mutateGeminiClient(LlmConfig llmConfig, GeminiProperties geminiProperties) throws IOException {
+    private ChatClientWithChatMemory mutateGeminiClient(LlmConfig llmConfig, GeminiProperties geminiProperties) throws IOException {
         VertexAiGeminiChatModel model = configVertexAiGeminiChatModel(llmConfig, geminiProperties);
         return createChatClient(llmConfig, model) ;
     }
 
-    private ChatClientWIthChatMemory createChatClient(LlmConfig llmConfig, ChatModel model) {
+    private ChatClientWithChatMemory createChatClient(LlmConfig llmConfig, ChatModel model) {
         ChatMemory chatMemory = MessageWindowChatMemory.builder()
                 .build();
         ChatClient chatClient = ChatClient.builder(model)
@@ -127,7 +127,7 @@ public class ChatServiceConfig {
                         .build())
                 .defaultAdvisors(new SimpleLoggerAdvisor())
                 .build();
-        return new ChatClientWIthChatMemory(chatClient, chatMemory);
+        return new ChatClientWithChatMemory(chatClient, chatMemory);
     }
 
     private VertexAiGeminiChatModel configVertexAiGeminiChatModel(LlmConfig llmConfig, GeminiProperties geminiProperties) throws IOException {

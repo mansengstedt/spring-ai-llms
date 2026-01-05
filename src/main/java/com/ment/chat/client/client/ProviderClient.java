@@ -23,11 +23,11 @@ public class ProviderClient {
 
     private final MessageType messageType = MessageType.USER;
 
-    private final ChatClientWIthChatMemory chatClient;
+    private final ChatClientWithChatMemory chatClient;
 
     private final String sessionId;
 
-    public ProviderClient(ChatClientWIthChatMemory chatClient, String sessionId) {
+    public ProviderClient(ChatClientWithChatMemory chatClient, String sessionId) {
         this.chatClient = chatClient;
         this.sessionId = sessionId;
     }
