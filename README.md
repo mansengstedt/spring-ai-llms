@@ -123,6 +123,16 @@ The main domain objects are:
 ## Testing
 To test, you can use the IntelliJ HTTP client with the provided `.rest` files in the `src/test/intellij` directory.
 
+## Colima db
+Restart of Mac/Colima:
+Colima without emulation for Oracle DB:
+1. `colima start --cpu 4 --memory 4`
+2. `docker context ls`
+3. `docker run -d -p 1521:1521 -e ORACLE_PASSWORD="password" -v oracle-data:/opt/oracle/oradata gvenzl/oracle-free:latest`
+4. Check that Colima is up and running with: 
+`docker ps` (shows c307f359bb5d   gvenzl/oracle-free:latest   "container-entrypoin…"   9 minutes ago   Up 9 minutes)
+5 Check that scehemas and tables exist with SQL developer in schema `CONVERSATION_LOCAL`.
+
 ## Todo
 * Aggregate endpoint added (fixed)
 * ChatMemory, endpoint to show history and clear memory, reference to ChatMemory needed for each client (fixed)
