@@ -72,13 +72,13 @@ public class ProviderClient {
         try {
             long start = System.currentTimeMillis();
             log.info("Calling provider {} with system {}", llmProvider, system);
-            ChatResponse chatResponse = system != null ?
-                    reqSpec
-                            //dynamic system value overrides default system from config
-                            .system(system)
-                            .call()
-                            .chatResponse() :
-                    reqSpec
+            if (system != null) {
+                reqSpec
+                        //dynamic system value overrides default system from config
+                        .system(system);
+            }
+
+            ChatResponse chatResponse = reqSpec
                             .call()
                             .chatResponse();
             Long executionTime = System.currentTimeMillis() - start;
