@@ -235,6 +235,22 @@ Content-Type: application/json
     });
 %}
 
+### Create LLM llmCompletion from xAi
+POST {{host}}/chat/provider/prompt
+Content-Type: application/json
+
+{
+  "prompt": "who is president in France",
+  "style": "end answer with: Hope answer is ok!",
+  "llm_provider": "GROK"
+}
+
+> {%
+    client.test("Status", function () {
+        client.assert(response.status === 200, "Unexpected response status");
+    });
+%}
+
 ### Create llmCompletion from given providers to test Tooling
 POST {{host}}/chat/providers/prompt
 Content-Type: application/json

@@ -80,6 +80,11 @@ app:
       api-connection:
         url: ${GEMINI_CONNECTION_URL:https://generativelanguage.googleapis.com/v1beta} #not needed, set in the credential file
         key: ${GEMINI_CONNECTION_KEY:NOT_NEEDED} #not needed
+    grok:
+      llm-model-name: ${XAI_LLM_MODEL_NAME:xai-latest}
+      api-connection:
+        url: ${GROK_CONNECTION_URL:https://api.x.ai}
+        key: ${GROK_CONNECTION_KEY} #set in env variable
 
 logging:
   level:

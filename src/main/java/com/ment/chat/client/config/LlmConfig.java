@@ -11,6 +11,7 @@ import static com.ment.chat.client.config.Systems.HELPFUL_SYSTEM_PUBLISH;
 import static com.ment.chat.client.model.enums.LlmProvider.ANTHROPIC;
 import static com.ment.chat.client.model.enums.LlmProvider.DOCKER;
 import static com.ment.chat.client.model.enums.LlmProvider.GEMINI;
+import static com.ment.chat.client.model.enums.LlmProvider.GROK;
 import static com.ment.chat.client.model.enums.LlmProvider.OLLAMA;
 import static com.ment.chat.client.model.enums.LlmProvider.OPENAI;
 
@@ -31,7 +32,9 @@ public enum LlmConfig {
 
     LLM_GEMINI_2_5_PRO(GEMINI, "gemini-2.5-pro", 64000, 1.0d, HELPFUL_SYSTEM_NO_LIMIT),
     LLM_GEMINI_2_5_FLASH(GEMINI, "gemini-2.5-flash", 64000, 1.0d, HELPFUL_SYSTEM_MAX_100),
-    LLM_GEMINI_3_0_PRO(GEMINI, "gemini-3.0-pro", 64000, 1.0d, HELPFUL_SYSTEM_PUBLISH), //not available yet
+
+    LLM_GROK_3_0(GROK, "grok-3", 64000, 1.0d, HELPFUL_SYSTEM_PUBLISH), //not available yet
+    LLM_GROK_4_0_1(GROK, "grok-4-1-fast-non-reasoning", 64000, 1.0d, HELPFUL_SYSTEM_PUBLISH), //not available yet
 
     //Gemma 3 causes exception: Conversation roles must alternate user/assistant/user/assistant/
     LLM_DOCKER_GEMMA_3(DOCKER, "ai/gemma3", null,0.7d, HELPFUL_SYSTEM_NO_LIMIT),

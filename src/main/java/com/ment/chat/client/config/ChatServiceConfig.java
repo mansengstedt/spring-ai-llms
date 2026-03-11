@@ -31,6 +31,7 @@ import static com.ment.chat.client.config.LlmConfig.LLM_DOCKER_DEEPSEEK_R1;
 import static com.ment.chat.client.config.LlmConfig.LLM_GEMINI_2_5_PRO;
 import static com.ment.chat.client.config.LlmConfig.LLM_OLLAMA_QWEN_3;
 import static com.ment.chat.client.config.LlmConfig.LLM_OPEN_AI_GPT_5;
+import static com.ment.chat.client.config.LlmConfig.LLM_GROK_3_0;
 
 @Configuration
 @RequiredArgsConstructor
@@ -62,6 +63,13 @@ public class ChatServiceConfig {
         return mutateClient(baseChatModel,
                 nameToLlm(appProperties.models().get(LlmProvider.OPENAI).llmModelName(), LLM_OPEN_AI_GPT_5),
                 appProperties.models().get(LlmProvider.OPENAI).apiConnection());
+    }
+
+    @Bean
+    public ChatClientWithChatMemory grokChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
+        return mutateClient(baseChatModel,
+                nameToLlm(appProperties.models().get(LlmProvider.GROK).llmModelName(), LLM_GROK_3_0),
+                appProperties.models().get(LlmProvider.GROK).apiConnection());
     }
 
 

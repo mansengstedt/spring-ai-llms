@@ -10,5 +10,6 @@ public enum LlmProvider {
     DOCKER,
     OPENAI,
     ANTHROPIC,
-    GEMINI
+    GEMINI,
+    GROK
 }

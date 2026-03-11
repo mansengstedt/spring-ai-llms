@@ -95,6 +95,9 @@ public class ChatServiceImpl implements ChatService {
     @Qualifier("geminiChatClient")
     private final ChatClientWithChatMemory geminiChatClient;
 
+    @Qualifier("grokChatClient")
+    private final ChatClientWithChatMemory grokChatClient;
+
     private Map<LlmProvider, ProviderClient> chatClientMap;
 
     @PostConstruct
@@ -105,6 +108,7 @@ public class ChatServiceImpl implements ChatService {
         chatClientMap.put(LlmProvider.OPENAI, new ProviderClient(openAiChatClient, sessionId));
         chatClientMap.put(LlmProvider.ANTHROPIC, new ProviderClient(anthropicChatClient, sessionId));
         chatClientMap.put(LlmProvider.GEMINI, new ProviderClient(geminiChatClient, sessionId));
+        chatClientMap.put(LlmProvider.GROK, new ProviderClient(grokChatClient, sessionId));
         checkProviders();
     }
 

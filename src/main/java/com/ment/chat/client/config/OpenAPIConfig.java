@@ -32,7 +32,7 @@ public class OpenAPIConfig {
                         .contact(new Contact()
                                 .name("LLM Client Support")
                                 .email("mans.engstedt@gmail.com")
-                                .url("https://github.com/mansengstedt/spring-ai-llms/tree/f1")
+                                .url("https://github.com/mansengstedt/spring-ai-llms")
                         )
                         .license(new License()
                                 .name("Apache 2.0")

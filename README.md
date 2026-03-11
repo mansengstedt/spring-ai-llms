@@ -95,6 +95,13 @@ Example Projects
 - google: https://console.cloud.google.com/welcome/new?project=lithe-breaker-480809-c9&walkthrough_id=vertex-ai--prompt_design
 - ChatMemory: https://www.youtube.com/watch?v=QTaCb7lxyL8
 
+### x.ai/Grok
+LLMs using x.ai API.
+https://accounts.x.ai/account
+Buy credits, open project with API-key
+https://console.x.ai/team/ea2ae4b5-d9ba-4610-ad0f-a2776c874279
+Docs at https://docs.x.ai
+
 ## Service End points
 
 * POST /chat/provider/haiku?provider={provider} create a haiku from provider, for example Anthropic, with given parameters
@@ -134,6 +141,7 @@ Colima without emulation for Oracle DB:
 5 Check that scehemas and tables exist with SQL developer in schema `CONVERSATION_LOCAL`.
 
 ## Todo
+* Add xAI/Grok client
 * Aggregate endpoint added (fixed)
 * ChatMemory, endpoint to show history and clear memory, reference to ChatMemory needed for each client (fixed)
 * Dynamic system in REST API (fixed) 
