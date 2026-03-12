@@ -29,9 +29,9 @@ import java.util.Arrays;
 import static com.ment.chat.client.config.LlmConfig.LLM_ANTHROPIC_CLAUDE_4_5;
 import static com.ment.chat.client.config.LlmConfig.LLM_DOCKER_DEEPSEEK_R1;
 import static com.ment.chat.client.config.LlmConfig.LLM_GEMINI_2_5_PRO;
+import static com.ment.chat.client.config.LlmConfig.LLM_GROK_3_0;
 import static com.ment.chat.client.config.LlmConfig.LLM_OLLAMA_QWEN_3;
 import static com.ment.chat.client.config.LlmConfig.LLM_OPEN_AI_GPT_5;
-import static com.ment.chat.client.config.LlmConfig.LLM_GROK_3_0;
 
 @Configuration
 @RequiredArgsConstructor
@@ -109,7 +109,7 @@ public class ChatServiceConfig {
     private ChatClientWithChatMemory mutateClient(OpenAiChatModel chatModel, LlmConfig llmConfig, AppProperties.ApiConnection apiConnection) {
         OpenAiApi api = configOpenAiApi(apiConnection, llmConfig.getLlmProvider());
         OpenAiChatModel model = configChatModel(chatModel, api, llmConfig);
-        return createChatClient(llmConfig, model) ;
+        return createChatClient(llmConfig, model);
     }
 
     private ChatClientWithChatMemory mutateAnthropicClient(LlmConfig llmConfig, AppProperties.ApiConnection apiConnection) {
@@ -120,22 +120,26 @@ public class ChatServiceConfig {
 
     private ChatClientWithChatMemory mutateGeminiClient(LlmConfig llmConfig, GeminiProperties geminiProperties) throws IOException {
         VertexAiGeminiChatModel model = configVertexAiGeminiChatModel(llmConfig, geminiProperties);
-        return createChatClient(llmConfig, model) ;
+        return createChatClient(llmConfig, model);
     }
 
     private ChatClientWithChatMemory createChatClient(LlmConfig llmConfig, ChatModel model) {
         ChatMemory chatMemory = MessageWindowChatMemory.builder()
                 .build();
-        ChatClient chatClient = ChatClient.builder(model)
+        ChatClient.Builder builder = ChatClient.builder(model)
                 .defaultSystem(llmConfig.getSystem())
-                //if system and tool description are consistent, then it works for Anthropic, Gemini but not OpenAI
-                .defaultTools(publisherTool)
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(
                                 chatMemory)
                         .build())
-                .defaultAdvisors(new SimpleLoggerAdvisor())
-                .build();
-        return new ChatClientWithChatMemory(chatClient, chatMemory);
+                .defaultAdvisors(new SimpleLoggerAdvisor());
+        if (llmConfig.getLlmProvider() != LlmProvider.GROK) {
+            //if system and tool description are consistent, then it works for Anthropic, Gemini but not OpenAI
+            //triggered infinite loop for GROK tool calls, should filter to only be used for UserMessage
+            //GROK fails if the first call does not have 'system' set, if the same query is repeated the answer is not given properly
+            //apparently something does not work with tool calls
+            builder.defaultTools(publisherTool);
+        }
+        return new ChatClientWithChatMemory(builder.build(), chatMemory);
     }
 
     private VertexAiGeminiChatModel configVertexAiGeminiChatModel(LlmConfig llmConfig, GeminiProperties geminiProperties) throws IOException {
@@ -148,7 +152,7 @@ public class ChatServiceConfig {
                 .defaultOptions(
                         VertexAiGeminiChatOptions.builder()
                                 .temperature(llmConfig.getTemperature())
-                                .topP((double)1.0F)
+                                .topP((double) 1.0F)
                                 .model(llmConfig.getName())
                                 .build())
                 .vertexAI(vertexAI)

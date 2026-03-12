@@ -141,7 +141,7 @@ Colima without emulation for Oracle DB:
 5 Check that scehemas and tables exist with SQL developer in schema `CONVERSATION_LOCAL`.
 
 ## Todo
-* Add xAI/Grok client
+* Add xAI/Grok client (tool usage not working properly yet, probably bug in GROK/springAI)
 * Aggregate endpoint added (fixed)
 * ChatMemory, endpoint to show history and clear memory, reference to ChatMemory needed for each client (fixed)
 * Dynamic system in REST API (fixed) 

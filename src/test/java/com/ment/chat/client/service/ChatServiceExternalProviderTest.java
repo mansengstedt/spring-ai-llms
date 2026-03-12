@@ -2,6 +2,7 @@ package com.ment.chat.client.service;
 
 import com.ment.chat.client.model.enums.LlmProvider;
 import com.ment.chat.client.model.enums.LlmStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles(value = {"test", "external_keys"})
 @EnableAutoConfiguration()
 @DirtiesContext
+@Slf4j
 public class ChatServiceExternalProviderTest extends BaseChatServiceTest {
 
     @Autowired
@@ -32,10 +34,14 @@ public class ChatServiceExternalProviderTest extends BaseChatServiceTest {
 
     @Test
     void statusOfProviders() {
-        chatService.getAllProviderStatus().getLlmProviderStatusList()
-                .forEach(status ->
-                    assertThat(status.getStatus()).isEqualTo(LlmStatus.AVAILABLE)
-                );
+        var llmProviderStatusList = chatService.getAllProviderStatus().getLlmProviderStatusList();
+        llmProviderStatusList.forEach(status ->
+            log.error("Provider status: {}", status)
+
+        );
+        llmProviderStatusList.forEach(status ->
+            assertThat(status.getStatus()).isEqualTo(LlmStatus.AVAILABLE)
+        );
     }
 
 }

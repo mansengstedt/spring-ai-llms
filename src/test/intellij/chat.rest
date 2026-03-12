@@ -22,7 +22,7 @@ POST {{host}}/chat/provider/prompt
 Content-Type: application/json
 
 {
-  "prompt": "I'm the president of France and my name is Macron",
+  "prompt": "Who is the president of France",
   "style": "end answer with: Hope answer is correct!",
   "chat_id": "president-id",
   "llm_provider": "OLLAMA"
@@ -235,13 +235,15 @@ Content-Type: application/json
     });
 %}
 
-### Create LLM llmCompletion from xAi
+### Create LLM llmCompletion from xAi/GROK, system must be set when server is started
 POST {{host}}/chat/provider/prompt
 Content-Type: application/json
 
 {
-  "prompt": "who is president in France",
+  "prompt": "who is the president in Ukraine presently",
   "style": "end answer with: Hope answer is ok!",
+  "chat_id": "ukraine-1",
+  "system": "max 10 words",
   "llm_provider": "GROK"
 }
 
@@ -323,9 +325,10 @@ POST {{host}}/chat/providers/prompt
 Content-Type: application/json
 
 {
-  "prompt": "Are Trump and Musk in the Epstein files",
+  "prompt": "Are Trump and Putin in the Epstein files together",
   "style": "answer with max 10 word and end answer with Presently!",
-  "llm_providers": ["OLLAMA", "DOCKER", "OPENAI", "ANTHROPIC","GEMINI"]
+  "chat_id": "epstein1",
+  "llm_providers": ["OLLAMA", "DOCKER", "OPENAI", "ANTHROPIC","GEMINI","GROK"]
 }
 
 > {%

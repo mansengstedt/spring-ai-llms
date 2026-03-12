@@ -184,7 +184,7 @@ class LocalWiremockServerIT {
 
     void testHistory(String chatId, LlmProvider provider) {
         getHistoryResponse(chatId, provider, "200");
-        //delete should succeed and history is now empty.
+        //delete should succseed and history is now empty.
         deleteHistoryResponseFailure(chatId, provider, "204");
         //now getHistoryResponse should give 404 for the same chatId
         getHistoryResponse(chatId, provider, "404");
