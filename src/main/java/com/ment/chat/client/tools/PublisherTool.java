@@ -18,13 +18,16 @@ public class PublisherTool {
             description = """
                     Publish the EXACT prompt answer given by the LLM
                     via the spring event bus for other clients to use
-                    """)
-    void publishAnswer(@ToolParam(description = "The model name used for answering like gpt-4.1") String modelName,
-                       @ToolParam(description = "The returned answer to the prompt") String message) {
+                    """,
+            //to avoid infinite recursion that appeared for GROK
+            returnDirect = true)
+    String publishAnswer(@ToolParam(description = "The model name used for answering like gpt-4.1") String modelName,
+                         @ToolParam(description = "The returned answer to the prompt") String message) {
 
         String output = modelName + " used! " + "Published message by publishAnswer tool:" + message;
         log.info(output);
         applicationEventPublisher.publishEvent(message);
+        return message;
     }
 
 }

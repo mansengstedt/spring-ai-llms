@@ -272,7 +272,7 @@ Content-Type: application/json
   "prompt": "Explain superposition in quantum mechanics?",
   "system": "elaborate with max 30 words",
   "chat_id": "superposition",
-  "llm_providers": ["GEMINI","DOCKER"],
+  "llm_providers": ["GEMINI","DOCKER","GROK"],
   "llm_aggregator": "OPENAI"
 }
 
