@@ -98,7 +98,7 @@ Example Projects
 ### x.ai/Grok
 LLMs using x.ai API.
 https://accounts.x.ai/account
-Buy credits, open project with API-key
+Buy credits, open project with API key
 https://console.x.ai/team/ea2ae4b5-d9ba-4610-ad0f-a2776c874279
 Docs at https://docs.x.ai
 
@@ -127,6 +127,42 @@ The main domain objects are:
 * Interaction - the interaction containing a prompt and N completions sharing a prompt id
 * Chat - the chat containing a list of N interactions having the same chat id
 
+## Session id, Chat id and Memory
+At server startup, each chat client using a specific provider, one for OPENAI, one for GEMINI etc., 
+is assigned a unique global static `session id`, a monotonic natural number N, like 1234567890, that serves as a sort of server run time id.
+
+Each LLM provider client shares the same session id.
+
+Each prompt can be assigned a chosen `chat id` that can be repeated or renewed in several different prompts, 
+like `chatId12`. If no chat id is given, the default value `default` is always assigned.
+
+The chat id is used in the spring Chat Memory to store, retrieve and delete the chat history.
+There are two endpoints for this purpose, one to retrieve and one to delete the chat history
+for a given chat id and a given provider.
+
+Each provider client has its own Chat Memory.
+
+The chat id and the server id are concatenated, for example `chatId12-1234567890`, 
+to serve as an external chat id towards each LLM provider, to keep track of the chat history.
+
+The same external chat id can then be used when prompting several LLM providers 
+at the same time in a given prompt or in different prompts distributed over time.
+That makes it possible to reuse previous prompts and answers in RAG like manner towards the different providers.
+
+It is thus possible to keep several chats running in parallel towards different providers dealing with completely different topics.
+
+If a new chat id is chosen in the prompt, a fresh chat history is started and a new Chat Memory is created.
+
+When the server is restarted, the old chat memory is automatically lost and a new one is created.
+
+The `session id` is also renewed at restart, so the old session id is not valid anymore.
+
+The new `session id` is always greater than the previous one used in the earlier server.
+
+That means that the old chat contents are lost towards each provider. 
+The prompts in the new server will thus never be connected to the prompts used in the previous server.
+
+
 ## Testing
 To test, you can use the IntelliJ HTTP client with the provided `.rest` files in the `src/test/intellij` directory.
 
@@ -137,8 +173,8 @@ Colima without emulation for Oracle DB:
 2. `docker context ls`
 3. `docker run -d -p 1521:1521 -e ORACLE_PASSWORD="password" -v oracle-data:/opt/oracle/oradata gvenzl/oracle-free:latest`
 4. Check that Colima is up and running with: 
-`docker ps` (shows c307f359bb5d   gvenzl/oracle-free:latest   "container-entrypoin…"   9 minutes ago   Up 9 minutes)
-5 Check that scehemas and tables exist with SQL developer in schema `CONVERSATION_LOCAL`.
+`docker ps` (shows c307f359bb5d  gvenzl/oracle-free:latest  "container-entrypoin…"  9 minutes ago  Up 9 minutes)
+5. Check that scehemas and tables exist with SQL developer in schema `CONVERSATION_LOCAL`.
 
 ## Todo
 * Add xAI/Grok client (tool usage not working properly yet, probably bug in GROK/springAI)
@@ -169,3 +205,4 @@ Colima without emulation for Oracle DB:
 - OpenApi account, quota and key for external LLMs to use
 - Anthropic account, quota and key for external LLMs to use
 - Gemini account, project, role, quota and key for external LLMs to use
+- Grok account, quota and key for external LLMs to use
