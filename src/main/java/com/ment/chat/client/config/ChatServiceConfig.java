@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Configuration;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.Map;
 
 import static com.ment.chat.client.config.LlmConfig.LLM_ANTHROPIC_CLAUDE_4_5;
 import static com.ment.chat.client.config.LlmConfig.LLM_DOCKER_DEEPSEEK_R1;
@@ -138,11 +139,10 @@ public class ChatServiceConfig {
                         .build())
                 .defaultAdvisors(new SimpleLoggerAdvisor());
         if (LLM_TOOL_CALLS_SUPPORTED.contains(llmConfig.getLlmProvider())) {
-            //if system and tool description are consistent, then it works for Anthropic, Gemini but not OpenAI
-            //triggered infinite loop for GROK tool calls, should filter to only be used for UserMessage
-            //GROK fails if the first call does not have 'system' set, if the same query is repeated the answer is not given properly
-            //apparently something does not work with tool calls
+            //enable tool calls for supported providers
             builder.defaultTools(publisherTool);
+            //to retrieve information in a tool call later
+            builder.defaultToolContext(Map.of("configuredModelName", llmConfig.getName()));
         } else {
             log.info("LLM provider {} does not support tool calls, skipping", llmConfig.getLlmProvider());
         }

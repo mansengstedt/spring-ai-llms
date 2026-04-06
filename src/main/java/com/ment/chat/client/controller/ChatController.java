@@ -577,6 +577,14 @@ public class ChatController {
                     )
             ),
             @ApiResponse(
+                    responseCode = "404",
+                    description = "Unknown chatId",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+            @ApiResponse(
                     responseCode = "500",
                     description = "Internal server error",
                     content = @Content(

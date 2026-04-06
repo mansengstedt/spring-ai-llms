@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.11</version>
+        <version>3.5.13</version>
         <relativePath/> <!-- lookup parent from the repository -->
     </parent>
     <groupId>com.ment</groupId>
@@ -146,6 +146,12 @@
                 <version>${spring-ai.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!-- Force safe version to override transitive plexus-utils CVE-2025-67030 -->
+            <dependency>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-utils</artifactId>
+                <version>4.0.3</version> <!-- or latest patched version -->
             </dependency>
             <!-- needed for vertex lib 1.0.3 using 1.70.0 causing a crash in vertex call response -->
             <!--dependency>

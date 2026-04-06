@@ -243,6 +243,9 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public void clearSessionHistory(String chatId, LlmProvider provider) {
+        if (chatClientMap.get(provider).getSessionMessages(chatId).isEmpty()) {
+            throw new ChatNotFoundException(chatId);
+        }
         chatClientMap.get(provider).clearSessionHistory(chatId);
     }
 

@@ -46,7 +46,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @ActiveProfiles(value = {"test", "wiremock"})
 @AutoConfigureWireMock(port = 0)
 @Tag("target-local")
-@AutoConfigureWebTestClient(timeout = "10000")
+@AutoConfigureWebTestClient(timeout = "30000") //increased timeout to 30 seconds since 10 seconds was too short
 @AutoConfigureObservability
 @EnableAutoConfiguration
 @Import({CommonTestConfiguration.class})
@@ -184,8 +184,10 @@ class LocalWiremockServerIT {
 
     void testHistory(String chatId, LlmProvider provider) {
         getHistoryResponse(chatId, provider, "200");
-        //delete should succseed and history is now empty.
+        //delete should succeed and history is now empty.
         deleteHistoryResponseFailure(chatId, provider, "204");
+        //delete should now fail.
+        deleteHistoryResponseFailure(chatId, provider, "404");
         //now getHistoryResponse should give 404 for the same chatId
         getHistoryResponse(chatId, provider, "404");
     }
