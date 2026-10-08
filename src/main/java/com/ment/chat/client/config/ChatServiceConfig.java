@@ -28,12 +28,12 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Map;
 
-import static com.ment.chat.client.config.LlmConfig.LLM_ANTHROPIC_CLAUDE_4_5;
+import static com.ment.chat.client.config.LlmConfig.LLM_ANTHROPIC_CLAUDE_OPUS_5_5;
 import static com.ment.chat.client.config.LlmConfig.LLM_DOCKER_DEEPSEEK_R1;
 import static com.ment.chat.client.config.LlmConfig.LLM_GEMINI_2_5_PRO;
-import static com.ment.chat.client.config.LlmConfig.LLM_GROK_3_0;
+import static com.ment.chat.client.config.LlmConfig.LLM_GROK_4_7;
 import static com.ment.chat.client.config.LlmConfig.LLM_OLLAMA_QWEN_3;
-import static com.ment.chat.client.config.LlmConfig.LLM_OPEN_AI_GPT_5;
+import static com.ment.chat.client.config.LlmConfig.LLM_OPEN_AI_GPT_5_6_SOL;
 
 @Configuration
 @RequiredArgsConstructor
@@ -67,14 +67,14 @@ public class ChatServiceConfig {
     @Bean
     public ChatClientWithChatMemory openAiChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
         return mutateClient(baseChatModel,
-                nameToLlm(appProperties.models().get(LlmProvider.OPENAI).llmModelName(), LLM_OPEN_AI_GPT_5),
+                nameToLlm(appProperties.models().get(LlmProvider.OPENAI).llmModelName(), LLM_OPEN_AI_GPT_5_6_SOL),
                 appProperties.models().get(LlmProvider.OPENAI).apiConnection());
     }
 
     @Bean
     public ChatClientWithChatMemory grokChatClient(OpenAiChatModel baseChatModel, AppProperties appProperties) {
         return mutateClient(baseChatModel,
-                nameToLlm(appProperties.models().get(LlmProvider.GROK).llmModelName(), LLM_GROK_3_0),
+                nameToLlm(appProperties.models().get(LlmProvider.GROK).llmModelName(), LLM_GROK_4_7),
                 appProperties.models().get(LlmProvider.GROK).apiConnection());
     }
 
@@ -93,7 +93,7 @@ public class ChatServiceConfig {
     @Bean
     public ChatClientWithChatMemory anthropicChatClient(AppProperties appProperties) {
         return mutateAnthropicClient(
-                nameToLlm(appProperties.models().get(LlmProvider.ANTHROPIC).llmModelName(), LLM_ANTHROPIC_CLAUDE_4_5),
+                nameToLlm(appProperties.models().get(LlmProvider.ANTHROPIC).llmModelName(), LLM_ANTHROPIC_CLAUDE_OPUS_5_5),
                 appProperties.models().get(LlmProvider.ANTHROPIC).apiConnection());
     }
 

@@ -19,6 +19,7 @@ import static com.ment.chat.client.model.enums.LlmProvider.OPENAI;
 @Getter
 
 public enum LlmConfig {
+    //openai models: https://developers.openai.com/api/docs/models
     LLM_OPEN_AI_GPT_4O(OPENAI,"gpt-4o", null, 0.7d, HELPFUL_SYSTEM_NO_LIMIT),
     LLM_OPEN_AI_GPT_4O_MINI(OPENAI,"gpt-4o-mini", null, 0.7d, HELPFUL_SYSTEM_MAX_100),
     LLM_OPEN_AI_GPT_41_NANO(OPENAI,"gpt-4.1-nano", null, 0.7d, HELPFUL_SYSTEM_MAX_50),
@@ -26,15 +27,27 @@ public enum LlmConfig {
     LLM_OPEN_AI_GPT_5(OPENAI,"gpt-5",null, 1.0d, HELPFUL_SYSTEM_PUBLISH),
     LLM_OPEN_AI_GPT_5_MINI(OPENAI,"gpt-5-mini",null, 1.0d, HELPFUL_SYSTEM_MAX_100),
     LLM_OPEN_AI_GPT_5_NANO(OPENAI,"gpt-5-nano",null, 1.0d, HELPFUL_SYSTEM_MAX_50),
+    LLM_OPEN_AI_GPT_5_6_SOL(OPENAI,"gpt-5.6-sol",null, 1.0d, HELPFUL_SYSTEM_MAX_50),
 
+
+    //anthropic models: https://platform.claude.com/docs/en/models/overview
     LLM_ANTHROPIC_CLAUDE_4(ANTHROPIC,"claude-sonnet-4-20250514", 64000, 0.7d, HELPFUL_SYSTEM_PUBLISH),
     LLM_ANTHROPIC_CLAUDE_4_5(ANTHROPIC,"claude-sonnet-4-5-20250929", 64000, 0.8d, HELPFUL_SYSTEM_PUBLISH),
+    //temperature must be null, Sonnet 5.5 rejects sampling params: "temperature is deprecated for this model"
+    LLM_ANTHROPIC_CLAUDE_SONNET_5_5(ANTHROPIC,"claude-sonnet-5-5", 128000, null, HELPFUL_SYSTEM_PUBLISH),
+    LLM_ANTHROPIC_CLAUDE_OPUS_5_5(ANTHROPIC,"claude-opus-5-5", 128000, null, HELPFUL_SYSTEM_PUBLISH),
 
+
+    //gemini models: https://ai.google.dev/gemini-api/docs/models
     LLM_GEMINI_2_5_PRO(GEMINI, "gemini-2.5-pro", 64000, 1.0d, HELPFUL_SYSTEM_NO_LIMIT),
     LLM_GEMINI_2_5_FLASH(GEMINI, "gemini-2.5-flash", 64000, 1.0d, HELPFUL_SYSTEM_MAX_100),
+    LLM_GEMINI_3_7_FLASH(GEMINI, "gemini-3.7-flash", 64000, 1.0d, HELPFUL_SYSTEM_MAX_100),
 
+    //grok models: https://docs.x.ai/developers/models
     LLM_GROK_3_0(GROK, "grok-3", 64000, 1.0d, HELPFUL_SYSTEM_PUBLISH), //not available yet
     LLM_GROK_4_0_1(GROK, "grok-4-1-fast-non-reasoning", 64000, 1.0d, HELPFUL_SYSTEM_PUBLISH), //not available yet
+    LLM_GROK_4_7(GROK, "grok-4.7", 64000, 1.0d, HELPFUL_SYSTEM_PUBLISH), //not available yet
+
 
     //Gemma 3 causes exception: Conversation roles must alternate user/assistant/user/assistant/
     LLM_DOCKER_GEMMA_3(DOCKER, "ai/gemma3", null,0.7d, HELPFUL_SYSTEM_NO_LIMIT),
